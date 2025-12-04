@@ -77,6 +77,24 @@ export const sessions = sqliteTable(
   })
 );
 
+export const passwordResetTokens = sqliteTable(
+  'password_reset_tokens',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    token: text('token').notNull(),
+    expiresAt: integer('expires_at').notNull(),
+    usedAt: integer('used_at'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('password_reset_token_idx').on(table.token),
+    userIdx: index('password_reset_user_idx').on(table.userId),
+  })
+);
+
 // ============================================================================
 // USER FINANCIAL PROFILE
 // ============================================================================
