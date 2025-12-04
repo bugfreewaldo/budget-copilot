@@ -9,20 +9,14 @@ import type { CreateAccountInput } from '../../schemas/accounts.js';
  * Data access layer for accounts table
  */
 
-export async function findAllAccounts(
-  db: DatabaseInstance,
-  userId?: string
-) {
+export async function findAllAccounts(db: DatabaseInstance, userId?: string) {
   if (userId) {
     return await db.select().from(accounts).where(eq(accounts.userId, userId));
   }
   return await db.select().from(accounts);
 }
 
-export async function findAccountById(
-  db: DatabaseInstance,
-  id: string
-) {
+export async function findAccountById(db: DatabaseInstance, id: string) {
   const result = await db.select().from(accounts).where(eq(accounts.id, id));
   return result[0];
 }

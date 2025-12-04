@@ -31,10 +31,7 @@ export async function findAllCategories(
   return await db.select().from(categories);
 }
 
-export async function findCategoryById(
-  db: DatabaseInstance,
-  id: string
-) {
+export async function findCategoryById(db: DatabaseInstance, id: string) {
   const result = await db
     .select()
     .from(categories)

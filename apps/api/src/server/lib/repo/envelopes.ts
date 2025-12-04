@@ -23,10 +23,7 @@ export async function findEnvelopesByMonth(
   return await db.select().from(envelopes).where(eq(envelopes.month, month));
 }
 
-export async function findEnvelopeById(
-  db: DatabaseInstance,
-  id: string
-) {
+export async function findEnvelopeById(db: DatabaseInstance, id: string) {
   const result = await db.select().from(envelopes).where(eq(envelopes.id, id));
   return result[0];
 }

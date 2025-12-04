@@ -49,10 +49,7 @@ export async function findAllTransactions(
   return await db.select().from(transactions).orderBy(transactions.date);
 }
 
-export async function findTransactionById(
-  db: DatabaseInstance,
-  id: string
-) {
+export async function findTransactionById(db: DatabaseInstance, id: string) {
   const result = await db
     .select()
     .from(transactions)
@@ -103,9 +100,6 @@ export async function updateTransaction(
   return await findTransactionById(db, id);
 }
 
-export async function deleteTransaction(
-  db: DatabaseInstance,
-  id: string
-) {
+export async function deleteTransaction(db: DatabaseInstance, id: string) {
   await db.delete(transactions).where(eq(transactions.id, id));
 }
