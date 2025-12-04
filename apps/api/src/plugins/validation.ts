@@ -33,12 +33,41 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
 }
 
 /**
+ * Result type for safe validation
+ * Using explicit undefined types helps TypeScript narrow the union correctly
+ */
+export type SafeValidateSuccess<T> = {
+  success: true;
+  data: T;
+  errors?: undefined;
+};
+
+export type SafeValidateFailure = {
+  success: false;
+  data?: undefined;
+  errors: ValidationError[];
+};
+
+export type SafeValidateResult<T> =
+  | SafeValidateSuccess<T>
+  | SafeValidateFailure;
+
+/**
+ * Type guard to check if validation failed
+ */
+export function isValidationFailure<T>(
+  result: SafeValidateResult<T>
+): result is SafeValidateFailure {
+  return !result.success;
+}
+
+/**
  * Safe validation that returns either success or error
  */
 export function safeValidate<T>(
   schema: z.ZodSchema<T>,
   data: unknown
-): { success: true; data: T } | { success: false; errors: ValidationError[] } {
+): SafeValidateResult<T> {
   const result = schema.safeParse(data);
   if (result.success) {
     return { success: true, data: result.data };

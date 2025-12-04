@@ -29,17 +29,14 @@ import type {
 // Types
 export interface InboxItemWithSuggestion extends TransactionInboxItem {
   suggestedCategoryName?: string;
-  alternativeCategories?: Array<{
-    id: string;
-    name: string;
-    confidence: number;
-  }>;
+  alternativeCategories?: CategorySuggestion[];
 }
 
 export interface ApproveInboxItemParams {
   inboxItemId: string;
   categoryId: string;
   accountId: string;
+  userId: string;
   date?: string; // Override extracted date
   description?: string; // Override extracted description
   notes?: string;
@@ -152,6 +149,7 @@ export async function approveInboxItem(
   // Create the transaction
   const newTransaction: NewTransaction = {
     id: transactionId,
+    userId: params.userId,
     date: params.date || item.rawDate || new Date().toISOString().split('T')[0],
     description: params.description || item.rawDescription,
     amountCents: item.rawAmountCents,
@@ -226,7 +224,8 @@ export async function mergeInboxItem(
 export async function batchApproveInboxItems(
   itemIds: string[],
   categoryId: string,
-  accountId: string
+  accountId: string,
+  userId: string
 ): Promise<{ transactionIds: string[] }> {
   const transactionIds: string[] = [];
 
@@ -235,6 +234,7 @@ export async function batchApproveInboxItems(
       inboxItemId: itemId,
       categoryId,
       accountId,
+      userId,
     });
     transactionIds.push(result.transactionId);
   }

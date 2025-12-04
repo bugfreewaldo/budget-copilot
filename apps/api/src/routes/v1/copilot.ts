@@ -50,7 +50,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
       const { message, conversationHistory } = validation.data;
 
       // Get user ID from auth context (using test user for now)
-      const userId = request.userId || 'test-user-00000000000000000001';
+      const userId = request.user?.id || 'test-user-00000000000000000001';
 
       // Process message through copilot service
       const response = await copilotService.processMessage(
@@ -87,7 +87,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
       const { transactionId, categoryId } = validation.data;
 
       // Get user ID from auth context
-      const userId = request.userId || 'test-user-00000000000000000001';
+      const userId = request.user?.id || 'test-user-00000000000000000001';
 
       const success = await copilotService.updateTransactionCategory(
         transactionId,
