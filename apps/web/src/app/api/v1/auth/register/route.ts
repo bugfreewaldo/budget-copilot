@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-    response.cookies.set(SESSION_COOKIE_NAME, result.session.token, COOKIE_OPTIONS);
+    response.cookies.set(
+      SESSION_COOKIE_NAME,
+      result.session.token,
+      COOKIE_OPTIONS
+    );
 
     return response;
   } catch (error) {

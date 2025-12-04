@@ -20,7 +20,9 @@ export async function POST(request: NextRequest) {
 
     // In development, log the token
     if (token && process.env.NODE_ENV === 'development') {
-      console.log(`Password reset token for ${validation.data.email}: ${token}`);
+      console.log(
+        `Password reset token for ${validation.data.email}: ${token}`
+      );
     }
 
     // Always return success to prevent email enumeration

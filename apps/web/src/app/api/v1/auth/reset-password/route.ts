@@ -23,11 +23,16 @@ export async function POST(request: NextRequest) {
     );
 
     if (!success) {
-      return errorJson('VALIDATION_ERROR', 'Invalid or expired reset token', 400);
+      return errorJson(
+        'VALIDATION_ERROR',
+        'Invalid or expired reset token',
+        400
+      );
     }
 
     return NextResponse.json({
-      message: 'Password reset successful. Please login with your new password.',
+      message:
+        'Password reset successful. Please login with your new password.',
     });
   } catch (error) {
     if (error instanceof AuthError && error.code === 'WEAK_PASSWORD') {

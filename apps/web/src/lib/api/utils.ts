@@ -21,7 +21,12 @@ export const centsSchema = z.number().int('Must be an integer (cents)');
 // Error response types
 export interface ErrorResponse {
   error: {
-    code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'DB_ERROR' | 'INTERNAL_ERROR' | 'UNAUTHORIZED';
+    code:
+      | 'VALIDATION_ERROR'
+      | 'NOT_FOUND'
+      | 'DB_ERROR'
+      | 'INTERNAL_ERROR'
+      | 'UNAUTHORIZED';
     message: string;
     details?: Record<string, unknown>;
   };

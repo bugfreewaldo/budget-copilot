@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
     const user = await validateSession(sessionToken);
 
     if (!user) {
-      const response = errorJson('VALIDATION_ERROR', 'Session expired or invalid', 401);
+      const response = errorJson(
+        'VALIDATION_ERROR',
+        'Session expired or invalid',
+        401
+      );
       response.cookies.delete(SESSION_COOKIE_NAME);
       return response;
     }
