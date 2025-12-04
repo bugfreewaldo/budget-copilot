@@ -39,15 +39,44 @@ export interface CopilotResponse {
 // Category mapping with emojis
 const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
   Compras: {
-    patterns: ['ropa', 'zapatos', 'nike', 'zara', 'tienda', 'mall', 'amazon', 'compré', 'compras'],
+    patterns: [
+      'ropa',
+      'zapatos',
+      'nike',
+      'zara',
+      'tienda',
+      'mall',
+      'amazon',
+      'compré',
+      'compras',
+    ],
     emoji: '🛍️',
   },
   Supermercado: {
-    patterns: ['super', 'supermercado', 'mercado', 'walmart', 'costco', 'alimentos', 'groceries'],
+    patterns: [
+      'super',
+      'supermercado',
+      'mercado',
+      'walmart',
+      'costco',
+      'alimentos',
+      'groceries',
+    ],
     emoji: '🛒',
   },
   Restaurantes: {
-    patterns: ['restaurante', 'almuerzo', 'cena', 'desayuno', 'pizza', 'sushi', 'hamburguesa', 'mcdonald', 'comí', 'comida'],
+    patterns: [
+      'restaurante',
+      'almuerzo',
+      'cena',
+      'desayuno',
+      'pizza',
+      'sushi',
+      'hamburguesa',
+      'mcdonald',
+      'comí',
+      'comida',
+    ],
     emoji: '🍽️',
   },
   Café: {
@@ -55,23 +84,62 @@ const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
     emoji: '☕',
   },
   Transporte: {
-    patterns: ['uber', 'taxi', 'gasolina', 'gas', 'metro', 'bus', 'transporte', 'didi'],
+    patterns: [
+      'uber',
+      'taxi',
+      'gasolina',
+      'gas',
+      'metro',
+      'bus',
+      'transporte',
+      'didi',
+    ],
     emoji: '🚗',
   },
   Entretenimiento: {
-    patterns: ['cine', 'juegos', 'concierto', 'película', 'fiesta', 'bar', 'club'],
+    patterns: [
+      'cine',
+      'juegos',
+      'concierto',
+      'película',
+      'fiesta',
+      'bar',
+      'club',
+    ],
     emoji: '🎬',
   },
   Streaming: {
-    patterns: ['netflix', 'spotify', 'disney', 'hbo', 'prime', 'youtube', 'streaming'],
+    patterns: [
+      'netflix',
+      'spotify',
+      'disney',
+      'hbo',
+      'prime',
+      'youtube',
+      'streaming',
+    ],
     emoji: '📺',
   },
   Salud: {
-    patterns: ['farmacia', 'medicina', 'doctor', 'hospital', 'dentista', 'médico'],
+    patterns: [
+      'farmacia',
+      'medicina',
+      'doctor',
+      'hospital',
+      'dentista',
+      'médico',
+    ],
     emoji: '🏥',
   },
   Servicios: {
-    patterns: ['luz', 'agua', 'internet', 'teléfono', 'electricidad', 'factura'],
+    patterns: [
+      'luz',
+      'agua',
+      'internet',
+      'teléfono',
+      'electricidad',
+      'factura',
+    ],
     emoji: '💡',
   },
   Gimnasio: {
@@ -79,11 +147,25 @@ const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
     emoji: '💪',
   },
   Salario: {
-    patterns: ['salario', 'sueldo', 'quincena', 'pago', 'nómina', 'ingreso', 'trabajo'],
+    patterns: [
+      'salario',
+      'sueldo',
+      'quincena',
+      'pago',
+      'nómina',
+      'ingreso',
+      'trabajo',
+    ],
     emoji: '💰',
   },
   Freelance: {
-    patterns: ['freelance', 'proyecto', 'cliente', 'trabajo extra', 'consultoría'],
+    patterns: [
+      'freelance',
+      'proyecto',
+      'cliente',
+      'trabajo extra',
+      'consultoría',
+    ],
     emoji: '💻',
   },
 };
@@ -125,7 +207,9 @@ function parseMoneyToCents(moneyStr: string): number {
 /**
  * Suggest category from text
  */
-function suggestCategoryFromText(text: string): { name: string; emoji: string } | null {
+function suggestCategoryFromText(
+  text: string
+): { name: string; emoji: string } | null {
   const lowerText = text.toLowerCase();
 
   for (const [categoryName, config] of Object.entries(CATEGORY_CONFIG)) {
@@ -177,15 +261,22 @@ function extractTransactionFromText(text: string): {
   }
 
   // Extract date
-  let date = new Date().toISOString().split('T')[0] ?? new Date().toISOString().slice(0, 10);
+  let date =
+    new Date().toISOString().split('T')[0] ??
+    new Date().toISOString().slice(0, 10);
   if (lowerText.includes('ayer')) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    date = yesterday.toISOString().split('T')[0] ?? yesterday.toISOString().slice(0, 10);
+    date =
+      yesterday.toISOString().split('T')[0] ??
+      yesterday.toISOString().slice(0, 10);
   }
 
   // Determine income or expense
-  const isIncome = /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|me\s+pagar?on?/i.test(lowerText);
+  const isIncome =
+    /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|me\s+pagar?on?/i.test(
+      lowerText
+    );
   const type = isIncome ? 'income' : 'expense';
 
   // Extract description
@@ -205,7 +296,11 @@ function extractTransactionFromText(text: string): {
   }
 
   if (!description) {
-    description = text.replace(/\$?\d+(?:[.,]\d{2})?/g, '').replace(/gast[eéo]/gi, '').trim() || 'Gasto';
+    description =
+      text
+        .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
+        .replace(/gast[eéo]/gi, '')
+        .trim() || 'Gasto';
   }
 
   // Need more info if no amount
@@ -268,7 +363,10 @@ export async function processMessage(
       type: 'cash',
       createdAt: Date.now(),
     });
-    const [newAccount] = await db.select().from(accounts).where(eq(accounts.id, id));
+    const [newAccount] = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.id, id));
     if (!newAccount) {
       throw new Error('Failed to create default account');
     }
@@ -323,7 +421,10 @@ export async function processMessage(
       userId,
       date: txData.date,
       description: txData.description,
-      amountCents: txData.type === 'expense' ? -Math.abs(txData.amountCents) : Math.abs(txData.amountCents),
+      amountCents:
+        txData.type === 'expense'
+          ? -Math.abs(txData.amountCents)
+          : Math.abs(txData.amountCents),
       type: txData.type,
       categoryId,
       accountId: defaultAccount.id,
@@ -346,7 +447,9 @@ export async function processMessage(
 
     // Generate response
     const formattedAmount = (Math.abs(txData.amountCents) / 100).toFixed(2);
-    const categoryText = categoryName ? ` en ${categoryEmoji || ''} ${categoryName}` : '';
+    const categoryText = categoryName
+      ? ` en ${categoryEmoji || ''} ${categoryName}`
+      : '';
 
     let message: string;
     if (txData.type === 'income') {
@@ -354,7 +457,8 @@ export async function processMessage(
         `¡Eso! Llegaron $${formattedAmount} 💰${categoryText}`,
         `Niceee! $${formattedAmount}${categoryText}`,
       ] as const;
-      message = responses[Math.floor(Math.random() * responses.length)] ?? responses[0];
+      message =
+        responses[Math.floor(Math.random() * responses.length)] ?? responses[0];
     } else {
       const amount = Math.abs(txData.amountCents) / 100;
       if (amount < 20) {
@@ -366,7 +470,9 @@ export async function processMessage(
           `Uff, $${formattedAmount}${categoryText} 💸`,
           `Bueno bueno, $${formattedAmount}${categoryText}. ¿Estaba en el presupuesto?`,
         ] as const;
-        message = responses[Math.floor(Math.random() * responses.length)] ?? responses[0];
+        message =
+          responses[Math.floor(Math.random() * responses.length)] ??
+          responses[0];
       }
     }
 
@@ -402,7 +508,9 @@ export async function updateTransactionCategory(
   const [tx] = await db
     .select()
     .from(transactions)
-    .where(and(eq(transactions.id, transactionId), eq(transactions.userId, userId)));
+    .where(
+      and(eq(transactions.id, transactionId), eq(transactions.userId, userId))
+    );
 
   if (!tx) {
     return false;
