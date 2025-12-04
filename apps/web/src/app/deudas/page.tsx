@@ -77,7 +77,7 @@ export default function DeudasPage() {
   // Form state for payment
   const [payment, setPayment] = useState({
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().split('T')[0]!,
   });
 
   const handleAddDebt = async (e: React.FormEvent) => {
@@ -124,7 +124,7 @@ export default function DeudasPage() {
         payment_date: payment.date,
       });
       setShowPaymentModal(null);
-      setPayment({ amount: '', date: new Date().toISOString().split('T')[0] });
+      setPayment({ amount: '', date: new Date().toISOString().split('T')[0]! });
       refresh();
     } catch (err) {
       console.error('Failed to record payment:', err);

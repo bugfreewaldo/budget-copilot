@@ -16,7 +16,7 @@ export const envelopeSchema = z.object({
   categoryId: z.string(),
   month: z.string(),
   budgetCents: z.number(),
-  createdAt: z.date(),
+  createdAt: z.number(), // Unix timestamp
 });
 
 // Envelope with computed spending

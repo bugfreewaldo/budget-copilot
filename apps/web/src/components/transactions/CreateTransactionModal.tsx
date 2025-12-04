@@ -64,7 +64,7 @@ export function CreateTransactionModal({
               setAccountId(null);
             }
           } else {
-            setAccountId(result[0].id);
+            setAccountId(result[0]!.id);
           }
         })
         .catch(() => setAccountId(null));

@@ -296,24 +296,26 @@ export async function getRecentSummaries(
 
 async function getAccountBalances(): Promise<AccountBalance[]> {
   const db = await getDb();
-  const allAccounts = await db.query.accounts.findMany();
+  const { accounts } = await import('../../db/schema.js');
+  const allAccounts = await db.select().from(accounts);
 
   const balances: AccountBalance[] = [];
 
   for (const account of allAccounts) {
     // Calculate balance from transactions
-    const txResult = await db
-      .select({
-        total: sql<number>`COALESCE(SUM(amount_cents), 0)`,
-      })
+    const txList = await db
+      .select()
       .from(transactions)
       .where(eq(transactions.accountId, account.id));
+
+    // Sum up all transactions for this account
+    const total = txList.reduce((sum, tx) => sum + tx.amountCents, 0);
 
     balances.push({
       id: account.id,
       name: account.name,
       type: account.type,
-      balanceCents: txResult[0]?.total || 0,
+      balanceCents: total,
     });
   }
 

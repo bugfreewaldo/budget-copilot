@@ -13,7 +13,7 @@ import * as schema from './schema';
  * 2. Otherwise -> use SQL.js (local file-based SQLite)
  */
 
-type DatabaseInstance =
+export type DatabaseInstance =
   | BetterSQLite3Database<typeof schema>
   | LibSQLDatabase<typeof schema>;
 
@@ -126,7 +126,7 @@ async function initializeSqlJs(): Promise<
       wasmBuffer.byteOffset + wasmBuffer.byteLength
     );
 
-    SQL = await initSqlJs({ wasmBinary });
+    SQL = (await initSqlJs({ wasmBinary })) as unknown as SqlJsStatic;
   }
 
   const dbPath = process.env.DATABASE_URL || config.databaseUrl;

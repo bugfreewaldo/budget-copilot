@@ -29,7 +29,9 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
       const body = summarizeRequestSchema.parse(request.body);
 
       // Redact PII from transactions
-      const safeTransactions = redactTransactions(body.transactions);
+      const safeTransactions = redactTransactions(
+        body.transactions as { date: string | Date; description: string; amount: number }[]
+      );
 
       // Build prompt
       const transactionList = safeTransactions

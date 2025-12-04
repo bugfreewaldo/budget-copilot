@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { nanoid } from 'nanoid';
-import type * as schema from '../../../db/schema.js';
+import type { DatabaseInstance } from '../../../db/client.js';
 import { accounts } from '../../../db/schema.js';
 import type { CreateAccountInput } from '../../schemas/accounts.js';
 
@@ -11,7 +10,7 @@ import type { CreateAccountInput } from '../../schemas/accounts.js';
  */
 
 export async function findAllAccounts(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   userId?: string
 ) {
   if (userId) {
@@ -21,7 +20,7 @@ export async function findAllAccounts(
 }
 
 export async function findAccountById(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string
 ) {
   const result = await db.select().from(accounts).where(eq(accounts.id, id));
@@ -29,7 +28,7 @@ export async function findAccountById(
 }
 
 export async function createAccount(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   input: CreateAccountInput & { userId: string }
 ) {
   const id = nanoid();

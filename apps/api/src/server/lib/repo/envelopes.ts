@@ -1,7 +1,6 @@
 import { and, eq, gte, lt } from 'drizzle-orm';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { nanoid } from 'nanoid';
-import type * as schema from '../../../db/schema.js';
+import type { DatabaseInstance } from '../../../db/client.js';
 import { envelopes, transactions } from '../../../db/schema.js';
 import type { CreateEnvelopeInput } from '../../schemas/envelopes.js';
 
@@ -11,7 +10,7 @@ import type { CreateEnvelopeInput } from '../../schemas/envelopes.js';
  */
 
 export async function findEnvelopesByMonth(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   month: string,
   userId?: string
 ) {
@@ -25,7 +24,7 @@ export async function findEnvelopesByMonth(
 }
 
 export async function findEnvelopeById(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string
 ) {
   const result = await db.select().from(envelopes).where(eq(envelopes.id, id));
@@ -33,7 +32,7 @@ export async function findEnvelopeById(
 }
 
 export async function findEnvelopeByCategoryMonth(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   categoryId: string,
   month: string
 ) {
@@ -47,7 +46,7 @@ export async function findEnvelopeByCategoryMonth(
 }
 
 export async function upsertEnvelope(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   input: CreateEnvelopeInput & { userId: string }
 ) {
   // Check if envelope exists
@@ -87,7 +86,7 @@ export async function upsertEnvelope(
  * Returns negative spending (expenses)
  */
 export async function calculateEnvelopeSpending(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   categoryId: string,
   month: string
 ): Promise<number> {

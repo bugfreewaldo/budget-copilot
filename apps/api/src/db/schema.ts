@@ -849,6 +849,7 @@ export const goals = sqliteTable(
   'goals',
   {
     id: text('id').primaryKey(),
+    userId: text('user_id').notNull(), // Owner of this goal
 
     // Goal definition
     name: text('name').notNull(),
@@ -903,6 +904,7 @@ export const goals = sqliteTable(
     completedAt: integer('completed_at'),
   },
   (table) => ({
+    userIdx: index('goal_user_idx').on(table.userId),
     statusIdx: index('goal_status_idx').on(table.status),
     typeIdx: index('goal_type_idx').on(table.goalType),
   })

@@ -1,7 +1,6 @@
 import { eq, and } from 'drizzle-orm';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { nanoid } from 'nanoid';
-import type * as schema from '../../../db/schema.js';
+import type { DatabaseInstance } from '../../../db/client.js';
 import { categories } from '../../../db/schema.js';
 import type { CreateCategoryInput } from '../../schemas/categories.js';
 
@@ -11,7 +10,7 @@ import type { CreateCategoryInput } from '../../schemas/categories.js';
  */
 
 export async function findAllCategories(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   options?: { parentId?: string; userId?: string }
 ) {
   const conditions = [];
@@ -33,7 +32,7 @@ export async function findAllCategories(
 }
 
 export async function findCategoryById(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string
 ) {
   const result = await db
@@ -44,7 +43,7 @@ export async function findCategoryById(
 }
 
 export async function createCategory(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   input: CreateCategoryInput & { userId: string }
 ) {
   const id = nanoid();
@@ -64,7 +63,7 @@ export async function createCategory(
 }
 
 export async function findCategoryByName(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   userId: string,
   name: string
 ) {

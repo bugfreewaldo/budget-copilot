@@ -1,7 +1,6 @@
 import { and, eq, gte, lte, like } from 'drizzle-orm';
-import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import { nanoid } from 'nanoid';
-import type * as schema from '../../../db/schema.js';
+import type { DatabaseInstance } from '../../../db/client.js';
 import { transactions } from '../../../db/schema.js';
 import type {
   CreateTransactionInput,
@@ -15,7 +14,7 @@ import type {
  */
 
 export async function findAllTransactions(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   query: ListTransactionsQuery & { userId?: string }
 ) {
   const conditions = [];
@@ -51,7 +50,7 @@ export async function findAllTransactions(
 }
 
 export async function findTransactionById(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string
 ) {
   const result = await db
@@ -62,7 +61,7 @@ export async function findTransactionById(
 }
 
 export async function createTransaction(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   input: CreateTransactionInput & { userId: string }
 ) {
   const id = nanoid();
@@ -87,7 +86,7 @@ export async function createTransaction(
 }
 
 export async function updateTransaction(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string,
   input: UpdateTransactionInput
 ) {
@@ -105,7 +104,7 @@ export async function updateTransaction(
 }
 
 export async function deleteTransaction(
-  db: BetterSQLite3Database<typeof schema>,
+  db: DatabaseInstance,
   id: string
 ) {
   await db.delete(transactions).where(eq(transactions.id, id));

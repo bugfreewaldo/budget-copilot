@@ -25,7 +25,7 @@ import { CreateTransactionModal } from '@/components/transactions';
 function getLastDayOfMonth(): string {
   const now = new Date();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return lastDay.toISOString().split('T')[0];
+  return lastDay.toISOString().split('T')[0]!;
 }
 
 /**

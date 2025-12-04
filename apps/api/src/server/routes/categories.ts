@@ -24,10 +24,9 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      const categories = await categoryRepo.findAllCategories(
-        db,
-        validation.data.parentId
-      );
+      const categories = await categoryRepo.findAllCategories(db, {
+        parentId: validation.data.parentId,
+      });
 
       return reply.send({ data: categories });
     } catch (error) {
@@ -51,7 +50,13 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      const category = await categoryRepo.createCategory(db, validation.data);
+      // For now, use a default test user ID
+      // TODO: Replace with actual authentication when auth routes are ready
+      const userId = 'test-user-id';
+      const category = await categoryRepo.createCategory(db, {
+        ...validation.data,
+        userId,
+      });
 
       // Save database after mutation
       saveDatabase();

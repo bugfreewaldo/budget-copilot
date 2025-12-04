@@ -356,12 +356,14 @@ export default function HomePage() {
       }, 50);
       return () => clearTimeout(timeout);
     } else if (typedText.length === fullText.length) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         setIsTyping(false);
         setTypedText('');
         setTimeout(() => setIsTyping(true), 1000);
       }, 2000);
+      return () => clearTimeout(timeout);
     }
+    return undefined;
   }, [typedText, isTyping]);
 
   return (
@@ -540,15 +542,15 @@ export default function HomePage() {
                     <div
                       className={`text-6xl lg:text-8xl mb-3 lg:mb-4 transition-all duration-500 transform hover:scale-110`}
                     >
-                      {weatherStates[currentWeather].emoji}
+                      {weatherStates[currentWeather]!.emoji}
                     </div>
                     <h3
-                      className={`text-xl lg:text-2xl font-bold mb-2 bg-gradient-to-r ${weatherStates[currentWeather].color} bg-clip-text text-transparent`}
+                      className={`text-xl lg:text-2xl font-bold mb-2 bg-gradient-to-r ${weatherStates[currentWeather]!.color} bg-clip-text text-transparent`}
                     >
-                      {weatherStates[currentWeather].status}
+                      {weatherStates[currentWeather]!.status}
                     </h3>
                     <p className="text-sm lg:text-base text-gray-300">
-                      {weatherStates[currentWeather].message}
+                      {weatherStates[currentWeather]!.message}
                     </p>
                   </div>
 
@@ -909,7 +911,7 @@ export default function HomePage() {
                   key={`q-${activeQuestion}`}
                 >
                   <div className="bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-2xl rounded-br-md px-4 py-3 max-w-[80%] shadow-lg">
-                    <p>{demoConversations[activeQuestion].question}</p>
+                    <p>{demoConversations[activeQuestion]!.question}</p>
                   </div>
                 </div>
 
@@ -945,7 +947,7 @@ export default function HomePage() {
                   >
                     <div className="bg-gray-800 text-gray-100 rounded-2xl rounded-bl-md px-4 py-3 max-w-[85%] shadow-lg">
                       <p className="mb-3 text-gray-300">
-                        {demoConversations[activeQuestion].response.thinking}
+                        {demoConversations[activeQuestion]!.response.thinking}
                       </p>
                       <div className="bg-gray-700/50 rounded-xl p-3 mb-3 border border-gray-600/30">
                         <p className="text-sm text-gray-400 mb-2 font-medium">
@@ -954,7 +956,7 @@ export default function HomePage() {
                         <ul className="text-sm space-y-1.5">
                           {demoConversations[
                             activeQuestion
-                          ].response.analysis.map((item, i) => (
+                          ]!.response.analysis.map((item, i) => (
                             <li key={i} className="flex items-center gap-2">
                               <span>{item.icon}</span>
                               <span className="text-gray-300">
@@ -966,15 +968,15 @@ export default function HomePage() {
                         </ul>
                       </div>
                       <p
-                        className={`font-medium ${demoConversations[activeQuestion].response.verdict.positive ? 'text-green-400' : 'text-yellow-400'}`}
+                        className={`font-medium ${demoConversations[activeQuestion]!.response.verdict.positive ? 'text-green-400' : 'text-yellow-400'}`}
                       >
                         {
-                          demoConversations[activeQuestion].response.verdict
+                          demoConversations[activeQuestion]!.response.verdict
                             .text
                         }
                       </p>
                       <p className="text-sm text-gray-400 mt-3 pt-3 border-t border-gray-700/50">
-                        💡 {demoConversations[activeQuestion].response.tip}
+                        💡 {demoConversations[activeQuestion]!.response.tip}
                       </p>
                     </div>
                   </div>
