@@ -26,15 +26,18 @@ export function parseCSV(
   delimiter: string = ','
 ): Record<string, string>[] {
   const lines = csvContent.trim().split('\n');
-  if (lines.length === 0) {
+  const firstLine = lines[0];
+  if (lines.length === 0 || !firstLine) {
     return [];
   }
 
-  const headers = lines[0].split(delimiter).map((h) => h.trim());
+  const headers = firstLine.split(delimiter).map((h) => h.trim());
   const rows: Record<string, string>[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(delimiter).map((v) => v.trim());
+    const line = lines[i];
+    if (!line) continue;
+    const values = line.split(delimiter).map((v) => v.trim());
     const row: Record<string, string> = {};
 
     headers.forEach((header, index) => {
@@ -60,8 +63,12 @@ export function parseDate(dateString: string): Date {
   // Try MM/DD/YYYY
   const parts = dateString.split(/[/-]/);
   if (parts.length === 3) {
-    const [month, day, year] = parts.map(Number);
-    return new Date(year, month - 1, day);
+    const month = Number(parts[0]);
+    const day = Number(parts[1]);
+    const year = Number(parts[2]);
+    if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+      return new Date(year, month - 1, day);
+    }
   }
 
   throw new Error(`Unable to parse date: ${dateString}`);
@@ -100,9 +107,15 @@ export function csvToTransactions(
 
   for (const [index, row] of rows.entries()) {
     try {
-      const date = parseDate(row[options.mapping.dateColumn]);
+      const dateValue = row[options.mapping.dateColumn];
+      const amountValue = row[options.mapping.amountColumn];
+      if (!dateValue || !amountValue) {
+        console.warn(`Row ${index} missing required date or amount`);
+        continue;
+      }
+      const date = parseDate(dateValue);
       const description = row[options.mapping.descriptionColumn] || 'Unknown';
-      const amount = parseAmount(row[options.mapping.amountColumn]);
+      const amount = parseAmount(amountValue);
       const account =
         options.mapping.accountColumn
           ? row[options.mapping.accountColumn] || accountId
