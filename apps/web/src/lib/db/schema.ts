@@ -1,0 +1,330 @@
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
+
+/**
+ * Database schema for Budget Copilot
+ * Shared schema for both API and Web serverless functions
+ */
+
+// ============================================================================
+// USER AUTHENTICATION & IDENTITY
+// ============================================================================
+
+export const users = sqliteTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    email: text('email').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    name: text('name'),
+    avatarUrl: text('avatar_url'),
+    emailVerified: integer('email_verified', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    emailVerifiedAt: integer('email_verified_at'),
+    status: text('status', {
+      enum: ['active', 'suspended', 'deleted'],
+    })
+      .notNull()
+      .default('active'),
+    preferences: text('preferences'),
+    plan: text('plan', {
+      enum: ['free', 'pro', 'premium'],
+    })
+      .notNull()
+      .default('free'),
+    planExpiresAt: integer('plan_expires_at'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    lastLoginAt: integer('last_login_at'),
+  },
+  (table) => ({
+    emailIdx: uniqueIndex('user_email_idx').on(table.email),
+    statusIdx: index('user_status_idx').on(table.status),
+  })
+);
+
+export const sessions = sqliteTable(
+  'sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    token: text('token').notNull(),
+    userAgent: text('user_agent'),
+    ipAddress: text('ip_address'),
+    deviceType: text('device_type', { enum: ['web', 'mobile', 'desktop'] }),
+    expiresAt: integer('expires_at').notNull(),
+    isValid: integer('is_valid', { mode: 'boolean' }).notNull().default(true),
+    revokedAt: integer('revoked_at'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('session_token_idx').on(table.token),
+    userIdx: index('session_user_idx').on(table.userId),
+    expiresIdx: index('session_expires_idx').on(table.expiresAt),
+  })
+);
+
+// ============================================================================
+// USER FINANCIAL PROFILE
+// ============================================================================
+
+export const userProfiles = sqliteTable(
+  'user_profiles',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    onboardingStep: integer('onboarding_step').notNull().default(0),
+    monthlySalaryCents: integer('monthly_salary_cents'),
+    payFrequency: text('pay_frequency', {
+      enum: ['weekly', 'biweekly', 'semimonthly', 'monthly'],
+    }),
+    nextPayday: text('next_payday'),
+    monthlySavingsGoalCents: integer('monthly_savings_goal_cents'),
+    emergencyFundGoalCents: integer('emergency_fund_goal_cents'),
+    dailySpendingLimitCents: integer('daily_spending_limit_cents'),
+    weeklySpendingLimitCents: integer('weekly_spending_limit_cents'),
+    copilotTone: text('copilot_tone', {
+      enum: ['friendly', 'sassy', 'strict', 'gentle'],
+    }).default('sassy'),
+    receiveProactiveTips: integer('receive_proactive_tips', {
+      mode: 'boolean',
+    }).default(true),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: uniqueIndex('user_profile_user_idx').on(table.userId),
+  })
+);
+
+// ============================================================================
+// CORE FINANCIAL ENTITIES
+// ============================================================================
+
+export const accounts = sqliteTable(
+  'accounts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    institution: text('institution'),
+    type: text('type', {
+      enum: ['checking', 'savings', 'credit', 'cash'],
+    }).notNull(),
+    currentBalanceCents: integer('current_balance_cents').default(0),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('account_user_idx').on(table.userId),
+  })
+);
+
+export const categories = sqliteTable(
+  'categories',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    parentId: text('parent_id'),
+    emoji: text('emoji'),
+    color: text('color'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('category_user_idx').on(table.userId),
+  })
+);
+
+export const envelopes = sqliteTable(
+  'envelopes',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    categoryId: text('category_id').notNull(),
+    month: text('month').notNull(),
+    budgetCents: integer('budget_cents').notNull(),
+    spentCents: integer('spent_cents').notNull().default(0),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('envelope_user_idx').on(table.userId),
+    monthCategoryIdx: index('envelope_month_category_idx').on(
+      table.month,
+      table.categoryId
+    ),
+  })
+);
+
+export const transactions = sqliteTable(
+  'transactions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    date: text('date').notNull(),
+    description: text('description').notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    type: text('type', { enum: ['income', 'expense'] }).notNull(),
+    categoryId: text('category_id'),
+    accountId: text('account_id').notNull(),
+    cleared: integer('cleared', { mode: 'boolean' }).notNull().default(false),
+    notes: text('notes'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('transaction_user_idx').on(table.userId),
+    dateIdx: index('transaction_date_idx').on(table.date),
+    categoryIdx: index('transaction_category_idx').on(table.categoryId),
+    accountIdx: index('transaction_account_idx').on(table.accountId),
+  })
+);
+
+// ============================================================================
+// DEBT COPILOT
+// ============================================================================
+
+export const debts = sqliteTable(
+  'debts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    type: text('type', {
+      enum: [
+        'credit_card',
+        'personal_loan',
+        'auto_loan',
+        'mortgage',
+        'student_loan',
+        'medical',
+        'other',
+      ],
+    }).notNull(),
+    accountId: text('account_id'),
+    originalBalanceCents: integer('original_balance_cents').notNull(),
+    currentBalanceCents: integer('current_balance_cents').notNull(),
+    aprPercent: real('apr_percent').notNull(),
+    minimumPaymentCents: integer('minimum_payment_cents'),
+    dueDay: integer('due_day'),
+    nextDueDate: text('next_due_date'),
+    status: text('status', {
+      enum: ['active', 'paid_off', 'defaulted', 'deferred'],
+    })
+      .notNull()
+      .default('active'),
+    deathDate: text('death_date'),
+    totalInterestProjectedCents: integer('total_interest_projected_cents'),
+    dangerScore: integer('danger_score'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    statusIdx: index('debt_status_idx').on(table.status),
+    dangerIdx: index('debt_danger_idx').on(table.dangerScore),
+  })
+);
+
+// ============================================================================
+// GOALS
+// ============================================================================
+
+export const goals = sqliteTable(
+  'goals',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    description: text('description'),
+    emoji: text('emoji'),
+    targetAmountCents: integer('target_amount_cents').notNull(),
+    currentAmountCents: integer('current_amount_cents').notNull().default(0),
+    targetDate: text('target_date'),
+    startDate: text('start_date').notNull(),
+    goalType: text('goal_type', {
+      enum: [
+        'savings',
+        'debt_payoff',
+        'purchase',
+        'emergency_fund',
+        'investment',
+        'other',
+      ],
+    }).notNull(),
+    linkedDebtId: text('linked_debt_id'),
+    linkedAccountId: text('linked_account_id'),
+    progressPercent: real('progress_percent').notNull().default(0),
+    onTrack: integer('on_track', { mode: 'boolean' }).default(true),
+    projectedCompletionDate: text('projected_completion_date'),
+    recommendedMonthlyCents: integer('recommended_monthly_cents'),
+    status: text('status', {
+      enum: ['active', 'completed', 'paused', 'abandoned'],
+    })
+      .notNull()
+      .default('active'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    completedAt: integer('completed_at'),
+  },
+  (table) => ({
+    userIdx: index('goal_user_idx').on(table.userId),
+    statusIdx: index('goal_status_idx').on(table.status),
+    typeIdx: index('goal_type_idx').on(table.goalType),
+  })
+);
+
+// ============================================================================
+// TYPE EXPORTS
+// ============================================================================
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Account = typeof accounts.$inferSelect;
+export type NewAccount = typeof accounts.$inferInsert;
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;
+export type Envelope = typeof envelopes.$inferSelect;
+export type NewEnvelope = typeof envelopes.$inferInsert;
+export type Transaction = typeof transactions.$inferSelect;
+export type NewTransaction = typeof transactions.$inferInsert;
+export type Debt = typeof debts.$inferSelect;
+export type NewDebt = typeof debts.$inferInsert;
+export type Goal = typeof goals.$inferSelect;
+export type NewGoal = typeof goals.$inferInsert;

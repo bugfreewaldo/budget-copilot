@@ -3,7 +3,8 @@
  * Handles all HTTP requests to the backend API
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Use Next.js API routes (same origin)
+const API_BASE_URL = '/api';
 
 // ============================================================================
 // Authentication

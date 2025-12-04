@@ -125,6 +125,15 @@ importers:
       '@budget-copilot/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@libsql/client':
+        specifier: ^0.15.15
+        version: 0.15.15
+      drizzle-orm:
+        specifier: ^0.29.2
+        version: 0.29.5(@libsql/client@0.15.15)(@types/react@18.3.26)(react@18.3.1)
+      nanoid:
+        specifier: ^5.0.4
+        version: 5.1.6
       next:
         specifier: ^14.0.4
         version: 14.2.33(react-dom@18.3.1)(react@18.3.1)
@@ -140,6 +149,9 @@ importers:
       swr:
         specifier: ^2.3.7
         version: 2.3.7(react@18.3.1)
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       '@budget-copilot/config':
         specifier: workspace:*
@@ -3615,6 +3627,82 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /drizzle-orm@0.29.5(@libsql/client@0.15.15)(@types/react@18.3.26)(react@18.3.1):
+    resolution: {integrity: sha512-jS3+uyzTz4P0Y2CICx8FmRQ1eplURPaIMWDn/yq6k4ShRFj9V7vlJk67lSf2kyYPzQ60GkkNGXcJcwrxZ6QCRw==}
+    peerDependencies:
+      '@aws-sdk/client-rds-data': '>=3'
+      '@cloudflare/workers-types': '>=3'
+      '@libsql/client': '*'
+      '@neondatabase/serverless': '>=0.1'
+      '@opentelemetry/api': ^1.4.1
+      '@planetscale/database': '>=1'
+      '@types/better-sqlite3': '*'
+      '@types/pg': '*'
+      '@types/react': '>=18'
+      '@types/sql.js': '*'
+      '@vercel/postgres': '*'
+      better-sqlite3: '>=7'
+      bun-types: '*'
+      expo-sqlite: '>=13.2.0'
+      knex: '*'
+      kysely: '*'
+      mysql2: '>=2'
+      pg: '>=8'
+      postgres: '>=3'
+      react: '>=18'
+      sql.js: '>=1'
+      sqlite3: '>=5'
+    peerDependenciesMeta:
+      '@aws-sdk/client-rds-data':
+        optional: true
+      '@cloudflare/workers-types':
+        optional: true
+      '@libsql/client':
+        optional: true
+      '@neondatabase/serverless':
+        optional: true
+      '@opentelemetry/api':
+        optional: true
+      '@planetscale/database':
+        optional: true
+      '@types/better-sqlite3':
+        optional: true
+      '@types/pg':
+        optional: true
+      '@types/react':
+        optional: true
+      '@types/sql.js':
+        optional: true
+      '@vercel/postgres':
+        optional: true
+      better-sqlite3:
+        optional: true
+      bun-types:
+        optional: true
+      expo-sqlite:
+        optional: true
+      knex:
+        optional: true
+      kysely:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+      postgres:
+        optional: true
+      react:
+        optional: true
+      sql.js:
+        optional: true
+      sqlite3:
+        optional: true
+    dependencies:
+      '@libsql/client': 0.15.15
+      '@types/react': 18.3.26
+      react: 18.3.1
+    dev: false
 
   /drizzle-orm@0.29.5(@libsql/client@0.15.15)(@types/sql.js@1.4.9)(sql.js@1.13.0):
     resolution: {integrity: sha512-jS3+uyzTz4P0Y2CICx8FmRQ1eplURPaIMWDn/yq6k4ShRFj9V7vlJk67lSf2kyYPzQ60GkkNGXcJcwrxZ6QCRw==}
