@@ -1,0 +1,18 @@
+# Development Dockerfile for API service
+FROM node:20-alpine
+
+RUN npm install -g pnpm@8.15.1
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install
+
+# Source code is mounted as volume in docker-compose.dev.yml
+
+EXPOSE 4000
+
+CMD ["pnpm", "--filter", "api", "dev"]

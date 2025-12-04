@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for production
+  postgres:
+    image: postgres:16-alpine
+    container_name: budget-copilot-db
+    environment:
+      POSTGRES_USER: budget_user
+      POSTGRES_PASSWORD: budget_password
+      POSTGRES_DB: budget_copilot
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U budget_user -d budget_copilot']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer for database management
+  adminer:
+    image: adminer:latest
+    container_name: budget-copilot-adminer
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: nette
+
+  # API service
+  api:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: budget-copilot-api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://budget_user:budget_password@postgres:5432/budget_copilot
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../../apps/api:/app/apps/api
+      - /app/node_modules
+      - /app/apps/api/node_modules
+
+volumes:
+  postgres_data:
+    driver: local

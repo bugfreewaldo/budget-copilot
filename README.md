@@ -1,327 +1,291 @@
-<h1 align="center">💸 Budget Copilot 🤖</h1>
+# Budget Copilot
 
-<p align="center">
-  <strong>Your AI-powered companion for stress-free budgeting, debt payoff, and smarter money decisions.</strong>
-</p>
+<div align="center">
 
-<p align="center">
-  <em>Plan better. Spend intentionally. Let AI help you stay on track.</em>
-</p>
+**AI-Powered Budget Management & Financial Insights**
 
-<hr />
+[![CI Status](https://img.shields.io/github/workflow/status/yourusername/budget-copilot/CI?label=CI&logo=github)](https://github.com/yourusername/budget-copilot/actions)
+[![License](https://img.shields.io/badge/license-TBD-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-8.15-orange?logo=pnpm)](https://pnpm.io/)
+[![Turborepo](https://img.shields.io/badge/Turborepo-latest-red?logo=turborepo)](https://turbo.build/repo)
 
-<h2>📌 What is Budget Copilot?</h2>
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
 
-<p>
-  <strong>Budget Copilot</strong> is an AI-assisted budgeting web app designed to help regular people understand, plan, and improve their personal finances without needing to be financial experts.
-  The goal is to provide a friendly “copilot” experience that:
-</p>
+</div>
 
-<ul>
-  <li>Helps you organize your income, fixed expenses, debts, and goals 💼</li>
-  <li>Gives smart suggestions powered by AI to reduce financial stress 🧠</li>
-  <li>Guides you step-by-step toward debt freedom and savings milestones 🪜</li>
-  <li>Makes money management feel manageable, not overwhelming 💚</li>
-</ul>
+---
 
-<p>
-  The long-term vision is to support both <strong>web</strong> and <strong>mobile</strong> (Android/iOS) apps, with an architecture that remains as low-cost as possible for the developer (me 🙋‍♂️) while still feeling premium to the user.
-</p>
+## Overview
 
-<hr />
+Budget Copilot is an intelligent budget tracking application that combines envelope budgeting with AI-powered insights. Track your spending, categorize transactions automatically, and get personalized financial recommendations—all while keeping your data private and secure.
 
-<h2>🎯 Core Goals</h2>
+### Key Highlights
 
-<ul>
-  <li><strong>Accessibility:</strong> Make budgeting and debt planning understandable for non-technical, non-finance users.</li>
-  <li><strong>Automation:</strong> Use AI to analyze spending patterns, debts, and goals, and give tailored insights.</li>
-  <li><strong>Low friction:</strong> Fast initial setup, minimal data entry, and quick wins for motivation.</li>
-  <li><strong>Sustainability:</strong> Keep infrastructure costs close to zero using free/low-tier services whenever possible.</li>
-  <li><strong>Scalability:</strong> Design the app so it can eventually power a real SaaS product.</li>
-</ul>
+- 🤖 **AI-Powered Insights** - Get intelligent spending analysis and recommendations
+- 📊 **Envelope Budgeting** - Allocate funds to digital envelopes and track in real-time
+- 🔒 **Privacy-First** - PII redaction before AI processing, local-first data storage
+- 🎨 **Modern Stack** - Next.js 14, TypeScript, Tailwind CSS, Fastify
+- 📦 **Monorepo** - Clean architecture with Turborepo and pnpm workspaces
+- 🐳 **Docker Ready** - Easy deployment with Docker Compose
+- 🌐 **Cloud Ready** - SQLite for local dev, PostgreSQL for production
 
-<hr />
+---
 
-<h2>✨ Key Features (Planned)</h2>
+## Features
 
-<h3>1. Onboarding & Financial Snapshot 🧾</h3>
-<ul>
-  <li>Simple onboarding wizard to capture:
-    <ul>
-      <li>Monthly income</li>
-      <li>Fixed expenses (rent, utilities, subscriptions, etc.)</li>
-      <li>Debt accounts (credit cards, loans)</li>
-      <li>Savings goals (emergency fund, travel, etc.)</li>
-    </ul>
-  </li>
-  <li>Instant overview: “Here’s where your money goes each month.”</li>
-</ul>
+### Current (MVP)
 
-<h3>2. AI Budget Assistant 🤖</h3>
-<ul>
-  <li>Natural language interface:
-    <em>“Help me build a budget with $3,000/month and $10,000 in credit card debt.”</em></li>
-  <li>AI-generated suggestions for:
-    <ul>
-      <li>Debt payment strategies (snowball, avalanche, etc.)</li>
-      <li>Spending optimizations</li>
-      <li>Realistic saving targets</li>
-    </ul>
-  </li>
-  <li>Explanations in plain, friendly language (no heavy jargon).</li>
-</ul>
+- ✅ Transaction import from CSV
+- ✅ Automatic transaction categorization
+- ✅ Envelope budgeting system
+- ✅ Monthly variance analysis
+- ✅ Spending projections
+- ✅ AI-powered transaction summaries
+- ✅ Dashboard with budget overview
 
-<h3>3. Debt Payoff Planning 💳🔥</h3>
-<ul>
-  <li>Register multiple debts (balance, interest rate, minimum payment).</li>
-  <li>Simulate payoff timelines based on different strategies.</li>
-  <li>Visual timelines and charts to show:
-    <ul>
-      <li>When each debt will be fully paid</li>
-      <li>Total interest saved</li>
-    </ul>
-  </li>
-</ul>
+### Planned (Beta)
 
-<h3>4. Monthly Budget & Cash Flow 📅</h3>
-<ul>
-  <li>Breakdown of:
-    <ul>
-      <li>Income</li>
-      <li>Fixed costs</li>
-      <li>Variable/discretionary spending</li>
-      <li>Debt payments</li>
-      <li>Savings</li>
-    </ul>
-  </li>
-  <li>AI suggestions if:
-    <ul>
-      <li>Spending looks too tight</li>
-      <li>There is room to accelerate debt payoff</li>
-      <li>Emergency fund is underfunded</li>
-    </ul>
-  </li>
-</ul>
+- 🔄 Bank account integration (Plaid)
+- 📱 Mobile app (React Native/Expo)
+- 📧 Budget alerts and notifications
+- 📈 Advanced analytics and charts
+- 🎯 Goal tracking
+- 👥 Multi-user support
 
-<h3>5. Insights & Coaching 🧭</h3>
-<ul>
-  <li>Contextual tips like:
-    <ul>
-      <li>“If you keep this pace, you’ll finish paying off your debt in X months.”</li>
-      <li>“If you add $100 extra per month, you’d save $Y in interest.”</li>
-    </ul>
-  </li>
-  <li>Future plans: weekly email or in-app “budget checkups.”</li>
-</ul>
+See the full [roadmap](docs/roadmap.md) for details.
 
-<h3>6. Future Mobile App 📱</h3>
-<ul>
-  <li>Long-term plan to wrap the core Budget Copilot logic into:
-    <ul>
-      <li>React Native / Expo app, or</li>
-      <li>Another cross-platform approach</li>
-    </ul>
-  </li>
-  <li>Seamless sync between web and mobile.</li>
-</ul>
+---
 
-<hr />
+## Architecture
 
-<h2>🧱 Tech Stack (Subject to Change)</h2>
+This is a TypeScript monorepo built with:
 
-<p><em>These are initial ideas; the stack may evolve as the project grows.</em></p>
-
-<ul>
-  <li><strong>Frontend:</strong> React / Next.js (or another modern frontend framework)</li>
-  <li><strong>Backend:</strong> Node.js / TypeScript API (possibly serverless for low cost)</li>
-  <li><strong>Database:</strong> A low-cost or free-tier database (e.g., PostgreSQL, MongoDB, or a serverless DB)</li>
-  <li><strong>AI Integration:</strong> External LLM provider for smart suggestions</li>
-  <li><strong>Hosting:</strong> Free/low-cost platforms (e.g., Vercel, Netlify, Render, etc.)</li>
-</ul>
-
-<hr />
-
-<h2>🏗️ Project Structure (Planned)</h2>
-
-<pre>
+```
 budget-copilot/
-  ├── frontend/          # Web UI
-  ├── backend/           # API + business logic
-  ├── shared/            # Shared types, models, utilities
-  ├── docs/              # Diagrams, specs, notes
-  ├── .github/           # GitHub workflows (CI/CD)
-  └── README.md          # This file
-</pre>
+├── apps/
+│   ├── web/         # Next.js 14 web app
+│   ├── api/         # Fastify API service
+│   └── mobile/      # React Native app (planned)
+├── packages/
+│   ├── ui/          # Shared React components
+│   ├── core/        # Domain logic (framework-agnostic)
+│   ├── ai/          # LLM provider adapters
+│   └── config/      # Shared configs (ESLint, Prettier, etc.)
+├── infra/
+│   ├── docker/      # Docker Compose setup
+│   └── terraform/   # IaC (planned)
+└── docs/            # Documentation
+```
 
-<p>
-  This structure may change as the project matures, but the goal is to keep a clean separation between the UI, backend, and any shared logic.
-</p>
+For more details, see [Architecture Documentation](docs/architecture.md).
 
-<hr />
+---
 
-<h2>🚀 Getting Started (Developer Setup)</h2>
+## Quick Start
 
-<p><em>Note: These instructions are placeholders and will be updated as the implementation is built.</em></p>
+### Prerequisites
 
-<ol>
-  <li><strong>Clone the repository</strong>
-    <pre><code>git clone https://github.com/bugfreewaldo/budget-copilot.git
-cd budget-copilot</code></pre>
-  </li>
+- [Node.js](https://nodejs.org/) ≥ 20.0.0
+- [pnpm](https://pnpm.io/) ≥ 8.0.0
 
-  <li><strong>Install dependencies</strong>
-    <p>From the frontend and backend folders:</p>
-    <pre><code>cd frontend
-npm install
+### Installation
 
-cd ../backend
-npm install</code></pre>
-  </li>
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/budget-copilot.git
+cd budget-copilot
 
-  <li><strong>Configure environment variables</strong>
-    <p>Create a <code>.env</code> (or equivalent) file with your configuration:</p>
-    <ul>
-      <li>API keys for AI provider</li>
-      <li>Database connection string</li>
-      <li>App URLs, secrets, etc.</li>
-    </ul>
-  </li>
+# Install dependencies
+pnpm install
 
-  <li><strong>Run the development servers</strong>
-    <pre><code># Example (will be adjusted to the actual stack)
-cd frontend
-npm run dev
+# Set up environment variables
+cp apps/web/.env.example apps/web/.env
+cp apps/api/.env.example apps/api/.env
 
-cd ../backend
-npm run dev</code></pre>
-  </li>
+# (Optional) Add your OpenAI or Anthropic API key to apps/api/.env
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=sk-...
 
-  <li><strong>Open the app</strong>
-    <p>Visit <code>http://localhost:3000</code> (or the relevant port) in your browser.</p>
-  </li>
-</ol>
+# Run database migrations
+pnpm --filter api db:migrate
 
-<hr />
+# Seed sample data (optional, creates 1 account, 3 categories, envelopes & transactions)
+pnpm --filter api db:seed
+```
 
-<h2>🧪 Testing</h2>
+### Development
 
-<p>Testing approach (to be defined more concretely later):</p>
+```bash
+# Run all apps in development mode
+pnpm dev
 
-<ul>
-  <li>Unit tests for core budgeting and payoff logic.</li>
-  <li>Integration tests for API routes.</li>
-  <li>End-to-end tests for critical flows like:
-    <ul>
-      <li>Creating a budget</li>
-      <li>Registering debts</li>
-      <li>Viewing payoff simulations</li>
-    </ul>
-  </li>
-</ul>
+# Or run specific apps
+pnpm --filter api dev    # API on http://localhost:4000
+pnpm --filter web dev    # Web app on http://localhost:3000
 
-<hr />
+# Or use shortcuts
+pnpm api:dev    # API on http://localhost:4000
+pnpm web:dev    # Web app on http://localhost:3000
+```
 
-<h2>🧠 AI Ethics, Safety & Privacy</h2>
+**API Endpoints**: [http://localhost:4000/health](http://localhost:4000/health)
+**Web App**: [http://localhost:3000](http://localhost:3000)
 
-<p>
-  Since Budget Copilot will use AI to provide financial suggestions, it’s important to be transparent:
-</p>
+### Building
 
-<ul>
-  <li><strong>Not financial advice:</strong> The tool provides educational insights, not professional financial advice.</li>
-  <li><strong>User control:</strong> Users always remain in control of their decisions.</li>
-  <li><strong>Data privacy:</strong> Any integration with third-party AI providers should be clearly documented and limited to what is strictly necessary.</li>
-</ul>
+```bash
+# Build all packages and apps
+pnpm build
 
-<p>
-  As the project evolves, a dedicated <code>PRIVACY.md</code> and clear disclaimers will be added.
-</p>
+# Run production build
+cd apps/web && pnpm start
+cd apps/api && pnpm start
+```
 
-<hr />
+### Docker
 
-<h2>📈 Roadmap</h2>
+```bash
+# Start with PostgreSQL
+cd infra/docker
+docker-compose up -d
 
-<ol>
-  <li><strong>Phase 1 – MVP</strong>
-    <ul>
-      <li>Basic web UI</li>
-      <li>Manual input of income, expenses, and debts</li>
-      <li>Simple AI-powered suggestions via a single chat-like interface</li>
-    </ul>
-  </li>
-  <li><strong>Phase 2 – Visualizations & Payoff Plans</strong>
-    <ul>
-      <li>Charts and timelines for payoff</li>
-      <li>Scenarios: snowball vs avalanche</li>
-      <li>Improved UX for editing/revising budget</li>
-    </ul>
-  </li>
-  <li><strong>Phase 3 – Accounts & Persistence</strong>
-    <ul>
-      <li>User accounts & authentication</li>
-      <li>Persistent storage of budgets and scenarios</li>
-      <li>Basic notification system (email or in-app)</li>
-    </ul>
-  </li>
-  <li><strong>Phase 4 – Mobile App</strong>
-    <ul>
-      <li>React Native / Expo app leveraging the same backend</li>
-      <li>Optimized mobile UX for on-the-go insights</li>
-    </ul>
-  </li>
-  <li><strong>Phase 5 – Monetization (Optional)</strong>
-    <ul>
-      <li>Premium features (advanced simulations, exports, multi-profile support, etc.)</li>
-      <li>Subscription model or one-time upgrades</li>
-    </ul>
-  </li>
-</ol>
+# View logs
+docker-compose logs -f
 
-<hr />
+# Stop services
+docker-compose down
+```
 
-<h2>🤝 Contributing</h2>
+---
 
-<p>
-  For now, this project is in early development and primarily maintained by the original author.
-  Once the base architecture is stable, contribution guidelines will be added, including:
-</p>
+## Project Structure
 
-<ul>
-  <li>How to open issues</li>
-  <li>How to propose features</li>
-  <li>Branch naming and PR conventions</li>
-</ul>
+| Package/App | Description | Tech Stack |
+|------------|-------------|------------|
+| `apps/web` | Next.js web application | Next.js 14, React 18, Tailwind CSS |
+| `apps/api` | Fastify REST API | Fastify, Drizzle ORM, Zod |
+| `apps/mobile` | Mobile app (planned) | React Native, Expo |
+| `packages/ui` | Shared UI components | React, Tailwind CSS |
+| `packages/core` | Domain logic | Pure TypeScript, Vitest |
+| `packages/ai` | LLM provider adapters | OpenAI SDK, Anthropic SDK |
+| `packages/config` | Shared configs | ESLint, Prettier, TypeScript |
 
-<p>
-  If you’re interested in contributing ideas or feedback early, feel free to open an Issue and share your thoughts. 💬
-</p>
+---
 
-<hr />
+## Scripts
 
-<h2>📜 License</h2>
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm build` | Build all packages and apps |
+| `pnpm lint` | Lint all packages |
+| `pnpm test` | Run all tests |
+| `pnpm format` | Format code with Prettier |
+| `pnpm web:dev` | Run web app only |
+| `pnpm api:dev` | Run API service only |
 
-<p>
-  The license for this project is still being decided. For now, please assume that all rights are reserved by the author and that code should not be reused in other projects without explicit permission.
-</p>
+---
 
-<p>
-  This section will be updated once a specific open-source or source-available license is chosen.
-</p>
+## Documentation
 
-<hr />
+- [Architecture](docs/architecture.md) - System design and data flow
+- [Privacy Policy](docs/privacy.md) - Data handling and PII redaction
+- [Roadmap](docs/roadmap.md) - Feature timeline and milestones
+- [Docker Setup](infra/docker/README.md) - Docker deployment guide
 
-<h2>📬 Contact</h2>
+---
 
-<p>
-  If you want to talk about Budget Copilot, suggest ideas, or discuss collaboration, feel free to reach out:
-</p>
+## Contributing
 
-<ul>
-  <li><strong>Project maintainer:</strong> PhD. Osvaldo Restrepo</li>
-  <li><strong>Email:</strong>me@osvaldorestrepo.dev</li>
-  <li><strong>Website:https://osvaldorestrepo.dev</strong></li>
-</ul>
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
 
-<p align="center">
-  <em>Thank you for checking out Budget Copilot! Let’s build something that actually helps people breathe easier about their money. 💚 Please always give due credit.</em>
-</p>
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/amazing-feature`)
+3. Make your changes
+4. Run tests and linting (`pnpm test && pnpm lint`)
+5. Commit using conventional commits (`git commit -m 'feat: add amazing feature'`)
+6. Push to your fork (`git push origin feat/amazing-feature`)
+7. Open a Pull Request
+
+### Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `style:` Code style changes (formatting, etc.)
+- `refactor:` Code refactoring
+- `test:` Adding or updating tests
+- `chore:` Maintenance tasks
+
+---
+
+## Tech Stack
+
+### Frontend
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript 5.3
+- **Styling**: Tailwind CSS 3.4
+- **UI Components**: Custom component library
+- **State**: React Hooks
+
+### Backend
+
+- **Framework**: Fastify 4
+- **Language**: TypeScript 5.3
+- **ORM**: Drizzle ORM
+- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **Validation**: Zod
+
+### AI/ML
+
+- **Providers**: OpenAI, Anthropic (Claude)
+- **Features**: Transaction summarization, spending insights
+- **Privacy**: PII redaction before API calls
+
+### DevOps
+
+- **Monorepo**: Turborepo + pnpm workspaces
+- **CI/CD**: GitHub Actions
+- **Containers**: Docker, Docker Compose
+- **IaC**: Terraform (planned)
+- **Linting**: ESLint, Prettier
+- **Git Hooks**: Husky, lint-staged, commitlint
+
+---
+
+## License
+
+License TBD - This project is currently private.
+
+---
+
+## Acknowledgments
+
+Built with:
+- [Next.js](https://nextjs.org/)
+- [Turborepo](https://turbo.build/repo)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Fastify](https://fastify.dev/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+- [OpenAI](https://openai.com/)
+- [Anthropic](https://www.anthropic.com/)
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#budget-copilot)**
+
+Made with ❤️ using TypeScript and modern web technologies
+
+**Project Maintainer**: PhD. Osvaldo Restrepo
+**Email**: me@osvaldorestrepo.dev
+**Website**: https://osvaldorestrepo.dev
+
+</div>

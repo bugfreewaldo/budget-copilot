@@ -1,0 +1,10 @@
+{
+  "name": "mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Budget Copilot mobile app (React Native/Expo) - Coming Soon",
+  "main": "index.js",
+  "scripts": {
+    "placeholder": "echo 'Mobile app coming soon!'"
+  }
+}

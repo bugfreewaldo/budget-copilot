@@ -1,0 +1,36 @@
+{
+  "name": "@budget-copilot/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-agnostic domain logic for budget management",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./categories": "./src/categories.ts",
+    "./envelopes": "./src/envelopes.ts",
+    "./projections": "./src/projections.ts",
+    "./csv-parser": "./src/csv-parser.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@budget-copilot/config": "workspace:*",
+    "@types/node": "^20.10.6",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  }
+}
