@@ -176,7 +176,7 @@ export default function DeudasPage() {
         </h2>
         <p className="text-gray-400 text-center max-w-md mb-6">
           {isNetworkError
-            ? 'Asegúrate de que el servidor API esté corriendo en http://localhost:4000'
+            ? 'El servidor no está disponible. Intenta recargar la página.'
             : 'Hubo un problema al cargar las deudas. Intenta recargar la página.'}
         </p>
         <div className="flex gap-4">

@@ -19,7 +19,7 @@ import type {
   GoalSummary,
 } from './api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = '/api';
 
 // Generic fetcher for SWR
 const fetcher = async <T>(url: string): Promise<T> => {
