@@ -72,16 +72,23 @@ curl -X POST http://localhost:4000/v1/import-transactions \
 import { csvToTransactions, parseCSV } from '@budget-copilot/core/csv-parser';
 import fs from 'fs';
 
-const csvContent = fs.readFileSync('data/samples/transactions-sample.csv', 'utf-8');
+const csvContent = fs.readFileSync(
+  'data/samples/transactions-sample.csv',
+  'utf-8'
+);
 
-const transactions = csvToTransactions(csvContent, {
-  mapping: {
-    dateColumn: 'Date',
-    descriptionColumn: 'Description',
-    amountColumn: 'Amount',
+const transactions = csvToTransactions(
+  csvContent,
+  {
+    mapping: {
+      dateColumn: 'Date',
+      descriptionColumn: 'Description',
+      amountColumn: 'Amount',
+    },
+    delimiter: ',',
   },
-  delimiter: ',',
-}, 'checking');
+  'checking'
+);
 
 console.log(`Imported ${transactions.length} transactions`);
 ```
@@ -99,17 +106,17 @@ To create your own sample data:
 
 When importing, you can test auto-categorization with these patterns:
 
-| Pattern | Category |
-|---------|----------|
-| "Grocery", "Whole Foods", "Trader Joes" | Groceries |
-| "Gas", "Shell", "BP", "Chevron" | Transportation |
-| "Electric", "Water", "Internet", "Phone" | Utilities |
-| "Restaurant", "Coffee", "Starbucks" | Dining Out |
-| "Netflix", "Spotify", "Movie" | Entertainment |
-| "Pharmacy", "CVS", "Doctor" | Healthcare |
-| "Gym", "Fitness" | Health & Fitness |
-| "Rent" | Housing |
-| "Insurance" | Insurance |
+| Pattern                                  | Category         |
+| ---------------------------------------- | ---------------- |
+| "Grocery", "Whole Foods", "Trader Joes"  | Groceries        |
+| "Gas", "Shell", "BP", "Chevron"          | Transportation   |
+| "Electric", "Water", "Internet", "Phone" | Utilities        |
+| "Restaurant", "Coffee", "Starbucks"      | Dining Out       |
+| "Netflix", "Spotify", "Movie"            | Entertainment    |
+| "Pharmacy", "CVS", "Doctor"              | Healthcare       |
+| "Gym", "Fitness"                         | Health & Fitness |
+| "Rent"                                   | Housing          |
+| "Insurance"                              | Insurance        |
 
 ## Tips
 

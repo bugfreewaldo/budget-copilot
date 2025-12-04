@@ -1,6 +1,12 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
 
 /**
  * Simple toast notification system
@@ -87,8 +93,8 @@ function ToastItem({
     toast.type === 'success'
       ? 'bg-green-600'
       : toast.type === 'error'
-      ? 'bg-red-600'
-      : 'bg-blue-600';
+        ? 'bg-red-600'
+        : 'bg-blue-600';
 
   return (
     <div

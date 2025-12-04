@@ -58,14 +58,19 @@ export async function getCurrentUser(): Promise<{ user: User } | null> {
       credentials: 'include',
     });
   } catch (error) {
-    if (error instanceof ApiError && (error.statusCode === 401 || error.statusCode === 0)) {
+    if (
+      error instanceof ApiError &&
+      (error.statusCode === 401 || error.statusCode === 0)
+    ) {
       return null;
     }
     throw error;
   }
 }
 
-export async function forgotPassword(email: string): Promise<{ message: string }> {
+export async function forgotPassword(
+  email: string
+): Promise<{ message: string }> {
   return await fetchApi<{ message: string }>('/v1/auth/forgot-password', {
     method: 'POST',
     body: JSON.stringify({ email }),
@@ -73,7 +78,10 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   });
 }
 
-export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+export async function resetPassword(
+  token: string,
+  password: string
+): Promise<{ message: string }> {
   return await fetchApi<{ message: string }>('/v1/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify({ token, password }),
@@ -81,7 +89,10 @@ export async function resetPassword(token: string, password: string): Promise<{ 
   });
 }
 
-export async function changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ message: string }> {
   return await fetchApi<{ message: string }>('/v1/auth/change-password', {
     method: 'POST',
     body: JSON.stringify({ currentPassword, newPassword }),
@@ -267,16 +278,13 @@ export async function updateCategory(
     parent_id?: string | null;
   }
 ): Promise<Category> {
-  const response = await fetchApi<{ data: Category }>(
-    `/v1/categories/${id}`,
-    {
-      method: 'PATCH',
-      headers: {
-        'Idempotency-Key': crypto.randomUUID(),
-      },
-      body: JSON.stringify(input),
-    }
-  );
+  const response = await fetchApi<{ data: Category }>(`/v1/categories/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify(input),
+  });
   return response.data;
 }
 
@@ -511,7 +519,11 @@ export interface CopilotResponse {
   transaction?: ExtractedTransaction;
   transactionCreated?: boolean;
   transactionId?: string;
-  suggestedCategories?: Array<{ id: string; name: string; emoji: string | null }>;
+  suggestedCategories?: Array<{
+    id: string;
+    name: string;
+    emoji: string | null;
+  }>;
   needsMoreInfo?: boolean;
   missingFields?: string[];
 }
@@ -528,13 +540,16 @@ export async function sendCopilotMessage(
   message: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<CopilotResponse> {
-  const response = await fetchApi<{ data: CopilotResponse }>('/v1/copilot/chat', {
-    method: 'POST',
-    headers: {
-      'Idempotency-Key': crypto.randomUUID(),
-    },
-    body: JSON.stringify({ message, conversationHistory }),
-  });
+  const response = await fetchApi<{ data: CopilotResponse }>(
+    '/v1/copilot/chat',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ message, conversationHistory }),
+    }
+  );
   return response.data;
 }
 
@@ -572,7 +587,14 @@ export async function getCopilotQuickActions(): Promise<QuickAction[]> {
 // Debts (Copiloto de Deudas)
 // ============================================================================
 
-export type DebtType = 'credit_card' | 'personal_loan' | 'auto_loan' | 'mortgage' | 'student_loan' | 'medical' | 'other';
+export type DebtType =
+  | 'credit_card'
+  | 'personal_loan'
+  | 'auto_loan'
+  | 'mortgage'
+  | 'student_loan'
+  | 'medical'
+  | 'other';
 export type DebtStatus = 'active' | 'paid_off' | 'defaulted' | 'deferred';
 
 export interface Debt {
@@ -643,8 +665,12 @@ export async function listDebts(params?: {
   );
 }
 
-export async function getDebt(id: string): Promise<Debt & { payments: DebtPayment[] }> {
-  const response = await fetchApi<{ data: Debt & { payments: DebtPayment[] } }>(`/v1/debts/${id}`);
+export async function getDebt(
+  id: string
+): Promise<Debt & { payments: DebtPayment[] }> {
+  const response = await fetchApi<{ data: Debt & { payments: DebtPayment[] } }>(
+    `/v1/debts/${id}`
+  );
   return response.data;
 }
 
@@ -699,13 +725,16 @@ export async function recordDebtPayment(
     payment_date: string;
   }
 ): Promise<DebtPayment> {
-  const response = await fetchApi<{ data: DebtPayment }>(`/v1/debts/${debtId}/payments`, {
-    method: 'POST',
-    headers: {
-      'Idempotency-Key': crypto.randomUUID(),
-    },
-    body: JSON.stringify(input),
-  });
+  const response = await fetchApi<{ data: DebtPayment }>(
+    `/v1/debts/${debtId}/payments`,
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify(input),
+    }
+  );
   return response.data;
 }
 
@@ -719,7 +748,9 @@ export async function deleteDebt(id: string): Promise<void> {
 }
 
 export async function getDebtStrategies(): Promise<DebtStrategies> {
-  const response = await fetchApi<{ data: DebtStrategies }>('/v1/debts/strategies');
+  const response = await fetchApi<{ data: DebtStrategies }>(
+    '/v1/debts/strategies'
+  );
   return response.data;
 }
 
@@ -727,7 +758,13 @@ export async function getDebtStrategies(): Promise<DebtStrategies> {
 // Goals (Seguimiento de Metas)
 // ============================================================================
 
-export type GoalType = 'savings' | 'debt_payoff' | 'purchase' | 'emergency_fund' | 'investment' | 'other';
+export type GoalType =
+  | 'savings'
+  | 'debt_payoff'
+  | 'purchase'
+  | 'emergency_fund'
+  | 'investment'
+  | 'other';
 export type GoalStatus = 'active' | 'completed' | 'paused' | 'abandoned';
 
 export interface Goal {
@@ -829,17 +866,28 @@ export async function updateGoal(
 export async function contributeToGoal(
   goalId: string,
   amountCents: number
-): Promise<{ data: Goal; contribution: { amountCents: number; newTotalCents: number; isCompleted: boolean } }> {
-  const response = await fetchApi<{ data: Goal; contribution: { amountCents: number; newTotalCents: number; isCompleted: boolean } }>(
-    `/v1/goals/${goalId}/contribute`,
-    {
-      method: 'POST',
-      headers: {
-        'Idempotency-Key': crypto.randomUUID(),
-      },
-      body: JSON.stringify({ amount_cents: amountCents }),
-    }
-  );
+): Promise<{
+  data: Goal;
+  contribution: {
+    amountCents: number;
+    newTotalCents: number;
+    isCompleted: boolean;
+  };
+}> {
+  const response = await fetchApi<{
+    data: Goal;
+    contribution: {
+      amountCents: number;
+      newTotalCents: number;
+      isCompleted: boolean;
+    };
+  }>(`/v1/goals/${goalId}/contribute`, {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify({ amount_cents: amountCents }),
+  });
   return response;
 }
 

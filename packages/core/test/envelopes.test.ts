@@ -77,6 +77,8 @@ describe('Envelope Functions', () => {
       },
     ];
 
-    expect(getEnvelopeStatus(mockEnvelope, warningTransactions)).toBe('warning');
+    expect(getEnvelopeStatus(mockEnvelope, warningTransactions)).toBe(
+      'warning'
+    );
   });
 });

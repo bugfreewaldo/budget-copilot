@@ -91,7 +91,8 @@ export function projectSpending(
       1
     );
 
-    const trendMultiplier = trend === 'stable' ? 1 : trend === 'increasing' ? 1.05 : 0.95;
+    const trendMultiplier =
+      trend === 'stable' ? 1 : trend === 'increasing' ? 1.05 : 0.95;
     const projected = average * Math.pow(trendMultiplier, i);
 
     // Confidence decreases with time

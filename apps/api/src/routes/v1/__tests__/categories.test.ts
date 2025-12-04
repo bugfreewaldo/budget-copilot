@@ -16,8 +16,8 @@ let server: FastifyInstance;
 let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
 
 beforeAll(async () => {
-  testDb = await setupIsolatedDb();  // Set DB path first
-  server = await buildServer();      // Then build server (will use that path)
+  testDb = await setupIsolatedDb(); // Set DB path first
+  server = await buildServer(); // Then build server (will use that path)
 });
 
 afterAll(async () => {

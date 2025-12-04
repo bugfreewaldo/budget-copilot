@@ -72,12 +72,18 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     .get();
 
   if (existing) {
-    throw new AuthError('EMAIL_EXISTS', 'An account with this email already exists');
+    throw new AuthError(
+      'EMAIL_EXISTS',
+      'An account with this email already exists'
+    );
   }
 
   // Validate password strength
   if (password.length < 8) {
-    throw new AuthError('WEAK_PASSWORD', 'Password must be at least 8 characters');
+    throw new AuthError(
+      'WEAK_PASSWORD',
+      'Password must be at least 8 characters'
+    );
   }
 
   // Create user
@@ -207,7 +213,9 @@ export async function logout(sessionToken: string): Promise<void> {
 /**
  * Validate a session token and return the user
  */
-export async function validateSession(sessionToken: string): Promise<User | null> {
+export async function validateSession(
+  sessionToken: string
+): Promise<User | null> {
   const db = await getDb();
   const tokenHash = hashToken(sessionToken);
   const now = Date.now();
@@ -253,7 +261,9 @@ export async function validateSession(sessionToken: string): Promise<User | null
 /**
  * Create a password reset token
  */
-export async function createPasswordResetToken(email: string): Promise<string | null> {
+export async function createPasswordResetToken(
+  email: string
+): Promise<string | null> {
   const db = await getDb();
 
   // Find user
@@ -314,7 +324,10 @@ export async function resetPassword(
 
   // Validate password strength
   if (newPassword.length < 8) {
-    throw new AuthError('WEAK_PASSWORD', 'Password must be at least 8 characters');
+    throw new AuthError(
+      'WEAK_PASSWORD',
+      'Password must be at least 8 characters'
+    );
   }
 
   // Update password
@@ -340,7 +353,9 @@ export async function resetPassword(
 /**
  * Create email verification token
  */
-export async function createEmailVerificationToken(userId: string): Promise<string> {
+export async function createEmailVerificationToken(
+  userId: string
+): Promise<string> {
   const db = await getDb();
 
   // Delete any existing tokens for this user
@@ -405,11 +420,7 @@ export async function verifyEmail(token: string): Promise<boolean> {
 export async function getUserById(userId: string): Promise<User | null> {
   const db = await getDb();
 
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .get();
+  const user = await db.select().from(users).where(eq(users.id, userId)).get();
 
   if (!user) {
     return null;
@@ -456,11 +467,7 @@ export async function changePassword(
   const db = await getDb();
 
   // Get user
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .get();
+  const user = await db.select().from(users).where(eq(users.id, userId)).get();
 
   if (!user) {
     return false;
@@ -474,7 +481,10 @@ export async function changePassword(
 
   // Validate new password strength
   if (newPassword.length < 8) {
-    throw new AuthError('WEAK_PASSWORD', 'Password must be at least 8 characters');
+    throw new AuthError(
+      'WEAK_PASSWORD',
+      'Password must be at least 8 characters'
+    );
   }
 
   // Update password

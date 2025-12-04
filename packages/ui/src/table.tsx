@@ -1,4 +1,9 @@
-import { HTMLAttributes, forwardRef, ThHTMLAttributes, TdHTMLAttributes } from 'react';
+import {
+  HTMLAttributes,
+  forwardRef,
+  ThHTMLAttributes,
+  TdHTMLAttributes,
+} from 'react';
 import { clsx } from 'clsx';
 
 export interface TableProps extends HTMLAttributes<HTMLTableElement> {}
@@ -24,25 +29,24 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
 
 Table.displayName = 'Table';
 
-export interface TableHeaderProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableHeaderProps
+  extends HTMLAttributes<HTMLTableSectionElement> {}
 
-export const TableHeader = forwardRef<HTMLTableSectionElement, TableHeaderProps>(
-  ({ className, children, ...props }, ref) => {
-    return (
-      <thead
-        ref={ref}
-        className={clsx('bg-gray-50', className)}
-        {...props}
-      >
-        {children}
-      </thead>
-    );
-  }
-);
+export const TableHeader = forwardRef<
+  HTMLTableSectionElement,
+  TableHeaderProps
+>(({ className, children, ...props }, ref) => {
+  return (
+    <thead ref={ref} className={clsx('bg-gray-50', className)} {...props}>
+      {children}
+    </thead>
+  );
+});
 
 TableHeader.displayName = 'TableHeader';
 
-export interface TableBodyProps extends HTMLAttributes<HTMLTableSectionElement> {}
+export interface TableBodyProps
+  extends HTMLAttributes<HTMLTableSectionElement> {}
 
 export const TableBody = forwardRef<HTMLTableSectionElement, TableBodyProps>(
   ({ className, children, ...props }, ref) => {
@@ -78,7 +82,8 @@ export const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
 
 TableRow.displayName = 'TableRow';
 
-export interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {}
+export interface TableHeadProps
+  extends ThHTMLAttributes<HTMLTableCellElement> {}
 
 export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
   ({ className, children, ...props }, ref) => {
@@ -99,14 +104,18 @@ export const TableHead = forwardRef<HTMLTableCellElement, TableHeadProps>(
 
 TableHead.displayName = 'TableHead';
 
-export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {}
+export interface TableCellProps
+  extends TdHTMLAttributes<HTMLTableCellElement> {}
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
   ({ className, children, ...props }, ref) => {
     return (
       <td
         ref={ref}
-        className={clsx('px-6 py-4 whitespace-nowrap text-sm text-gray-900', className)}
+        className={clsx(
+          'px-6 py-4 whitespace-nowrap text-sm text-gray-900',
+          className
+        )}
         {...props}
       >
         {children}

@@ -22,12 +22,15 @@ interface TransactionCopilotProps {
   onTransactionCreated?: () => void;
 }
 
-export function TransactionCopilot({ onTransactionCreated }: TransactionCopilotProps) {
+export function TransactionCopilot({
+  onTransactionCreated,
+}: TransactionCopilotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'Hola! Soy tu copiloto de presupuesto. Cuéntame tus gastos y los registraré por ti. Por ejemplo: "Gasté $50 en ropa en Nike"',
+      content:
+        'Hola! Soy tu copiloto de presupuesto. Cuéntame tus gastos y los registraré por ti. Por ejemplo: "Gasté $50 en ropa en Nike"',
     },
   ]);
   const [input, setInput] = useState('');
@@ -73,7 +76,10 @@ export function TransactionCopilot({ onTransactionCreated }: TransactionCopilotP
         }));
 
       // Send to API
-      const response = await sendCopilotMessage(userMessage, conversationHistory);
+      const response = await sendCopilotMessage(
+        userMessage,
+        conversationHistory
+      );
 
       // Add assistant response
       const assistantMsgId = (Date.now() + 1).toString();
@@ -108,7 +114,10 @@ export function TransactionCopilot({ onTransactionCreated }: TransactionCopilotP
     }
   };
 
-  const handleCategoryChange = async (transactionId: string, categoryId: string) => {
+  const handleCategoryChange = async (
+    transactionId: string,
+    categoryId: string
+  ) => {
     try {
       await updateCopilotTransactionCategory(transactionId, categoryId);
       setMessages((prev) =>
@@ -222,26 +231,28 @@ export function TransactionCopilot({ onTransactionCreated }: TransactionCopilotP
                 )}
 
                 {/* Show category suggestions */}
-                {msg.suggestedCategories && msg.suggestedCategories.length > 0 && msg.transactionId && (
-                  <div className="mt-2 pt-2 border-t border-gray-700/50">
-                    <p className="text-xs text-gray-400 mb-2">
-                      ¿Cambiar categoría?
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {msg.suggestedCategories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          onClick={() =>
-                            handleCategoryChange(msg.transactionId!, cat.id)
-                          }
-                          className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors"
-                        >
-                          {cat.emoji} {cat.name}
-                        </button>
-                      ))}
+                {msg.suggestedCategories &&
+                  msg.suggestedCategories.length > 0 &&
+                  msg.transactionId && (
+                    <div className="mt-2 pt-2 border-t border-gray-700/50">
+                      <p className="text-xs text-gray-400 mb-2">
+                        ¿Cambiar categoría?
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {msg.suggestedCategories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() =>
+                              handleCategoryChange(msg.transactionId!, cat.id)
+                            }
+                            className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors"
+                          >
+                            {cat.emoji} {cat.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
           ))}

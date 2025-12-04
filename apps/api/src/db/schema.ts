@@ -1,4 +1,11 @@
-import { sqliteTable, text, integer, real, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  sqliteTable,
+  text,
+  integer,
+  real,
+  index,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 
 /**
  * Database schema for Budget Copilot - The Money Brain™
@@ -25,26 +32,36 @@ export const users = sqliteTable(
     avatarUrl: text('avatar_url'),
 
     // Email verification
-    emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
+    emailVerified: integer('email_verified', { mode: 'boolean' })
+      .notNull()
+      .default(false),
     emailVerifiedAt: integer('email_verified_at'),
 
     // Account status
     status: text('status', {
-      enum: ['active', 'suspended', 'deleted']
-    }).notNull().default('active'),
+      enum: ['active', 'suspended', 'deleted'],
+    })
+      .notNull()
+      .default('active'),
 
     // Preferences (JSON)
     preferences: text('preferences'), // { currency: 'USD', language: 'es', timezone: 'America/Panama' }
 
     // Subscription/Plan
     plan: text('plan', {
-      enum: ['free', 'pro', 'premium']
-    }).notNull().default('free'),
+      enum: ['free', 'pro', 'premium'],
+    })
+      .notNull()
+      .default('free'),
     planExpiresAt: integer('plan_expires_at'),
 
     // Timestamps
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
     lastLoginAt: integer('last_login_at'),
   },
   (table) => ({
@@ -75,7 +92,9 @@ export const sessions = sqliteTable(
     isValid: integer('is_valid', { mode: 'boolean' }).notNull().default(true),
     revokedAt: integer('revoked_at'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     tokenIdx: uniqueIndex('session_token_idx').on(table.token),
@@ -96,7 +115,9 @@ export const passwordResetTokens = sqliteTable(
 
     usedAt: integer('used_at'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     tokenIdx: uniqueIndex('password_reset_token_idx').on(table.token),
@@ -117,7 +138,9 @@ export const emailVerificationTokens = sqliteTable(
 
     usedAt: integer('used_at'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     tokenIdx: uniqueIndex('email_verification_token_idx').on(table.token),
@@ -132,19 +155,28 @@ export const oauthConnections = sqliteTable(
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),
 
-    provider: text('provider', { enum: ['google', 'apple', 'github'] }).notNull(),
+    provider: text('provider', {
+      enum: ['google', 'apple', 'github'],
+    }).notNull(),
     providerUserId: text('provider_user_id').notNull(),
 
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     expiresAt: integer('expires_at'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     userIdx: index('oauth_user_idx').on(table.userId),
-    providerIdx: uniqueIndex('oauth_provider_idx').on(table.provider, table.providerUserId),
+    providerIdx: uniqueIndex('oauth_provider_idx').on(
+      table.provider,
+      table.providerUserId
+    ),
   })
 );
 
@@ -160,13 +192,15 @@ export const userProfiles = sqliteTable(
     userId: text('user_id').notNull(),
 
     // Onboarding status
-    onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' }).notNull().default(false),
+    onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' })
+      .notNull()
+      .default(false),
     onboardingStep: integer('onboarding_step').notNull().default(0), // 0=not started, 1=salary, 2=frequency, 3=debts, etc.
 
     // Income info
     monthlySalaryCents: integer('monthly_salary_cents'),
     payFrequency: text('pay_frequency', {
-      enum: ['weekly', 'biweekly', 'semimonthly', 'monthly']
+      enum: ['weekly', 'biweekly', 'semimonthly', 'monthly'],
     }),
     nextPayday: text('next_payday'), // ISO date
 
@@ -180,12 +214,18 @@ export const userProfiles = sqliteTable(
 
     // Copilot preferences
     copilotTone: text('copilot_tone', {
-      enum: ['friendly', 'sassy', 'strict', 'gentle']
+      enum: ['friendly', 'sassy', 'strict', 'gentle'],
     }).default('sassy'),
-    receiveProactiveTips: integer('receive_proactive_tips', { mode: 'boolean' }).default(true),
+    receiveProactiveTips: integer('receive_proactive_tips', {
+      mode: 'boolean',
+    }).default(true),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     userIdx: uniqueIndex('user_profile_user_idx').on(table.userId),
@@ -204,7 +244,9 @@ export const accounts = sqliteTable(
     userId: text('user_id').notNull(), // Owner of this account
     name: text('name').notNull(),
     institution: text('institution'),
-    type: text('type', { enum: ['checking', 'savings', 'credit', 'cash'] }).notNull(),
+    type: text('type', {
+      enum: ['checking', 'savings', 'credit', 'cash'],
+    }).notNull(),
     currentBalanceCents: integer('current_balance_cents').default(0),
     createdAt: integer('created_at')
       .notNull()
@@ -269,9 +311,7 @@ export const transactions = sqliteTable(
     type: text('type', { enum: ['income', 'expense'] }).notNull(),
     categoryId: text('category_id'),
     accountId: text('account_id').notNull(),
-    cleared: integer('cleared', { mode: 'boolean' })
-      .notNull()
-      .default(false),
+    cleared: integer('cleared', { mode: 'boolean' }).notNull().default(false),
     notes: text('notes'),
     createdAt: integer('created_at')
       .notNull()
@@ -300,7 +340,15 @@ export const debts = sqliteTable(
     userId: text('user_id').notNull(),
     name: text('name').notNull(), // "Chase Sapphire", "Car Loan", etc.
     type: text('type', {
-      enum: ['credit_card', 'personal_loan', 'auto_loan', 'mortgage', 'student_loan', 'medical', 'other']
+      enum: [
+        'credit_card',
+        'personal_loan',
+        'auto_loan',
+        'mortgage',
+        'student_loan',
+        'medical',
+        'other',
+      ],
     }).notNull(),
     accountId: text('account_id'), // Link to account if applicable
 
@@ -317,7 +365,9 @@ export const debts = sqliteTable(
     nextDueDate: text('next_due_date'), // ISO date
 
     // Status
-    status: text('status', { enum: ['active', 'paid_off', 'defaulted', 'deferred'] })
+    status: text('status', {
+      enum: ['active', 'paid_off', 'defaulted', 'deferred'],
+    })
       .notNull()
       .default('active'),
 
@@ -326,8 +376,12 @@ export const debts = sqliteTable(
     totalInterestProjectedCents: integer('total_interest_projected_cents'),
     dangerScore: integer('danger_score'), // 0-100, how much this debt threatens cashflow
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     statusIdx: index('debt_status_idx').on(table.status),
@@ -349,7 +403,9 @@ export const debtPayments = sqliteTable(
 
     paymentDate: text('payment_date').notNull(), // ISO date
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     debtIdx: index('debt_payment_debt_idx').on(table.debtId),
@@ -375,12 +431,20 @@ export const documents = sqliteTable(
 
     // Processing status
     status: text('status', {
-      enum: ['pending', 'processing', 'completed', 'failed']
-    }).notNull().default('pending'),
+      enum: ['pending', 'processing', 'completed', 'failed'],
+    })
+      .notNull()
+      .default('pending'),
 
     // Source type
     sourceType: text('source_type', {
-      enum: ['screenshot', 'pdf_statement', 'receipt', 'email_attachment', 'manual_upload']
+      enum: [
+        'screenshot',
+        'pdf_statement',
+        'receipt',
+        'email_attachment',
+        'manual_upload',
+      ],
     }).notNull(),
 
     // AI extraction results
@@ -391,7 +455,9 @@ export const documents = sqliteTable(
     processedAt: integer('processed_at'),
     errorMessage: text('error_message'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     statusIdx: index('document_status_idx').on(table.status),
@@ -423,13 +489,17 @@ export const transactionInbox = sqliteTable(
 
     // Status
     status: text('status', {
-      enum: ['pending', 'approved', 'rejected', 'merged']
-    }).notNull().default('pending'),
+      enum: ['pending', 'approved', 'rejected', 'merged'],
+    })
+      .notNull()
+      .default('pending'),
 
     // If approved, link to created transaction
     approvedTransactionId: text('approved_transaction_id'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
     reviewedAt: integer('reviewed_at'),
   },
   (table) => ({
@@ -451,7 +521,7 @@ export const categoryPatterns = sqliteTable(
 
     // Pattern matching
     patternType: text('pattern_type', {
-      enum: ['merchant', 'keyword', 'amount_range', 'description_regex']
+      enum: ['merchant', 'keyword', 'amount_range', 'description_regex'],
     }).notNull(),
     patternValue: text('pattern_value').notNull(), // The actual pattern
 
@@ -461,15 +531,22 @@ export const categoryPatterns = sqliteTable(
 
     // Source
     learnedFrom: text('learned_from', {
-      enum: ['user_action', 'ai_suggestion', 'manual_rule']
+      enum: ['user_action', 'ai_suggestion', 'manual_rule'],
     }).notNull(),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     categoryIdx: index('pattern_category_idx').on(table.categoryId),
-    patternIdx: index('pattern_type_value_idx').on(table.patternType, table.patternValue),
+    patternIdx: index('pattern_type_value_idx').on(
+      table.patternType,
+      table.patternValue
+    ),
   })
 );
 
@@ -493,14 +570,16 @@ export const recurringTransactions = sqliteTable(
 
     // Frequency
     frequency: text('frequency', {
-      enum: ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'annually']
+      enum: ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'annually'],
     }).notNull(),
     dayOfMonth: integer('day_of_month'), // For monthly
     dayOfWeek: integer('day_of_week'), // For weekly (0=Sun, 6=Sat)
 
     // Type
     type: text('type', { enum: ['income', 'expense'] }).notNull(),
-    isSubscription: integer('is_subscription', { mode: 'boolean' }).default(false),
+    isSubscription: integer('is_subscription', { mode: 'boolean' }).default(
+      false
+    ),
 
     // Categorization
     categoryId: text('category_id'),
@@ -508,22 +587,28 @@ export const recurringTransactions = sqliteTable(
 
     // Detection
     detectionMethod: text('detection_method', {
-      enum: ['ai_detected', 'user_created', 'email_parsed']
+      enum: ['ai_detected', 'user_created', 'email_parsed'],
     }).notNull(),
     confidence: real('confidence').default(1.0),
 
     // Status
     status: text('status', {
-      enum: ['active', 'paused', 'cancelled', 'trial']
-    }).notNull().default('active'),
+      enum: ['active', 'paused', 'cancelled', 'trial'],
+    })
+      .notNull()
+      .default('active'),
 
     // Dates
     nextExpectedDate: text('next_expected_date'), // ISO date
     lastSeenDate: text('last_seen_date'), // ISO date
     trialEndsDate: text('trial_ends_date'), // For subscription trials
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     statusIdx: index('recurring_status_idx').on(table.status),
@@ -561,7 +646,9 @@ export const spendingPatterns = sqliteTable(
     // Sample size
     sampleCount: integer('sample_count').notNull().default(0),
 
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     dayIdx: index('pattern_day_idx').on(table.dayOfWeek),
@@ -597,8 +684,12 @@ export const monthlySnapshots = sqliteTable(
     // AI insights (JSON array of insight objects)
     aiInsights: text('ai_insights'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     monthIdx: index('snapshot_month_idx').on(table.month),
@@ -627,8 +718,10 @@ export const dailyForecasts = sqliteTable(
 
     // Risk assessment
     cashflowRisk: text('cashflow_risk', {
-      enum: ['safe', 'caution', 'warning', 'danger', 'critical']
-    }).notNull().default('safe'),
+      enum: ['safe', 'caution', 'warning', 'danger', 'critical'],
+    })
+      .notNull()
+      .default('safe'),
 
     // "Financial Weather" summary
     weatherEmoji: text('weather_emoji'), // ☀️, 🌤️, ⛈️, etc.
@@ -638,7 +731,9 @@ export const dailyForecasts = sqliteTable(
     recommendations: text('recommendations'),
 
     // Metadata
-    generatedAt: integer('generated_at').notNull().$defaultFn(() => Date.now()),
+    generatedAt: integer('generated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
     actualBalanceCents: integer('actual_balance_cents'), // Filled after the fact
   },
   (table) => ({
@@ -672,7 +767,9 @@ export const cashRunway = sqliteTable(
     safeToSpendTodayCents: integer('safe_to_spend_today_cents').notNull(),
     safeToSpendWeekCents: integer('safe_to_spend_week_cents').notNull(),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     calculatedIdx: index('runway_calculated_idx').on(table.calculatedAt),
@@ -691,15 +788,24 @@ export const alerts = sqliteTable(
     // Alert type
     type: text('type', {
       enum: [
-        'low_balance', 'bill_due', 'unusual_spending', 'subscription_renewal',
-        'debt_warning', 'budget_exceeded', 'goal_progress', 'income_received',
-        'duplicate_charge', 'price_increase', 'trial_ending', 'savings_opportunity'
-      ]
+        'low_balance',
+        'bill_due',
+        'unusual_spending',
+        'subscription_renewal',
+        'debt_warning',
+        'budget_exceeded',
+        'goal_progress',
+        'income_received',
+        'duplicate_charge',
+        'price_increase',
+        'trial_ending',
+        'savings_opportunity',
+      ],
     }).notNull(),
 
     // Severity
     severity: text('severity', {
-      enum: ['info', 'warning', 'urgent', 'critical']
+      enum: ['info', 'warning', 'urgent', 'critical'],
     }).notNull(),
 
     // Content
@@ -714,15 +820,19 @@ export const alerts = sqliteTable(
 
     // Status
     status: text('status', {
-      enum: ['pending', 'sent', 'read', 'dismissed', 'actioned']
-    }).notNull().default('pending'),
+      enum: ['pending', 'sent', 'read', 'dismissed', 'actioned'],
+    })
+      .notNull()
+      .default('pending'),
 
     // Scheduling
     scheduledFor: integer('scheduled_for'), // When to send
     sentAt: integer('sent_at'),
     readAt: integer('read_at'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
   },
   (table) => ({
     statusIdx: index('alert_status_idx').on(table.status),
@@ -755,7 +865,14 @@ export const goals = sqliteTable(
 
     // Type
     goalType: text('goal_type', {
-      enum: ['savings', 'debt_payoff', 'purchase', 'emergency_fund', 'investment', 'other']
+      enum: [
+        'savings',
+        'debt_payoff',
+        'purchase',
+        'emergency_fund',
+        'investment',
+        'other',
+      ],
     }).notNull(),
 
     // Linked entities
@@ -772,11 +889,17 @@ export const goals = sqliteTable(
 
     // Status
     status: text('status', {
-      enum: ['active', 'completed', 'paused', 'abandoned']
-    }).notNull().default('active'),
+      enum: ['active', 'completed', 'paused', 'abandoned'],
+    })
+      .notNull()
+      .default('active'),
 
-    createdAt: integer('created_at').notNull().$defaultFn(() => Date.now()),
-    updatedAt: integer('updated_at').notNull().$defaultFn(() => Date.now()),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
     completedAt: integer('completed_at'),
   },
   (table) => ({
@@ -825,7 +948,9 @@ export const dailySummaries = sqliteTable(
     opportunities: text('opportunities'),
 
     // Metadata
-    generatedAt: integer('generated_at').notNull().$defaultFn(() => Date.now()),
+    generatedAt: integer('generated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
     sentAt: integer('sent_at'),
     openedAt: integer('opened_at'),
   },
@@ -848,8 +973,10 @@ export type NewSession = typeof sessions.$inferInsert;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
 
-export type EmailVerificationToken = typeof emailVerificationTokens.$inferSelect;
-export type NewEmailVerificationToken = typeof emailVerificationTokens.$inferInsert;
+export type EmailVerificationToken =
+  typeof emailVerificationTokens.$inferSelect;
+export type NewEmailVerificationToken =
+  typeof emailVerificationTokens.$inferInsert;
 
 export type OAuthConnection = typeof oauthConnections.$inferSelect;
 export type NewOAuthConnection = typeof oauthConnections.$inferInsert;

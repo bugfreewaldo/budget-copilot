@@ -184,6 +184,7 @@ Fixes #456
 - **Refactor**: `refactor/short-description`
 
 Examples:
+
 - `feat/plaid-integration`
 - `fix/envelope-calculation`
 - `docs/api-endpoints`
@@ -191,23 +192,27 @@ Examples:
 ## Pull Request Process
 
 1. **Update your fork**:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
    ```
 
 2. **Create a feature branch**:
+
    ```bash
    git checkout -b feat/my-feature
    ```
 
 3. **Make your changes** and commit:
+
    ```bash
    git add .
    git commit -m "feat: add amazing feature"
    ```
 
 4. **Push to your fork**:
+
    ```bash
    git push origin feat/my-feature
    ```
@@ -242,14 +247,17 @@ Examples:
 - Test edge cases and error conditions
 
 Example:
+
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { calculateEnvelopeBalance } from '../src/envelopes';
 
 describe('calculateEnvelopeBalance', () => {
   it('should calculate balance correctly', () => {
-    const envelope = { budgetAmount: 500, /* ... */ };
-    const transactions = [/* ... */];
+    const envelope = { budgetAmount: 500 /* ... */ };
+    const transactions = [
+      /* ... */
+    ];
 
     const balance = calculateEnvelopeBalance(envelope, transactions);
 
@@ -279,6 +287,7 @@ describe('calculateEnvelopeBalance', () => {
 - Keep comments up to date
 
 Example:
+
 ```typescript
 /**
  * Calculate the balance remaining in an envelope after transactions
@@ -321,6 +330,7 @@ export function calculateEnvelopeBalance(
 ## Recognition
 
 Contributors will be recognized in:
+
 - `CONTRIBUTORS.md`
 - GitHub Contributors page
 - Release notes for significant contributions

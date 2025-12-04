@@ -28,19 +28,32 @@ function getLastDayOfMonth(): string {
 
 export default function TransaccionesPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>(
+    'all'
+  );
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>(
+    'expense'
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [_editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [_editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
 
   const currentMonth = getCurrentMonth();
   const from = getThreeMonthsAgo();
   const to = getLastDayOfMonth();
 
-  const { categories, transactions, isLoading: loading, error: fetchError, refresh } = useDashboardData(currentMonth, from, to);
-  const error = fetchError ? 'Error al cargar las transacciones. ¿Está el servidor corriendo?' : null;
+  const {
+    categories,
+    transactions,
+    isLoading: loading,
+    error: fetchError,
+    refresh,
+  } = useDashboardData(currentMonth, from, to);
+  const error = fetchError
+    ? 'Error al cargar las transacciones. ¿Está el servidor corriendo?'
+    : null;
 
   // Filter transactions based on search and filters
   const filteredTransactions = useMemo(() => {
@@ -69,7 +82,8 @@ export default function TransaccionesPage() {
 
   const handleDeleteTransaction = async (id: string) => {
     if (deletingId) return;
-    if (!confirm('¿Estás seguro de que quieres eliminar esta transacción?')) return;
+    if (!confirm('¿Estás seguro de que quieres eliminar esta transacción?'))
+      return;
 
     setDeletingId(id);
     try {
@@ -138,7 +152,9 @@ export default function TransaccionesPage() {
           {/* Page Header */}
           <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">Transacciones</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">
+                Transacciones
+              </h1>
               <p className="text-sm lg:text-base text-gray-400">
                 Gestiona y busca todas tus transacciones
               </p>
@@ -171,15 +187,21 @@ export default function TransaccionesPage() {
           <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
               <p className="text-xs lg:text-sm text-gray-400 mb-1">Ingresos</p>
-              <p className="text-lg lg:text-xl font-bold text-green-400">{formatCents(totals.income)}</p>
+              <p className="text-lg lg:text-xl font-bold text-green-400">
+                {formatCents(totals.income)}
+              </p>
             </div>
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
               <p className="text-xs lg:text-sm text-gray-400 mb-1">Gastos</p>
-              <p className="text-lg lg:text-xl font-bold text-red-400">{formatCents(totals.expense)}</p>
+              <p className="text-lg lg:text-xl font-bold text-red-400">
+                {formatCents(totals.expense)}
+              </p>
             </div>
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
               <p className="text-xs lg:text-sm text-gray-400 mb-1">Balance</p>
-              <p className={`text-lg lg:text-xl font-bold ${totals.balance >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+              <p
+                className={`text-lg lg:text-xl font-bold ${totals.balance >= 0 ? 'text-cyan-400' : 'text-red-400'}`}
+              >
                 {formatCents(totals.balance)}
               </p>
             </div>
@@ -196,7 +218,12 @@ export default function TransaccionesPage() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
                 <input
                   type="text"
@@ -210,7 +237,9 @@ export default function TransaccionesPage() {
               {/* Type Filter */}
               <select
                 value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as 'all' | 'income' | 'expense')}
+                onChange={(e) =>
+                  setTypeFilter(e.target.value as 'all' | 'income' | 'expense')
+                }
                 className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
               >
                 <option value="all">Todos</option>
@@ -256,7 +285,9 @@ export default function TransaccionesPage() {
               <div className="p-8 text-center">
                 <span className="text-4xl mb-4 block">🔍</span>
                 <p className="text-gray-400">
-                  {searchQuery || typeFilter !== 'all' || categoryFilter !== 'all'
+                  {searchQuery ||
+                  typeFilter !== 'all' ||
+                  categoryFilter !== 'all'
                     ? 'No se encontraron transacciones con los filtros aplicados'
                     : 'No hay transacciones aún'}
                 </p>
@@ -281,12 +312,15 @@ export default function TransaccionesPage() {
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-white truncate">{tx.description}</div>
+                      <div className="font-medium text-white truncate">
+                        {tx.description}
+                      </div>
                       <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
                         <span>{tx.date}</span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          {getCategoryEmoji(tx.categoryId)} {getCategoryName(tx.categoryId)}
+                          {getCategoryEmoji(tx.categoryId)}{' '}
+                          {getCategoryName(tx.categoryId)}
                         </span>
                       </div>
                     </div>
@@ -294,7 +328,9 @@ export default function TransaccionesPage() {
                     {/* Amount */}
                     <div
                       className={`font-semibold flex-shrink-0 ${
-                        tx.type === 'expense' ? 'text-red-400' : 'text-green-400'
+                        tx.type === 'expense'
+                          ? 'text-red-400'
+                          : 'text-green-400'
                       }`}
                     >
                       {formatCents(tx.amountCents)}
@@ -311,8 +347,18 @@ export default function TransaccionesPage() {
                         {deletingId === tx.id ? (
                           <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         )}
                       </button>

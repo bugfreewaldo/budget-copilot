@@ -12,11 +12,36 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', emoji: '🏠', description: 'Resumen financiero' },
-  { href: '/transacciones', label: 'Transacciones', emoji: '💸', description: 'Gestiona tus movimientos' },
-  { href: '/deudas', label: 'Copiloto de Deudas', emoji: '💀', description: 'Destruye tus deudas' },
-  { href: '/metas', label: 'Seguimiento de Metas', emoji: '🎯', description: 'Alcanza tus sueños' },
-  { href: '/categories', label: 'Categorías', emoji: '🏷️', description: 'Organiza tus gastos' },
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+    emoji: '🏠',
+    description: 'Resumen financiero',
+  },
+  {
+    href: '/transacciones',
+    label: 'Transacciones',
+    emoji: '💸',
+    description: 'Gestiona tus movimientos',
+  },
+  {
+    href: '/deudas',
+    label: 'Copiloto de Deudas',
+    emoji: '💀',
+    description: 'Destruye tus deudas',
+  },
+  {
+    href: '/metas',
+    label: 'Seguimiento de Metas',
+    emoji: '🎯',
+    description: 'Alcanza tus sueños',
+  },
+  {
+    href: '/categories',
+    label: 'Categorías',
+    emoji: '🏷️',
+    description: 'Organiza tus gastos',
+  },
 ];
 
 interface SidebarProps {
@@ -70,8 +95,18 @@ export function Sidebar({ children }: SidebarProps) {
             className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
             aria-label="Abrir menú"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
           <Link href="/dashboard" className="flex items-center gap-2">
@@ -101,7 +136,11 @@ export function Sidebar({ children }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
               <span className="text-2xl">🧠</span>
               <span className="font-bold text-lg bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Budget Copilot
@@ -112,8 +151,18 @@ export function Sidebar({ children }: SidebarProps) {
               className="p-2 text-gray-400 hover:text-white transition-colors"
               aria-label="Cerrar menú"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -138,7 +187,9 @@ export function Sidebar({ children }: SidebarProps) {
                       <div>
                         <div className="font-medium">{item.label}</div>
                         {item.description && (
-                          <div className="text-xs text-gray-500">{item.description}</div>
+                          <div className="text-xs text-gray-500">
+                            {item.description}
+                          </div>
                         )}
                       </div>
                     </Link>
@@ -154,8 +205,18 @@ export function Sidebar({ children }: SidebarProps) {
               href="/"
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
               Cerrar Sesión
             </Link>
@@ -170,7 +231,9 @@ export function Sidebar({ children }: SidebarProps) {
         }`}
       >
         {/* Logo */}
-        <div className={`flex items-center gap-2 py-5 border-b border-gray-800 ${isCollapsed ? 'px-3 justify-center' : 'px-6'}`}>
+        <div
+          className={`flex items-center gap-2 py-5 border-b border-gray-800 ${isCollapsed ? 'px-3 justify-center' : 'px-6'}`}
+        >
           <span className="text-2xl">🧠</span>
           {!isCollapsed && (
             <Link
@@ -207,10 +270,14 @@ export function Sidebar({ children }: SidebarProps) {
                         : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                     }`}
                   >
-                    <span className={`text-lg transition-transform ${isActive ? '' : 'group-hover:scale-110'}`}>
+                    <span
+                      className={`text-lg transition-transform ${isActive ? '' : 'group-hover:scale-110'}`}
+                    >
                       {item.emoji}
                     </span>
-                    {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+                    {!isCollapsed && (
+                      <span className="font-medium text-sm">{item.label}</span>
+                    )}
                   </Link>
                 </li>
               );
@@ -231,14 +298,21 @@ export function Sidebar({ children }: SidebarProps) {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
             </svg>
             {!isCollapsed && <span>Colapsar</span>}
           </button>
         </div>
 
         {/* Footer */}
-        <div className={`p-2 border-t border-gray-800 ${isCollapsed ? 'flex justify-center' : ''}`}>
+        <div
+          className={`p-2 border-t border-gray-800 ${isCollapsed ? 'flex justify-center' : ''}`}
+        >
           <Link
             href="/"
             title={isCollapsed ? 'Cerrar Sesión' : undefined}
@@ -246,8 +320,18 @@ export function Sidebar({ children }: SidebarProps) {
               isCollapsed ? 'justify-center' : ''
             }`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
             </svg>
             {!isCollapsed && <span>Cerrar Sesión</span>}
           </Link>
@@ -255,7 +339,9 @@ export function Sidebar({ children }: SidebarProps) {
       </aside>
 
       {/* Main Content */}
-      <main className={`pt-14 lg:pt-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-16' : 'lg:pl-64'}`}>
+      <main
+        className={`pt-14 lg:pt-0 transition-all duration-300 ${isCollapsed ? 'lg:pl-16' : 'lg:pl-64'}`}
+      >
         {children}
       </main>
     </div>

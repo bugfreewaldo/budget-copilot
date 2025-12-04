@@ -83,9 +83,7 @@ export function parseAmount(amountString: string): number {
 
   // Handle parentheses for negative numbers
   const isNegative = cleaned.startsWith('(') && cleaned.endsWith(')');
-  const number = parseFloat(
-    isNegative ? cleaned.slice(1, -1) : cleaned
-  );
+  const number = parseFloat(isNegative ? cleaned.slice(1, -1) : cleaned);
 
   if (isNaN(number)) {
     throw new Error(`Unable to parse amount: ${amountString}`);
@@ -116,10 +114,9 @@ export function csvToTransactions(
       const date = parseDate(dateValue);
       const description = row[options.mapping.descriptionColumn] || 'Unknown';
       const amount = parseAmount(amountValue);
-      const account =
-        options.mapping.accountColumn
-          ? row[options.mapping.accountColumn] || accountId
-          : accountId;
+      const account = options.mapping.accountColumn
+        ? row[options.mapping.accountColumn] || accountId
+        : accountId;
 
       transactions.push({
         id: `csv-${accountId}-${index}`,

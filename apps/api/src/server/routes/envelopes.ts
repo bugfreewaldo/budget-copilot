@@ -51,11 +51,9 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to list envelopes');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to retrieve envelopes',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to retrieve envelopes', {
+          error: (error as Error).message,
+        })
       );
     }
   });
@@ -89,11 +87,9 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to upsert envelope');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to create/update envelope',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to create/update envelope', {
+          error: (error as Error).message,
+        })
       );
     }
   });

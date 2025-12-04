@@ -47,12 +47,13 @@ Budget Copilot takes user privacy seriously. This document outlines how we handl
 Before sending transaction data to AI providers (OpenAI, Anthropic):
 
 1. **Automatic PII Redaction**:
+
    ```typescript
    // Original
-   "Payment to John Doe via john@email.com"
+   'Payment to John Doe via john@email.com';
 
    // Redacted
-   "Payment to John Doe via [EMAIL]"
+   'Payment to John Doe via [EMAIL]';
    ```
 
 2. **Redaction Rules** (see `packages/ai/redaction.ts`):
@@ -70,6 +71,7 @@ Before sending transaction data to AI providers (OpenAI, Anthropic):
 ### Example
 
 **Original Transaction**:
+
 ```json
 {
   "id": "txn_123",
@@ -84,6 +86,7 @@ Before sending transaction data to AI providers (OpenAI, Anthropic):
 ```
 
 **Sent to AI**:
+
 ```json
 {
   "date": "2024-01-15",
@@ -222,17 +225,17 @@ Budget Copilot is open source, which means:
 
 ### Current
 
-| Service | Purpose | Data Shared | Privacy Policy |
-|---------|---------|-------------|----------------|
-| OpenAI | AI summaries | Redacted transactions | [Link](https://openai.com/privacy) |
+| Service   | Purpose      | Data Shared           | Privacy Policy                            |
+| --------- | ------------ | --------------------- | ----------------------------------------- |
+| OpenAI    | AI summaries | Redacted transactions | [Link](https://openai.com/privacy)        |
 | Anthropic | AI summaries | Redacted transactions | [Link](https://www.anthropic.com/privacy) |
 
 ### Future (Planned)
 
-| Service | Purpose | Data Shared | Privacy Policy |
-|---------|---------|-------------|----------------|
-| Plaid | Bank connections | Read-only transaction data | [Link](https://plaid.com/legal/) |
-| Sentry | Error tracking | Crash reports (no PII) | [Link](https://sentry.io/privacy/) |
+| Service | Purpose          | Data Shared                | Privacy Policy                     |
+| ------- | ---------------- | -------------------------- | ---------------------------------- |
+| Plaid   | Bank connections | Read-only transaction data | [Link](https://plaid.com/legal/)   |
+| Sentry  | Error tracking   | Crash reports (no PII)     | [Link](https://sentry.io/privacy/) |
 
 ## Children's Privacy
 

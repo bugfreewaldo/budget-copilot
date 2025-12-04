@@ -13,7 +13,9 @@ import * as schema from './schema';
  * 2. Otherwise -> use SQL.js (local file-based SQLite)
  */
 
-type DatabaseInstance = BetterSQLite3Database<typeof schema> | LibSQLDatabase<typeof schema>;
+type DatabaseInstance =
+  | BetterSQLite3Database<typeof schema>
+  | LibSQLDatabase<typeof schema>;
 
 let dbInstance: DatabaseInstance | null = null;
 let libsqlClient: LibSQLClient | null = null;
@@ -59,7 +61,9 @@ export async function initializeDatabase(): Promise<DatabaseInstance> {
 /**
  * Initialize SQL.js for local development
  */
-async function initializeSqlJs(): Promise<BetterSQLite3Database<typeof schema>> {
+async function initializeSqlJs(): Promise<
+  BetterSQLite3Database<typeof schema>
+> {
   const initSqlJs = (await import('sql.js')).default;
   const fs = await import('node:fs');
   const path = await import('node:path');
@@ -88,7 +92,9 @@ async function initializeSqlJs(): Promise<BetterSQLite3Database<typeof schema>> 
     }
 
     if (!wasmPath) {
-      throw new Error(`WASM file not found in any of: ${candidates.join(', ')}`);
+      throw new Error(
+        `WASM file not found in any of: ${candidates.join(', ')}`
+      );
     }
 
     console.log(`[initDB] Loading WASM from: ${wasmPath}`);
@@ -117,11 +123,15 @@ async function initializeSqlJs(): Promise<BetterSQLite3Database<typeof schema>> 
       if (stats.size > 0) {
         const buffer = fs.readFileSync(dbPath);
         sqlJsDb = new SQL.Database(new Uint8Array(buffer));
-        console.log(`📂 Loaded existing database from ${dbPath} (${stats.size} bytes)`);
+        console.log(
+          `📂 Loaded existing database from ${dbPath} (${stats.size} bytes)`
+        );
       } else {
         sqlJsDb = new SQL.Database();
         isDirty = true;
-        console.log(`📝 Created new database (empty file existed at ${dbPath})`);
+        console.log(
+          `📝 Created new database (empty file existed at ${dbPath})`
+        );
       }
     } catch {
       sqlJsDb = new SQL.Database();
@@ -343,7 +353,11 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
                 return result;
               } finally {
                 if (ownStmt) {
-                  try { ownStmt.free(); } catch { /* ignore */ }
+                  try {
+                    ownStmt.free();
+                  } catch {
+                    /* ignore */
+                  }
                 }
               }
             },
@@ -359,7 +373,11 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
                 return rows;
               } finally {
                 if (ownStmt) {
-                  try { ownStmt.free(); } catch { /* ignore */ }
+                  try {
+                    ownStmt.free();
+                  } catch {
+                    /* ignore */
+                  }
                 }
               }
             },
@@ -382,8 +400,14 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
 // Process exit handlers
 process.on('exit', () => closeDatabase());
 process.on('beforeExit', () => flushSaveSync());
-process.on('SIGINT', () => { closeDatabase(); process.exit(0); });
-process.on('SIGTERM', () => { closeDatabase(); process.exit(0); });
+process.on('SIGINT', () => {
+  closeDatabase();
+  process.exit(0);
+});
+process.on('SIGTERM', () => {
+  closeDatabase();
+  process.exit(0);
+});
 process.on('uncaughtException', (error) => {
   console.error('Uncaught exception, closing database...', error);
   closeDatabase();

@@ -40,11 +40,7 @@ export interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
 export const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={clsx('mb-4', className)}
-        {...props}
-      >
+      <div ref={ref} className={clsx('mb-4', className)} {...props}>
         {children}
       </div>
     );

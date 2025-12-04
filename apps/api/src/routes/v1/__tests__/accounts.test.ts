@@ -13,8 +13,8 @@ let server: FastifyInstance;
 let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
 
 beforeAll(async () => {
-  testDb = await setupIsolatedDb();  // Set DB path first
-  server = await buildServer();      // Then build server (will use that path)
+  testDb = await setupIsolatedDb(); // Set DB path first
+  server = await buildServer(); // Then build server (will use that path)
 });
 
 afterAll(async () => {
@@ -24,7 +24,6 @@ afterAll(async () => {
 });
 
 describe('POST /v1/accounts', () => {
-
   it('should create an account with valid data', async () => {
     const response = await server.inject({
       method: 'POST',
@@ -436,7 +435,14 @@ describe('GET /v1/accounts (pagination)', () => {
         payload: {
           name: `Account ${i.toString().padStart(2, '0')}`,
           institution: `Bank ${i}`,
-          type: i % 4 === 0 ? 'credit' : i % 3 === 0 ? 'savings' : i % 2 === 0 ? 'cash' : 'checking',
+          type:
+            i % 4 === 0
+              ? 'credit'
+              : i % 3 === 0
+                ? 'savings'
+                : i % 2 === 0
+                  ? 'cash'
+                  : 'checking',
         },
       });
 
@@ -600,7 +606,9 @@ describe('GET /v1/accounts (search)', () => {
     // All results should contain 'chase' in name or institution (case-insensitive)
     for (const account of body.data) {
       const nameMatch = account.name.toLowerCase().includes('chase');
-      const institutionMatch = account.institution.toLowerCase().includes('chase');
+      const institutionMatch = account.institution
+        .toLowerCase()
+        .includes('chase');
       expect(nameMatch || institutionMatch).toBe(true);
     }
   });
@@ -617,7 +625,9 @@ describe('GET /v1/accounts (search)', () => {
 
     for (const account of body.data) {
       const nameMatch = account.name.toLowerCase().includes('fargo');
-      const institutionMatch = account.institution.toLowerCase().includes('fargo');
+      const institutionMatch = account.institution
+        .toLowerCase()
+        .includes('fargo');
       expect(nameMatch || institutionMatch).toBe(true);
     }
   });
@@ -659,7 +669,9 @@ describe('GET /v1/accounts (search)', () => {
       // Verify no duplicates across pages
       const page1Ids = body.data.map((a: any) => a.id);
       const page2Ids = body2.data.map((a: any) => a.id);
-      const intersection = page1Ids.filter((id: string) => page2Ids.includes(id));
+      const intersection = page1Ids.filter((id: string) =>
+        page2Ids.includes(id)
+      );
       expect(intersection).toHaveLength(0);
     }
   });

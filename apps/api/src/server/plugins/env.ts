@@ -16,13 +16,16 @@ const envPluginImpl: FastifyPluginAsync = async (fastify) => {
     );
   }
 
-  fastify.log.info({
-    env: {
-      nodeEnv: process.env.NODE_ENV || 'development',
-      databaseUrl: process.env.DATABASE_URL,
-      port: process.env.PORT || 4000,
+  fastify.log.info(
+    {
+      env: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        databaseUrl: process.env.DATABASE_URL,
+        port: process.env.PORT || 4000,
+      },
     },
-  }, 'Environment validated');
+    'Environment validated'
+  );
 };
 
 export const envPlugin = fp(envPluginImpl, {

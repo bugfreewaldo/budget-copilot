@@ -110,7 +110,10 @@ export async function generateDailySummary(
     cashRunwayDays: latestRunway?.daysUntilZero || null,
     yesterdaySpentCents: yesterdayActivity.spent,
     billsDueCount: billsDueToday.length,
-    billsDueAmountCents: billsDueToday.reduce((sum, b) => sum + b.amountCents, 0),
+    billsDueAmountCents: billsDueToday.reduce(
+      (sum, b) => sum + b.amountCents,
+      0
+    ),
     budgetStatus,
     activeDebts,
   });
@@ -163,7 +166,10 @@ export async function generateDailySummary(
     yesterdaySpentCents: yesterdayActivity.spent,
     yesterdayEarnedCents: yesterdayActivity.earned,
     billsDueCount: billsDueToday.length,
-    billsDueAmountCents: billsDueToday.reduce((sum, b) => sum + b.amountCents, 0),
+    billsDueAmountCents: billsDueToday.reduce(
+      (sum, b) => sum + b.amountCents,
+      0
+    ),
     summaryText,
     coachingTips: JSON.stringify(coachingTips),
     warnings: JSON.stringify(warnings),
@@ -181,7 +187,10 @@ export async function generateDailySummary(
     yesterdaySpentCents: yesterdayActivity.spent,
     yesterdayEarnedCents: yesterdayActivity.earned,
     billsDueCount: billsDueToday.length,
-    billsDueAmountCents: billsDueToday.reduce((sum, b) => sum + b.amountCents, 0),
+    billsDueAmountCents: billsDueToday.reduce(
+      (sum, b) => sum + b.amountCents,
+      0
+    ),
     summaryText,
     coachingTips,
     warnings,
@@ -224,7 +233,9 @@ export async function getTodaySummary(
     summaryText: summary.summaryText,
     coachingTips: summary.coachingTips ? JSON.parse(summary.coachingTips) : [],
     warnings: summary.warnings ? JSON.parse(summary.warnings) : [],
-    opportunities: summary.opportunities ? JSON.parse(summary.opportunities) : [],
+    opportunities: summary.opportunities
+      ? JSON.parse(summary.opportunities)
+      : [],
     generatedAt: summary.generatedAt,
   };
 }
@@ -272,7 +283,9 @@ export async function getRecentSummaries(
     summaryText: summary.summaryText,
     coachingTips: summary.coachingTips ? JSON.parse(summary.coachingTips) : [],
     warnings: summary.warnings ? JSON.parse(summary.warnings) : [],
-    opportunities: summary.opportunities ? JSON.parse(summary.opportunities) : [],
+    opportunities: summary.opportunities
+      ? JSON.parse(summary.opportunities)
+      : [],
     generatedAt: summary.generatedAt,
   }));
 }
@@ -557,7 +570,8 @@ function calculateFinancialWeather(inputs: WeatherInputs): FinancialWeather {
     return {
       emoji: '⛈️',
       headline: 'Financial Storm Alert',
-      description: 'Critical attention needed. Multiple financial concerns require immediate action.',
+      description:
+        'Critical attention needed. Multiple financial concerns require immediate action.',
       riskLevel: 'stormy',
     };
   } else if (dangerScore >= 40) {
@@ -596,25 +610,34 @@ interface CoachingInputs {
   accountBalances: AccountBalance[];
   yesterdayActivity: { spent: number; earned: number };
   upcomingBills: UpcomingBill[];
-  activeDebts: Array<{ name: string; aprPercent: number; dangerScore: number | null }>;
+  activeDebts: Array<{
+    name: string;
+    aprPercent: number;
+    dangerScore: number | null;
+  }>;
   activeGoals: Array<{ name: string; progressPercent: number }>;
   budgetStatus: { percentUsed: number; remainingBudget: number };
 }
 
 function generateCoachingTips(inputs: CoachingInputs): string[] {
   const tips: string[] = [];
-  const { weather, upcomingBills, activeDebts, activeGoals, budgetStatus } = inputs;
+  const { weather, upcomingBills, activeDebts, activeGoals, budgetStatus } =
+    inputs;
 
   // Weather-based tips
   if (weather.riskLevel === 'stormy' || weather.riskLevel === 'rainy') {
-    tips.push('Consider postponing non-essential purchases until finances stabilize.');
+    tips.push(
+      'Consider postponing non-essential purchases until finances stabilize.'
+    );
   }
 
   // Bill-based tips
   if (upcomingBills.length > 0) {
     const nextBill = upcomingBills[0];
     if (nextBill.daysUntilDue <= 1) {
-      tips.push(`${nextBill.name} is due today or tomorrow. Make sure you have funds ready.`);
+      tips.push(
+        `${nextBill.name} is due today or tomorrow. Make sure you have funds ready.`
+      );
     }
   }
 
@@ -629,14 +652,18 @@ function generateCoachingTips(inputs: CoachingInputs): string[] {
   // Goal-based tips
   const nearGoals = activeGoals.filter((g) => g.progressPercent > 80);
   if (nearGoals.length > 0) {
-    tips.push(`You're ${nearGoals[0].progressPercent.toFixed(0)}% toward "${nearGoals[0].name}"! Keep going!`);
+    tips.push(
+      `You're ${nearGoals[0].progressPercent.toFixed(0)}% toward "${nearGoals[0].name}"! Keep going!`
+    );
   }
 
   // Budget-based tips
   if (budgetStatus.percentUsed < 50) {
-    tips.push('You\'re on track with your budget this month. Great discipline!');
+    tips.push("You're on track with your budget this month. Great discipline!");
   } else if (budgetStatus.percentUsed > 80 && budgetStatus.percentUsed < 100) {
-    tips.push('Budget is getting tight. Consider where you can cut back for the rest of the month.');
+    tips.push(
+      'Budget is getting tight. Consider where you can cut back for the rest of the month.'
+    );
   }
 
   // Default tip if none generated
@@ -651,41 +678,66 @@ interface WarningInputs {
   totalBalanceCents: number;
   cashRunwayDays: number | null;
   upcomingBills: UpcomingBill[];
-  activeDebts: Array<{ name: string; dangerScore: number | null; nextDueDate: string | null }>;
+  activeDebts: Array<{
+    name: string;
+    dangerScore: number | null;
+    nextDueDate: string | null;
+  }>;
   budgetStatus: { overBudgetCategories: string[] };
 }
 
 function generateWarnings(inputs: WarningInputs): string[] {
   const warnings: string[] = [];
-  const { totalBalanceCents, cashRunwayDays, upcomingBills, activeDebts, budgetStatus } = inputs;
+  const {
+    totalBalanceCents,
+    cashRunwayDays,
+    upcomingBills,
+    activeDebts,
+    budgetStatus,
+  } = inputs;
 
   // Balance warnings
   if (totalBalanceCents < 0) {
-    warnings.push('⚠️ Your balance is negative. Take immediate action to avoid fees.');
+    warnings.push(
+      '⚠️ Your balance is negative. Take immediate action to avoid fees.'
+    );
   } else if (totalBalanceCents < 10000) {
     warnings.push('⚠️ Balance below $100. Be very careful with spending.');
   }
 
   // Cash runway warnings
   if (cashRunwayDays !== null && cashRunwayDays < 7) {
-    warnings.push(`⚠️ Only ${cashRunwayDays} days of runway left at current spending rate.`);
+    warnings.push(
+      `⚠️ Only ${cashRunwayDays} days of runway left at current spending rate.`
+    );
   }
 
   // Bill coverage warnings
-  const totalBillsDue = upcomingBills.reduce((sum, b) => sum + b.amountCents, 0);
+  const totalBillsDue = upcomingBills.reduce(
+    (sum, b) => sum + b.amountCents,
+    0
+  );
   if (totalBillsDue > totalBalanceCents) {
-    warnings.push('⚠️ Upcoming bills exceed current balance. Prioritize essential payments.');
+    warnings.push(
+      '⚠️ Upcoming bills exceed current balance. Prioritize essential payments.'
+    );
   }
 
   // Debt warnings
-  const dangerDebts = activeDebts.filter((d) => d.dangerScore && d.dangerScore > 70);
+  const dangerDebts = activeDebts.filter(
+    (d) => d.dangerScore && d.dangerScore > 70
+  );
   for (const debt of dangerDebts.slice(0, 2)) {
-    warnings.push(`⚠️ ${debt.name} has a high danger score. Consider accelerating payoff.`);
+    warnings.push(
+      `⚠️ ${debt.name} has a high danger score. Consider accelerating payoff.`
+    );
   }
 
   // Budget warnings
   if (budgetStatus.overBudgetCategories.length > 0) {
-    warnings.push(`⚠️ ${budgetStatus.overBudgetCategories.length} budget categories are over limit.`);
+    warnings.push(
+      `⚠️ ${budgetStatus.overBudgetCategories.length} budget categories are over limit.`
+    );
   }
 
   return warnings.slice(0, 4); // Max 4 warnings
@@ -700,17 +752,22 @@ interface OpportunityInputs {
 
 function generateOpportunities(inputs: OpportunityInputs): string[] {
   const opportunities: string[] = [];
-  const { yesterdayActivity, activeGoals, budgetStatus, totalBalanceCents } = inputs;
+  const { yesterdayActivity, activeGoals, budgetStatus, totalBalanceCents } =
+    inputs;
 
   // Savings opportunities
   if (yesterdayActivity.spent === 0) {
-    opportunities.push('💡 No-spend day yesterday! Consider making it a streak.');
+    opportunities.push(
+      '💡 No-spend day yesterday! Consider making it a streak.'
+    );
   }
 
   // Budget surplus opportunity
   if (budgetStatus.remainingBudget > 50000) {
     // More than $500 left
-    opportunities.push('💡 Budget surplus this month! Consider putting extra toward savings or debt.');
+    opportunities.push(
+      '💡 Budget surplus this month! Consider putting extra toward savings or debt.'
+    );
   }
 
   // Goal acceleration
@@ -718,13 +775,17 @@ function generateOpportunities(inputs: OpportunityInputs): string[] {
     (g) => g.progressPercent > 50 && g.progressPercent < 90
   );
   if (nearGoals.length > 0) {
-    opportunities.push(`💡 "${nearGoals[0].name}" is over halfway done. A small boost could accelerate completion.`);
+    opportunities.push(
+      `💡 "${nearGoals[0].name}" is over halfway done. A small boost could accelerate completion.`
+    );
   }
 
   // High balance opportunity
   if (totalBalanceCents > 500000) {
     // More than $5000
-    opportunities.push('💡 Strong balance! Consider opening a high-yield savings account if you haven\'t.');
+    opportunities.push(
+      "💡 Strong balance! Consider opening a high-yield savings account if you haven't."
+    );
   }
 
   return opportunities.slice(0, 3); // Max 3 opportunities
@@ -737,7 +798,13 @@ function generateSummaryText(inputs: {
   billsDueToday: UpcomingBill[];
   cashRunwayDays: number | null;
 }): string {
-  const { weather, totalBalanceCents, yesterdayActivity, billsDueToday, cashRunwayDays } = inputs;
+  const {
+    weather,
+    totalBalanceCents,
+    yesterdayActivity,
+    billsDueToday,
+    cashRunwayDays,
+  } = inputs;
 
   const balanceFormatted = formatCurrency(totalBalanceCents);
   const spentFormatted = formatCurrency(yesterdayActivity.spent);
@@ -829,7 +896,10 @@ export async function updateCashRunway(): Promise<void> {
 
   // Get current balance
   const accountBalances = await getAccountBalances();
-  const currentBalance = accountBalances.reduce((sum, acc) => sum + acc.balanceCents, 0);
+  const currentBalance = accountBalances.reduce(
+    (sum, acc) => sum + acc.balanceCents,
+    0
+  );
 
   // Calculate daily burn rate from last 30 days
   const thirtyDaysAgo = new Date();
@@ -855,7 +925,10 @@ export async function updateCashRunway(): Promise<void> {
 
   // Get upcoming bills (next 30 days)
   const upcomingBills = await getUpcomingBills(today, 30);
-  const upcomingBillsTotal = upcomingBills.reduce((sum, b) => sum + b.amountCents, 0);
+  const upcomingBillsTotal = upcomingBills.reduce(
+    (sum, b) => sum + b.amountCents,
+    0
+  );
 
   // Calculate days until zero
   let daysUntilZero: number | null = null;
@@ -871,7 +944,8 @@ export async function updateCashRunway(): Promise<void> {
   }
 
   // Calculate safe to spend
-  const safeToSpendToday = Math.max(0, currentBalance - upcomingBillsTotal) / 30;
+  const safeToSpendToday =
+    Math.max(0, currentBalance - upcomingBillsTotal) / 30;
   const safeToSpendWeek = safeToSpendToday * 7;
 
   // Save to database

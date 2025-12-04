@@ -78,7 +78,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
         const result = await register(request.body);
 
         // Set session cookie
-        reply.setCookie(SESSION_COOKIE_NAME, result.session.token, COOKIE_OPTIONS);
+        reply.setCookie(
+          SESSION_COOKIE_NAME,
+          result.session.token,
+          COOKIE_OPTIONS
+        );
 
         return {
           user: result.user,
@@ -124,7 +128,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
         const result = await login(request.body);
 
         // Set session cookie
-        reply.setCookie(SESSION_COOKIE_NAME, result.session.token, COOKIE_OPTIONS);
+        reply.setCookie(
+          SESSION_COOKIE_NAME,
+          result.session.token,
+          COOKIE_OPTIONS
+        );
 
         return {
           user: result.user,
@@ -213,7 +221,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
       // Always return success to prevent email enumeration
       return {
-        message: 'If an account exists with this email, a password reset link has been sent',
+        message:
+          'If an account exists with this email, a password reset link has been sent',
       };
     }
   );
@@ -235,7 +244,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        const success = await resetPassword(request.body.token, request.body.password);
+        const success = await resetPassword(
+          request.body.token,
+          request.body.password
+        );
 
         if (!success) {
           return reply.status(400).send({
@@ -244,7 +256,10 @@ export default async function authRoutes(fastify: FastifyInstance) {
           });
         }
 
-        return { message: 'Password reset successful. Please login with your new password.' };
+        return {
+          message:
+            'Password reset successful. Please login with your new password.',
+        };
       } catch (error) {
         if (error instanceof AuthError && error.code === 'WEAK_PASSWORD') {
           return reply.status(400).send({

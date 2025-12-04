@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import {
-  updateCategory,
-  listCategories,
-  type Category,
-} from '@/lib/api';
+import { updateCategory, listCategories, type Category } from '@/lib/api';
 import { useToast } from '@/components/ui/toast';
 
 interface EditCategoryModalProps {

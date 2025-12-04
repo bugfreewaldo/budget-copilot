@@ -36,7 +36,12 @@ export interface ExtractionResult {
   transactions: ExtractedTransaction[];
   balances: ExtractedBalance[];
   rawText?: string;
-  documentType: 'bank_statement' | 'credit_card' | 'receipt' | 'screenshot' | 'unknown';
+  documentType:
+    | 'bank_statement'
+    | 'credit_card'
+    | 'receipt'
+    | 'screenshot'
+    | 'unknown';
   bankName?: string;
   accountNumber?: string; // Last 4 digits only for privacy
   statementPeriod?: {
@@ -234,7 +239,9 @@ export async function getDocumentWithInbox(documentId: string) {
 /**
  * Retry processing a failed document
  */
-export async function retryDocument(documentId: string): Promise<{ inboxItems: number }> {
+export async function retryDocument(
+  documentId: string
+): Promise<{ inboxItems: number }> {
   const db = await getDb();
 
   const document = await db.query.documents.findFirst({

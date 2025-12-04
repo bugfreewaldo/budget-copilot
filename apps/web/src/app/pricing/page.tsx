@@ -4,7 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@budget-copilot/ui/button';
 
-function MobileMenu({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: 'es' | 'en' }) {
+function MobileMenu({
+  isOpen,
+  onClose,
+  lang,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  lang: 'es' | 'en';
+}) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -29,8 +37,18 @@ function MobileMenu({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () =>
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -57,7 +75,9 @@ function MobileMenu({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () =>
 
 export default function PricingPage() {
   const [lang, setLang] = useState<'es' | 'en'>('es');
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
+    'monthly'
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const content = {
@@ -79,25 +99,25 @@ export default function PricingPage() {
         questions: [
           {
             q: '¿Necesito tarjeta de crédito para empezar?',
-            a: 'No. El plan gratuito no requiere tarjeta de crédito. Solo regístrate y comienza a usar Budget Copilot.'
+            a: 'No. El plan gratuito no requiere tarjeta de crédito. Solo regístrate y comienza a usar Budget Copilot.',
           },
           {
             q: '¿Puedo cancelar en cualquier momento?',
-            a: 'Sí. Puedes cancelar tu suscripción cuando quieras desde tu perfil. No hay contratos ni compromisos.'
+            a: 'Sí. Puedes cancelar tu suscripción cuando quieras desde tu perfil. No hay contratos ni compromisos.',
           },
           {
             q: '¿Qué pasa si cancelo mi plan Pro?',
-            a: 'Conservarás acceso a las funciones Pro hasta el fin de tu período de facturación. Luego volverás al plan gratuito automáticamente.'
+            a: 'Conservarás acceso a las funciones Pro hasta el fin de tu período de facturación. Luego volverás al plan gratuito automáticamente.',
           },
           {
             q: '¿Ofrecen reembolsos?',
-            a: 'Sí. Ofrecemos garantía de satisfacción de 14 días. Si no estás satisfecho, te devolvemos tu dinero.'
+            a: 'Sí. Ofrecemos garantía de satisfacción de 14 días. Si no estás satisfecho, te devolvemos tu dinero.',
           },
           {
             q: '¿Mis datos están seguros?',
-            a: 'Absolutamente. Tus datos financieros se procesan localmente cuando es posible y nunca vendemos tu información.'
-          }
-        ]
+            a: 'Absolutamente. Tus datos financieros se procesan localmente cuando es posible y nunca vendemos tu información.',
+          },
+        ],
       },
       plans: {
         free: {
@@ -110,15 +130,15 @@ export default function PricingPage() {
             'Resumen diario del clima financiero',
             'Hasta 100 transacciones/mes',
             'Historial de 3 meses',
-            'Soporte por email'
+            'Soporte por email',
           ],
           notIncluded: [
             'Capturas ilimitadas',
             'Análisis de deudas',
             'Metas de ahorro ilimitadas',
             'Exportar a Excel/PDF',
-            'Soporte prioritario'
-          ]
+            'Soporte prioritario',
+          ],
         },
         pro: {
           name: 'Pro',
@@ -135,12 +155,9 @@ export default function PricingPage() {
             'Alertas personalizadas',
             'Exportar a Excel/PDF',
             'Soporte prioritario (24h)',
-            'Sin anuncios'
+            'Sin anuncios',
           ],
-          notIncluded: [
-            'API access',
-            'Múltiples perfiles familiares'
-          ]
+          notIncluded: ['API access', 'Múltiples perfiles familiares'],
         },
         premium: {
           name: 'Premium',
@@ -157,11 +174,11 @@ export default function PricingPage() {
             'Reportes fiscales automáticos',
             'Soporte VIP (respuesta en 4h)',
             'Acceso anticipado a nuevas funciones',
-            'Sesión de onboarding personalizada'
+            'Sesión de onboarding personalizada',
           ],
-          notIncluded: []
-        }
-      }
+          notIncluded: [],
+        },
+      },
     },
     en: {
       title: 'Simple Pricing',
@@ -181,25 +198,25 @@ export default function PricingPage() {
         questions: [
           {
             q: 'Do I need a credit card to start?',
-            a: "No. The free plan doesn't require a credit card. Just sign up and start using Budget Copilot."
+            a: "No. The free plan doesn't require a credit card. Just sign up and start using Budget Copilot.",
           },
           {
             q: 'Can I cancel anytime?',
-            a: 'Yes. You can cancel your subscription anytime from your profile. No contracts or commitments.'
+            a: 'Yes. You can cancel your subscription anytime from your profile. No contracts or commitments.',
           },
           {
             q: 'What happens if I cancel my Pro plan?',
-            a: "You'll keep access to Pro features until the end of your billing period. Then you'll automatically return to the free plan."
+            a: "You'll keep access to Pro features until the end of your billing period. Then you'll automatically return to the free plan.",
           },
           {
             q: 'Do you offer refunds?',
-            a: "Yes. We offer a 14-day satisfaction guarantee. If you're not satisfied, we'll refund your money."
+            a: "Yes. We offer a 14-day satisfaction guarantee. If you're not satisfied, we'll refund your money.",
           },
           {
             q: 'Is my data secure?',
-            a: 'Absolutely. Your financial data is processed locally when possible and we never sell your information.'
-          }
-        ]
+            a: 'Absolutely. Your financial data is processed locally when possible and we never sell your information.',
+          },
+        ],
       },
       plans: {
         free: {
@@ -212,15 +229,15 @@ export default function PricingPage() {
             'Daily financial weather summary',
             'Up to 100 transactions/month',
             '3 months history',
-            'Email support'
+            'Email support',
           ],
           notIncluded: [
             'Unlimited screenshots',
             'Debt analysis',
             'Unlimited savings goals',
             'Export to Excel/PDF',
-            'Priority support'
-          ]
+            'Priority support',
+          ],
         },
         pro: {
           name: 'Pro',
@@ -237,12 +254,9 @@ export default function PricingPage() {
             'Custom alerts',
             'Export to Excel/PDF',
             'Priority support (24h)',
-            'No ads'
+            'No ads',
           ],
-          notIncluded: [
-            'API access',
-            'Multiple family profiles'
-          ]
+          notIncluded: ['API access', 'Multiple family profiles'],
         },
         premium: {
           name: 'Premium',
@@ -259,12 +273,12 @@ export default function PricingPage() {
             'Automatic tax reports',
             'VIP support (4h response)',
             'Early access to new features',
-            'Personalized onboarding session'
+            'Personalized onboarding session',
           ],
-          notIncluded: []
-        }
-      }
-    }
+          notIncluded: [],
+        },
+      },
+    },
   };
 
   const t = content[lang];
@@ -304,7 +318,9 @@ export default function PricingPage() {
                 <button
                   onClick={() => setLang('es')}
                   className={`px-2 sm:px-3 py-1 rounded-md text-sm transition-all ${
-                    lang === 'es' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
+                    lang === 'es'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   ES
@@ -312,17 +328,25 @@ export default function PricingPage() {
                 <button
                   onClick={() => setLang('en')}
                   className={`px-2 sm:px-3 py-1 rounded-md text-sm transition-all ${
-                    lang === 'en' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
+                    lang === 'en'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   EN
                 </button>
               </div>
-              <Link href="/login" className="hidden md:block text-gray-400 hover:text-white transition-colors text-sm">
+              <Link
+                href="/login"
+                className="hidden md:block text-gray-400 hover:text-white transition-colors text-sm"
+              >
                 {lang === 'es' ? 'Iniciar Sesión' : 'Sign In'}
               </Link>
               <Link href="/register" className="hidden md:block">
-                <Button size="sm" className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0"
+                >
                   {lang === 'es' ? 'Registrarse' : 'Sign Up'}
                 </Button>
               </Link>
@@ -331,8 +355,18 @@ export default function PricingPage() {
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="md:hidden p-2 text-gray-400 hover:text-white"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -341,7 +375,11 @@ export default function PricingPage() {
       </header>
 
       {/* Mobile Menu */}
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} lang={lang} />
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        lang={lang}
+      />
 
       {/* Main Content */}
       <main className="relative z-10 py-8 sm:py-16 px-4 sm:px-6 lg:px-8">
@@ -351,7 +389,9 @@ export default function PricingPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
               {t.title}
             </h1>
-            <p className="text-base sm:text-xl text-gray-400 mb-6 sm:mb-8">{t.subtitle}</p>
+            <p className="text-base sm:text-xl text-gray-400 mb-6 sm:mb-8">
+              {t.subtitle}
+            </p>
 
             {/* Billing Toggle */}
             <div className="inline-flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-gray-800/50 rounded-2xl sm:rounded-full p-2">
@@ -385,14 +425,23 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {/* Free Plan */}
             <div className="bg-gray-900/50 rounded-2xl p-6 sm:p-8 border border-gray-800 hover:border-gray-700 transition-all">
-              <h3 className="text-xl sm:text-2xl font-bold mb-2">{t.plans.free.name}</h3>
-              <p className="text-gray-400 text-sm mb-4 sm:mb-6">{t.plans.free.description}</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2">
+                {t.plans.free.name}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4 sm:mb-6">
+                {t.plans.free.description}
+              </p>
               <div className="mb-4 sm:mb-6">
-                <span className="text-4xl sm:text-5xl font-bold">{t.plans.free.price}</span>
+                <span className="text-4xl sm:text-5xl font-bold">
+                  {t.plans.free.price}
+                </span>
                 <span className="text-gray-500">{t.perMonth}</span>
               </div>
               <Link href="/register">
-                <Button className="w-full mb-8 border-gray-600 text-white hover:bg-gray-800" variant="outline">
+                <Button
+                  className="w-full mb-8 border-gray-600 text-white hover:bg-gray-800"
+                  variant="outline"
+                >
                   {t.getStarted}
                 </Button>
               </Link>
@@ -404,7 +453,10 @@ export default function PricingPage() {
                   </li>
                 ))}
                 {t.plans.free.notIncluded.map((feature, i) => (
-                  <li key={`not-${i}`} className="flex items-start gap-3 text-sm">
+                  <li
+                    key={`not-${i}`}
+                    className="flex items-start gap-3 text-sm"
+                  >
                     <span className="text-gray-600 mt-0.5">✗</span>
                     <span className="text-gray-500">{feature}</span>
                   </li>
@@ -419,10 +471,16 @@ export default function PricingPage() {
                   {t.popular}
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold mb-2 text-cyan-400 mt-2 md:mt-0">{t.plans.pro.name}</h3>
-              <p className="text-gray-400 text-sm mb-4 sm:mb-6">{t.plans.pro.description}</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 text-cyan-400 mt-2 md:mt-0">
+                {t.plans.pro.name}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4 sm:mb-6">
+                {t.plans.pro.description}
+              </p>
               <div className="mb-4 sm:mb-6">
-                <span className="text-4xl sm:text-5xl font-bold">{getPrice('pro')}</span>
+                <span className="text-4xl sm:text-5xl font-bold">
+                  {getPrice('pro')}
+                </span>
                 <span className="text-gray-500">{getPeriodLabel()}</span>
               </div>
               <Link href="/register">
@@ -438,7 +496,10 @@ export default function PricingPage() {
                   </li>
                 ))}
                 {t.plans.pro.notIncluded.map((feature, i) => (
-                  <li key={`not-${i}`} className="flex items-start gap-3 text-sm">
+                  <li
+                    key={`not-${i}`}
+                    className="flex items-start gap-3 text-sm"
+                  >
                     <span className="text-gray-600 mt-0.5">✗</span>
                     <span className="text-gray-500">{feature}</span>
                   </li>
@@ -448,14 +509,23 @@ export default function PricingPage() {
 
             {/* Premium Plan */}
             <div className="bg-gray-900/50 rounded-2xl p-6 sm:p-8 border border-gray-800 hover:border-purple-500/50 transition-all">
-              <h3 className="text-xl sm:text-2xl font-bold mb-2 text-purple-400">{t.plans.premium.name}</h3>
-              <p className="text-gray-400 text-sm mb-4 sm:mb-6">{t.plans.premium.description}</p>
+              <h3 className="text-xl sm:text-2xl font-bold mb-2 text-purple-400">
+                {t.plans.premium.name}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4 sm:mb-6">
+                {t.plans.premium.description}
+              </p>
               <div className="mb-4 sm:mb-6">
-                <span className="text-4xl sm:text-5xl font-bold">{getPrice('premium')}</span>
+                <span className="text-4xl sm:text-5xl font-bold">
+                  {getPrice('premium')}
+                </span>
                 <span className="text-gray-500">{getPeriodLabel()}</span>
               </div>
               <Link href="/register">
-                <Button className="w-full mb-8 border-purple-500 text-purple-400 hover:bg-purple-500/10" variant="outline">
+                <Button
+                  className="w-full mb-8 border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                  variant="outline"
+                >
                   {t.goPremium}
                 </Button>
               </Link>
@@ -474,21 +544,31 @@ export default function PricingPage() {
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-8 mt-10 sm:mt-16 text-gray-500 text-sm">
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl">🔒</span>
-              <span>{lang === 'es' ? 'Pago seguro con Stripe' : 'Secure payment with Stripe'}</span>
+              <span>
+                {lang === 'es'
+                  ? 'Pago seguro con Stripe'
+                  : 'Secure payment with Stripe'}
+              </span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl">↩️</span>
-              <span>{lang === 'es' ? 'Garantía de 14 días' : '14-day guarantee'}</span>
+              <span>
+                {lang === 'es' ? 'Garantía de 14 días' : '14-day guarantee'}
+              </span>
             </div>
             <div className="flex items-center justify-center gap-2">
               <span className="text-xl">🚫</span>
-              <span>{lang === 'es' ? 'Cancela cuando quieras' : 'Cancel anytime'}</span>
+              <span>
+                {lang === 'es' ? 'Cancela cuando quieras' : 'Cancel anytime'}
+              </span>
             </div>
           </div>
 
           {/* FAQ Section */}
           <div className="mt-16 sm:mt-24 max-w-3xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">{t.faq.title}</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
+              {t.faq.title}
+            </h2>
             <div className="space-y-4">
               {t.faq.questions.map((item, i) => (
                 <details
@@ -501,9 +581,7 @@ export default function PricingPage() {
                       ▼
                     </span>
                   </summary>
-                  <div className="px-6 pb-6 text-gray-400">
-                    {item.a}
-                  </div>
+                  <div className="px-6 pb-6 text-gray-400">{item.a}</div>
                 </details>
               ))}
             </div>
@@ -512,7 +590,9 @@ export default function PricingPage() {
           {/* CTA */}
           <div className="mt-16 sm:mt-24 text-center px-4">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              {lang === 'es' ? '¿Listo para tomar control de tu dinero?' : 'Ready to take control of your money?'}
+              {lang === 'es'
+                ? '¿Listo para tomar control de tu dinero?'
+                : 'Ready to take control of your money?'}
             </h2>
             <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">
               {lang === 'es'
@@ -520,7 +600,10 @@ export default function PricingPage() {
                 : 'Start free today. No credit card required.'}
             </p>
             <Link href="/register">
-              <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-base sm:text-lg px-8 sm:px-12">
+              <Button
+                size="lg"
+                className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-base sm:text-lg px-8 sm:px-12"
+              >
                 {lang === 'es' ? 'Crear Cuenta Gratis' : 'Create Free Account'}
               </Button>
             </Link>
@@ -532,13 +615,22 @@ export default function PricingPage() {
       <footer className="relative z-10 border-t border-gray-800 py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
-            <Link href="/terms" className="hover:text-cyan-400 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-cyan-400 transition-colors"
+            >
               {lang === 'es' ? 'Términos' : 'Terms'}
             </Link>
-            <Link href="/privacy" className="hover:text-cyan-400 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-cyan-400 transition-colors"
+            >
               {lang === 'es' ? 'Privacidad' : 'Privacy'}
             </Link>
-            <Link href="/refunds" className="hover:text-cyan-400 transition-colors">
+            <Link
+              href="/refunds"
+              className="hover:text-cyan-400 transition-colors"
+            >
               {lang === 'es' ? 'Reembolsos' : 'Refunds'}
             </Link>
             <Link href="/" className="hover:text-cyan-400 transition-colors">
@@ -546,7 +638,8 @@ export default function PricingPage() {
             </Link>
           </div>
           <p className="text-center text-gray-600 text-sm mt-4">
-            © 2024 Budget Copilot. {lang === 'es' ? 'Hecho con' : 'Made with'} 💜 {lang === 'es' ? 'para LATAM' : 'for LATAM'}
+            © 2024 Budget Copilot. {lang === 'es' ? 'Hecho con' : 'Made with'}{' '}
+            💜 {lang === 'es' ? 'para LATAM' : 'for LATAM'}
           </p>
         </div>
       </footer>

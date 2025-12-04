@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  formatDate,
-  truncate,
-  type Category,
-} from '@/lib/api';
+import { formatDate, truncate, type Category } from '@/lib/api';
 import { useCategories } from '@/lib/hooks';
 import { useToast } from '@/components/ui/toast';
 import { CreateCategoryModal } from '@/components/categories/CreateCategoryModal';
@@ -25,7 +21,13 @@ export default function CategoriesPage() {
   const { showToast } = useToast();
 
   // Use SWR for cached categories - instant navigation!
-  const { categories, nextCursor, isLoading: loading, error, refresh } = useCategories({
+  const {
+    categories,
+    nextCursor,
+    isLoading: loading,
+    error,
+    refresh,
+  } = useCategories({
     limit: 50,
     q: debouncedQuery || undefined,
   });
@@ -116,7 +118,9 @@ export default function CategoriesPage() {
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-8 text-center">
               <div className="inline-flex items-center gap-3">
                 <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-400 text-sm lg:text-base">Cargando categorías...</p>
+                <p className="text-gray-400 text-sm lg:text-base">
+                  Cargando categorías...
+                </p>
               </div>
             </div>
           )}

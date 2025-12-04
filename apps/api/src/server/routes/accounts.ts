@@ -20,11 +20,9 @@ export const accountRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to list accounts');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to retrieve accounts',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to retrieve accounts', {
+          error: (error as Error).message,
+        })
       );
     }
   });
@@ -51,11 +49,9 @@ export const accountRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to create account');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to create account',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to create account', {
+          error: (error as Error).message,
+        })
       );
     }
   });

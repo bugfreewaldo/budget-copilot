@@ -4,7 +4,20 @@
  */
 
 import useSWR from 'swr';
-import type { Category, Transaction, Envelope, Page, Debt, DebtStatus, DebtSummary, DebtStrategies, Goal, GoalStatus, GoalType, GoalSummary } from './api';
+import type {
+  Category,
+  Transaction,
+  Envelope,
+  Page,
+  Debt,
+  DebtStatus,
+  DebtSummary,
+  DebtStrategies,
+  Goal,
+  GoalStatus,
+  GoalType,
+  GoalSummary,
+} from './api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -25,8 +38,8 @@ const fetcher = async <T>(url: string): Promise<T> => {
 // SWR configuration for optimal caching
 const swrConfig = {
   revalidateOnFocus: false, // Don't refetch when window regains focus
-  revalidateIfStale: true,  // Revalidate in background if data is stale
-  dedupingInterval: 5000,   // Dedupe requests within 5 seconds
+  revalidateIfStale: true, // Revalidate in background if data is stale
+  dedupingInterval: 5000, // Dedupe requests within 5 seconds
 };
 
 /**
@@ -108,7 +121,8 @@ export function useDashboardData(month: string, from: string, to: string) {
   const transactions = useTransactions({ from, to });
   const envelopes = useEnvelopes(month);
 
-  const isLoading = categories.isLoading || transactions.isLoading || envelopes.isLoading;
+  const isLoading =
+    categories.isLoading || transactions.isLoading || envelopes.isLoading;
   const error = categories.error || transactions.error || envelopes.error;
 
   const refresh = () => {
@@ -137,11 +151,9 @@ export function useDebts(options?: { status?: DebtStatus }) {
   const queryString = params.toString();
   const key = `/v1/debts${queryString ? `?${queryString}` : ''}`;
 
-  const { data, error, isLoading, mutate } = useSWR<Page<Debt> & { summary: DebtSummary }>(
-    key,
-    fetcher,
-    swrConfig
-  );
+  const { data, error, isLoading, mutate } = useSWR<
+    Page<Debt> & { summary: DebtSummary }
+  >(key, fetcher, swrConfig);
 
   return {
     debts: data?.data ?? [],
@@ -182,11 +194,9 @@ export function useGoals(options?: { status?: GoalStatus; type?: GoalType }) {
   const queryString = params.toString();
   const key = `/v1/goals${queryString ? `?${queryString}` : ''}`;
 
-  const { data, error, isLoading, mutate } = useSWR<Page<Goal> & { summary: GoalSummary }>(
-    key,
-    fetcher,
-    swrConfig
-  );
+  const { data, error, isLoading, mutate } = useSWR<
+    Page<Goal> & { summary: GoalSummary }
+  >(key, fetcher, swrConfig);
 
   return {
     goals: data?.data ?? [],

@@ -25,7 +25,10 @@ async function seed() {
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     // Check if data already exists (idempotency)
-    const existingAccounts = await accountRepo.findAllAccounts(db, TEST_USER_ID);
+    const existingAccounts = await accountRepo.findAllAccounts(
+      db,
+      TEST_USER_ID
+    );
     if (existingAccounts.length > 0) {
       console.log('⏭️  Data already exists, skipping seed');
       return;
@@ -80,7 +83,10 @@ async function seed() {
       { name: 'Other', emoji: '📦' },
     ];
 
-    const createdCategories: Record<string, Awaited<ReturnType<typeof categoryRepo.createCategory>>> = {};
+    const createdCategories: Record<
+      string,
+      Awaited<ReturnType<typeof categoryRepo.createCategory>>
+    > = {};
 
     for (const cat of defaultCategories) {
       const category = await categoryRepo.createCategory(db, {
@@ -188,7 +194,9 @@ async function seed() {
 
     console.log('✅ Seed data created successfully!');
     console.log(`   - 1 account (${account.name})`);
-    console.log(`   - ${defaultCategories.length} categories (default expense categories)`);
+    console.log(
+      `   - ${defaultCategories.length} categories (default expense categories)`
+    );
     console.log(`   - 3 envelopes for ${currentMonth}`);
     console.log('   - 5 transactions (1 income, 4 expenses)');
   } catch (error) {

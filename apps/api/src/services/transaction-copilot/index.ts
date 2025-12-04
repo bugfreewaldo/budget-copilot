@@ -11,7 +11,12 @@
 
 import { nanoid } from 'nanoid';
 import { getDb, saveDatabase } from '../../db/client.js';
-import { categories, transactions, accounts, userProfiles } from '../../db/schema.js';
+import {
+  categories,
+  transactions,
+  accounts,
+  userProfiles,
+} from '../../db/schema.js';
 import { eq, and, count } from 'drizzle-orm';
 import type { Message } from '@budget-copilot/ai';
 import { getProvider } from '@budget-copilot/ai';
@@ -23,7 +28,8 @@ import * as accountRepo from '../../server/lib/repo/accounts.js';
 const ONBOARDING_QUESTIONS = [
   {
     step: 1,
-    question: '¡Hola! Soy tu Budget Copilot 🧠 Para ayudarte mejor, ¿cuánto ganas al mes? (Ejemplo: $2500)',
+    question:
+      '¡Hola! Soy tu Budget Copilot 🧠 Para ayudarte mejor, ¿cuánto ganas al mes? (Ejemplo: $2500)',
     field: 'monthlySalaryCents',
   },
   {
@@ -33,7 +39,8 @@ const ONBOARDING_QUESTIONS = [
   },
   {
     step: 3,
-    question: '¿Tienes alguna deuda? (tarjetas de crédito, préstamos, etc.) Cuéntame sobre la más importante primero.',
+    question:
+      '¿Tienes alguna deuda? (tarjetas de crédito, préstamos, etc.) Cuéntame sobre la más importante primero.',
     field: 'debts',
   },
   {
@@ -70,7 +77,11 @@ export interface CopilotResponse {
   transaction?: ExtractedTransaction;
   transactionCreated?: boolean;
   transactionId?: string;
-  suggestedCategories?: Array<{ id: string; name: string; emoji: string | null }>;
+  suggestedCategories?: Array<{
+    id: string;
+    name: string;
+    emoji: string | null;
+  }>;
   needsMoreInfo?: boolean;
   missingFields?: string[];
   // Onboarding
@@ -136,35 +147,304 @@ Responde SOLO con un JSON válido con este formato:
 
 // Category mapping with emojis for auto-creation
 const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
-  'Compras': { patterns: ['ropa', 'zapatos', 'nike', 'zara', 'h&m', 'adidas', 'tienda', 'mall', 'centro comercial', 'amazon', 'compré', 'compras'], emoji: '🛍️' },
-  'Supermercado': { patterns: ['super', 'supermercado', 'mercado', 'walmart', 'costco', 'alimentos', 'verduras', 'frutas', 'rey', 'pricesmart', 'groceries'], emoji: '🛒' },
-  'Restaurantes': { patterns: ['restaurante', 'almuerzo', 'cena', 'desayuno', 'pizza', 'sushi', 'hamburguesa', 'mcdonald', 'burger', 'kfc', 'pollo', 'comí', 'comida'], emoji: '🍽️' },
-  'Café': { patterns: ['café', 'coffee', 'starbucks', 'dunkin', 'cafetería', 'latte', 'cappuccino'], emoji: '☕' },
-  'Transporte': { patterns: ['uber', 'taxi', 'gasolina', 'gas', 'estacionamiento', 'metro', 'bus', 'transporte', 'didi', 'cabify', 'indriver'], emoji: '🚗' },
-  'Entretenimiento': { patterns: ['cine', 'juegos', 'concierto', 'película', 'entretenimiento', 'fiesta', 'bar', 'club', 'diversión'], emoji: '🎬' },
-  'Streaming': { patterns: ['netflix', 'spotify', 'disney', 'hbo', 'prime', 'youtube', 'apple tv', 'streaming', 'max'], emoji: '📺' },
-  'Salud': { patterns: ['farmacia', 'medicina', 'doctor', 'hospital', 'dentista', 'médico', 'salud', 'consulta', 'medicamentos'], emoji: '🏥' },
-  'Servicios': { patterns: ['luz', 'agua', 'internet', 'teléfono', 'cable', 'electricidad', 'servicios', 'gas natural', 'factura'], emoji: '💡' },
-  'Gimnasio': { patterns: ['gym', 'gimnasio', 'fitness', 'ejercicio', 'yoga', 'deporte', 'crossfit', 'entrenamiento'], emoji: '💪' },
-  'Belleza': { patterns: ['peluquería', 'salón', 'uñas', 'barbería', 'spa', 'belleza', 'corte', 'maquillaje', 'skincare'], emoji: '💅' },
-  'Educación': { patterns: ['libro', 'curso', 'escuela', 'universidad', 'clase', 'educación', 'udemy', 'platzi', 'coursera', 'estudio'], emoji: '📚' },
-  'Suscripciones': { patterns: ['suscripción', 'membresía', 'mensual', 'anual', 'premium'], emoji: '🔄' },
-  'Regalos': { patterns: ['regalo', 'cumpleaños', 'navidad', 'presente', 'sorpresa'], emoji: '🎁' },
-  'Viajes': { patterns: ['hotel', 'vuelo', 'viaje', 'airbnb', 'avión', 'vacaciones', 'hospedaje', 'pasaje', 'boleto'], emoji: '✈️' },
-  'Mascotas': { patterns: ['mascota', 'perro', 'gato', 'veterinario', 'comida mascota', 'pet', 'vet'], emoji: '🐾' },
-  'Hogar': { patterns: ['casa', 'hogar', 'muebles', 'decoración', 'electrodoméstico', 'limpieza', 'ferretería'], emoji: '🏠' },
-  'Tecnología': { patterns: ['celular', 'laptop', 'computadora', 'tech', 'gadget', 'electrónica', 'apple', 'samsung'], emoji: '📱' },
-  'Seguros': { patterns: ['seguro', 'póliza', 'insurance', 'cobertura'], emoji: '🛡️' },
-  'Salario': { patterns: ['salario', 'sueldo', 'quincena', 'pago', 'nómina', 'ingreso', 'trabajo'], emoji: '💰' },
-  'Freelance': { patterns: ['freelance', 'proyecto', 'cliente', 'trabajo extra', 'side hustle', 'consultoría'], emoji: '💻' },
-  'Inversiones': { patterns: ['inversión', 'dividendo', 'interés', 'rendimiento', 'acciones', 'cripto', 'bitcoin'], emoji: '📈' },
-  'Deudas': { patterns: ['deuda', 'préstamo', 'tarjeta', 'crédito', 'pago tarjeta', 'cuota'], emoji: '💳' },
-  'Ahorro': { patterns: ['ahorro', 'guardé', 'aparté', 'reserva', 'fondo', 'emergencia'], emoji: '🐷' },
+  Compras: {
+    patterns: [
+      'ropa',
+      'zapatos',
+      'nike',
+      'zara',
+      'h&m',
+      'adidas',
+      'tienda',
+      'mall',
+      'centro comercial',
+      'amazon',
+      'compré',
+      'compras',
+    ],
+    emoji: '🛍️',
+  },
+  Supermercado: {
+    patterns: [
+      'super',
+      'supermercado',
+      'mercado',
+      'walmart',
+      'costco',
+      'alimentos',
+      'verduras',
+      'frutas',
+      'rey',
+      'pricesmart',
+      'groceries',
+    ],
+    emoji: '🛒',
+  },
+  Restaurantes: {
+    patterns: [
+      'restaurante',
+      'almuerzo',
+      'cena',
+      'desayuno',
+      'pizza',
+      'sushi',
+      'hamburguesa',
+      'mcdonald',
+      'burger',
+      'kfc',
+      'pollo',
+      'comí',
+      'comida',
+    ],
+    emoji: '🍽️',
+  },
+  Café: {
+    patterns: [
+      'café',
+      'coffee',
+      'starbucks',
+      'dunkin',
+      'cafetería',
+      'latte',
+      'cappuccino',
+    ],
+    emoji: '☕',
+  },
+  Transporte: {
+    patterns: [
+      'uber',
+      'taxi',
+      'gasolina',
+      'gas',
+      'estacionamiento',
+      'metro',
+      'bus',
+      'transporte',
+      'didi',
+      'cabify',
+      'indriver',
+    ],
+    emoji: '🚗',
+  },
+  Entretenimiento: {
+    patterns: [
+      'cine',
+      'juegos',
+      'concierto',
+      'película',
+      'entretenimiento',
+      'fiesta',
+      'bar',
+      'club',
+      'diversión',
+    ],
+    emoji: '🎬',
+  },
+  Streaming: {
+    patterns: [
+      'netflix',
+      'spotify',
+      'disney',
+      'hbo',
+      'prime',
+      'youtube',
+      'apple tv',
+      'streaming',
+      'max',
+    ],
+    emoji: '📺',
+  },
+  Salud: {
+    patterns: [
+      'farmacia',
+      'medicina',
+      'doctor',
+      'hospital',
+      'dentista',
+      'médico',
+      'salud',
+      'consulta',
+      'medicamentos',
+    ],
+    emoji: '🏥',
+  },
+  Servicios: {
+    patterns: [
+      'luz',
+      'agua',
+      'internet',
+      'teléfono',
+      'cable',
+      'electricidad',
+      'servicios',
+      'gas natural',
+      'factura',
+    ],
+    emoji: '💡',
+  },
+  Gimnasio: {
+    patterns: [
+      'gym',
+      'gimnasio',
+      'fitness',
+      'ejercicio',
+      'yoga',
+      'deporte',
+      'crossfit',
+      'entrenamiento',
+    ],
+    emoji: '💪',
+  },
+  Belleza: {
+    patterns: [
+      'peluquería',
+      'salón',
+      'uñas',
+      'barbería',
+      'spa',
+      'belleza',
+      'corte',
+      'maquillaje',
+      'skincare',
+    ],
+    emoji: '💅',
+  },
+  Educación: {
+    patterns: [
+      'libro',
+      'curso',
+      'escuela',
+      'universidad',
+      'clase',
+      'educación',
+      'udemy',
+      'platzi',
+      'coursera',
+      'estudio',
+    ],
+    emoji: '📚',
+  },
+  Suscripciones: {
+    patterns: ['suscripción', 'membresía', 'mensual', 'anual', 'premium'],
+    emoji: '🔄',
+  },
+  Regalos: {
+    patterns: ['regalo', 'cumpleaños', 'navidad', 'presente', 'sorpresa'],
+    emoji: '🎁',
+  },
+  Viajes: {
+    patterns: [
+      'hotel',
+      'vuelo',
+      'viaje',
+      'airbnb',
+      'avión',
+      'vacaciones',
+      'hospedaje',
+      'pasaje',
+      'boleto',
+    ],
+    emoji: '✈️',
+  },
+  Mascotas: {
+    patterns: [
+      'mascota',
+      'perro',
+      'gato',
+      'veterinario',
+      'comida mascota',
+      'pet',
+      'vet',
+    ],
+    emoji: '🐾',
+  },
+  Hogar: {
+    patterns: [
+      'casa',
+      'hogar',
+      'muebles',
+      'decoración',
+      'electrodoméstico',
+      'limpieza',
+      'ferretería',
+    ],
+    emoji: '🏠',
+  },
+  Tecnología: {
+    patterns: [
+      'celular',
+      'laptop',
+      'computadora',
+      'tech',
+      'gadget',
+      'electrónica',
+      'apple',
+      'samsung',
+    ],
+    emoji: '📱',
+  },
+  Seguros: {
+    patterns: ['seguro', 'póliza', 'insurance', 'cobertura'],
+    emoji: '🛡️',
+  },
+  Salario: {
+    patterns: [
+      'salario',
+      'sueldo',
+      'quincena',
+      'pago',
+      'nómina',
+      'ingreso',
+      'trabajo',
+    ],
+    emoji: '💰',
+  },
+  Freelance: {
+    patterns: [
+      'freelance',
+      'proyecto',
+      'cliente',
+      'trabajo extra',
+      'side hustle',
+      'consultoría',
+    ],
+    emoji: '💻',
+  },
+  Inversiones: {
+    patterns: [
+      'inversión',
+      'dividendo',
+      'interés',
+      'rendimiento',
+      'acciones',
+      'cripto',
+      'bitcoin',
+    ],
+    emoji: '📈',
+  },
+  Deudas: {
+    patterns: [
+      'deuda',
+      'préstamo',
+      'tarjeta',
+      'crédito',
+      'pago tarjeta',
+      'cuota',
+    ],
+    emoji: '💳',
+  },
+  Ahorro: {
+    patterns: ['ahorro', 'guardé', 'aparté', 'reserva', 'fondo', 'emergencia'],
+    emoji: '🐷',
+  },
 };
 
 // Legacy patterns mapping for backward compatibility
 const CATEGORY_PATTERNS: Record<string, string[]> = Object.fromEntries(
-  Object.entries(CATEGORY_CONFIG).map(([name, config]) => [name, config.patterns])
+  Object.entries(CATEGORY_CONFIG).map(([name, config]) => [
+    name,
+    config.patterns,
+  ])
 );
 
 /**
@@ -190,13 +470,18 @@ async function getOrCreateUserProfile(db: any, userId: string) {
   });
   saveDatabase();
 
-  return (await db.select().from(userProfiles).where(eq(userProfiles.id, id)))[0];
+  return (
+    await db.select().from(userProfiles).where(eq(userProfiles.id, id))
+  )[0];
 }
 
 /**
  * Check if user needs onboarding
  */
-async function needsOnboarding(db: any, userId: string): Promise<{ needs: boolean; step: number }> {
+async function needsOnboarding(
+  db: any,
+  userId: string
+): Promise<{ needs: boolean; step: number }> {
   const profile = await getOrCreateUserProfile(db, userId);
 
   if (profile.onboardingCompleted) {
@@ -249,13 +534,18 @@ async function processOnboardingResponse(
         onboardingStep: 1,
       };
 
-    case 1: { // Salary
+    case 1: {
+      // Salary
       const salaryMatch = userMessage.match(/\$?\s*([\d,]+(?:\.\d{2})?)/);
       if (salaryMatch) {
         const salaryCents = parseMoneyToCents(salaryMatch[1]);
         await db
           .update(userProfiles)
-          .set({ monthlySalaryCents: salaryCents, onboardingStep: 2, updatedAt: Date.now() })
+          .set({
+            monthlySalaryCents: salaryCents,
+            onboardingStep: 2,
+            updatedAt: Date.now(),
+          })
           .where(eq(userProfiles.userId, userId));
         saveDatabase();
 
@@ -273,24 +563,40 @@ async function processOnboardingResponse(
       };
     }
 
-    case 2: { // Pay frequency
+    case 2: {
+      // Pay frequency
       let frequency: string | null = null;
       if (lowerMessage.includes('semanal') || lowerMessage.includes('semana')) {
         frequency = 'weekly';
-      } else if (lowerMessage.includes('quincen') || lowerMessage.includes('bi')) {
+      } else if (
+        lowerMessage.includes('quincen') ||
+        lowerMessage.includes('bi')
+      ) {
         frequency = 'biweekly';
-      } else if (lowerMessage.includes('mensual') || lowerMessage.includes('mes')) {
+      } else if (
+        lowerMessage.includes('mensual') ||
+        lowerMessage.includes('mes')
+      ) {
         frequency = 'monthly';
       }
 
       if (frequency) {
         await db
           .update(userProfiles)
-          .set({ payFrequency: frequency, onboardingStep: 3, updatedAt: Date.now() })
+          .set({
+            payFrequency: frequency,
+            onboardingStep: 3,
+            updatedAt: Date.now(),
+          })
           .where(eq(userProfiles.userId, userId));
         saveDatabase();
 
-        const freqText = frequency === 'weekly' ? 'semanalmente' : frequency === 'biweekly' ? 'quincenalmente' : 'mensualmente';
+        const freqText =
+          frequency === 'weekly'
+            ? 'semanalmente'
+            : frequency === 'biweekly'
+              ? 'quincenalmente'
+              : 'mensualmente';
         return {
           message: `Entendido, te pagan ${freqText}. ${ONBOARDING_QUESTIONS[2].question}`,
           isOnboarding: true,
@@ -305,7 +611,11 @@ async function processOnboardingResponse(
     }
 
     case 3: // Debts
-      if (lowerMessage.includes('no') || lowerMessage.includes('ninguna') || lowerMessage.includes('nada')) {
+      if (
+        lowerMessage.includes('no') ||
+        lowerMessage.includes('ninguna') ||
+        lowerMessage.includes('nada')
+      ) {
         await db
           .update(userProfiles)
           .set({ onboardingStep: 4, updatedAt: Date.now() })
@@ -329,7 +639,8 @@ async function processOnboardingResponse(
         onboardingStep: 4,
       };
 
-    case 4: { // Savings goal
+    case 4: {
+      // Savings goal
       const savingsMatch = userMessage.match(/\$?\s*([\d,]+(?:\.\d{2})?)/);
       if (savingsMatch) {
         const savingsCents = parseMoneyToCents(savingsMatch[1]);
@@ -352,20 +663,30 @@ async function processOnboardingResponse(
         };
       }
       // Skip savings if they say no/skip
-      if (lowerMessage.includes('no') || lowerMessage.includes('saltar') || lowerMessage.includes('skip')) {
+      if (
+        lowerMessage.includes('no') ||
+        lowerMessage.includes('saltar') ||
+        lowerMessage.includes('skip')
+      ) {
         await db
           .update(userProfiles)
-          .set({ onboardingStep: 5, onboardingCompleted: true, updatedAt: Date.now() })
+          .set({
+            onboardingStep: 5,
+            onboardingCompleted: true,
+            updatedAt: Date.now(),
+          })
           .where(eq(userProfiles.userId, userId));
         saveDatabase();
         return {
-          message: '¡Listo! Puedes configurar tu meta de ahorro después.\n\nAhora cuéntame: ¿qué gastaste hoy? 💸',
+          message:
+            '¡Listo! Puedes configurar tu meta de ahorro después.\n\nAhora cuéntame: ¿qué gastaste hoy? 💸',
           isOnboarding: false,
           onboardingStep: 5,
         };
       }
       return {
-        message: '¿Cuánto te gustaría ahorrar cada mes? (Ejemplo: $200, o escribe "saltar" para omitir)',
+        message:
+          '¿Cuánto te gustaría ahorrar cada mes? (Ejemplo: $200, o escribe "saltar" para omitir)',
         isOnboarding: true,
         onboardingStep: 4,
       };
@@ -382,9 +703,12 @@ async function processOnboardingResponse(
 /**
  * Find matching categories for a text
  */
-function findMatchingCategories(text: string): Array<{ name: string; emoji: string; confidence: number }> {
+function findMatchingCategories(
+  text: string
+): Array<{ name: string; emoji: string; confidence: number }> {
   const lowerText = text.toLowerCase();
-  const matches: Array<{ name: string; emoji: string; confidence: number }> = [];
+  const matches: Array<{ name: string; emoji: string; confidence: number }> =
+    [];
 
   for (const [categoryName, config] of Object.entries(CATEGORY_CONFIG)) {
     let matchCount = 0;
@@ -419,7 +743,12 @@ export async function processMessage(
   // Check if user needs onboarding
   const onboardingStatus = await needsOnboarding(db, userId);
   if (onboardingStatus.needs) {
-    return processOnboardingResponse(db, userId, userMessage, onboardingStatus.step);
+    return processOnboardingResponse(
+      db,
+      userId,
+      userMessage,
+      onboardingStatus.step
+    );
   }
 
   // Get user's categories for context
@@ -514,18 +843,25 @@ export async function processMessage(
     // If no category matched, try pattern matching with confidence check
     if (!categoryId) {
       // Find all matching categories
-      const matchingCategories = findMatchingCategories(txData.description || userMessage);
+      const matchingCategories = findMatchingCategories(
+        txData.description || userMessage
+      );
 
       // If we have multiple good matches, ask user to confirm
       if (matchingCategories.length >= 2) {
         const topTwo = matchingCategories.slice(0, 2);
         // If confidence difference is small (both are plausible), ask user
         if (topTwo[0].confidence - topTwo[1].confidence < 0.3) {
-          const formattedAmount = (Math.abs(txData.amountCents) / 100).toFixed(2);
+          const formattedAmount = (Math.abs(txData.amountCents) / 100).toFixed(
+            2
+          );
           return {
             message: `$${formattedAmount} en "${txData.description}". ¿En qué categoría lo pongo: ${topTwo[0].emoji} ${topTwo[0].name} o ${topTwo[1].emoji} ${topTwo[1].name}?`,
             needsCategoryConfirmation: true,
-            categoryOptions: topTwo.map(c => ({ name: c.name, emoji: c.emoji })),
+            categoryOptions: topTwo.map((c) => ({
+              name: c.name,
+              emoji: c.emoji,
+            })),
             pendingTransaction: {
               amountCents: txData.amountCents,
               description: txData.description,
@@ -564,7 +900,8 @@ export async function processMessage(
             categoryName = matchedCategory.name;
           } else {
             categoryName = suggestedCategoryName;
-            categoryEmoji = CATEGORY_CONFIG[suggestedCategoryName]?.emoji || null;
+            categoryEmoji =
+              CATEGORY_CONFIG[suggestedCategoryName]?.emoji || null;
           }
         }
       }
@@ -614,7 +951,10 @@ export async function processMessage(
       userId,
       date: transaction.date,
       description: transaction.description,
-      amountCents: transaction.type === 'expense' ? -Math.abs(transaction.amountCents) : Math.abs(transaction.amountCents),
+      amountCents:
+        transaction.type === 'expense'
+          ? -Math.abs(transaction.amountCents)
+          : Math.abs(transaction.amountCents),
       type: transaction.type,
       categoryId: transaction.categoryId,
       accountId: defaultAccount.id,
@@ -625,9 +965,15 @@ export async function processMessage(
     // Save database after mutation
     saveDatabase();
 
-    const formattedAmount = (Math.abs(transaction.amountCents) / 100).toFixed(2);
-    const categoryText = categoryName ? ` en ${categoryEmoji || ''} ${categoryName}` : '';
-    const categoryCreatedText = categoryAutoCreated ? ` (creé esta categoría para ti!)` : '';
+    const formattedAmount = (Math.abs(transaction.amountCents) / 100).toFixed(
+      2
+    );
+    const categoryText = categoryName
+      ? ` en ${categoryEmoji || ''} ${categoryName}`
+      : '';
+    const categoryCreatedText = categoryAutoCreated
+      ? ` (creé esta categoría para ti!)`
+      : '';
 
     // Generate a sassy response based on transaction type and amount
     let sassyResponse = aiResponse.response;
@@ -638,7 +984,8 @@ export async function processMessage(
           `Niceee! $${formattedAmount}${categoryText}. ¿Ya pensaste cuánto vas a ahorrar? 🐷`,
           `¡Ka-ching! $${formattedAmount}${categoryText}. Recuerda: paga tus deudas primero 😉`,
         ];
-        sassyResponse = incomeResponses[Math.floor(Math.random() * incomeResponses.length)];
+        sassyResponse =
+          incomeResponses[Math.floor(Math.random() * incomeResponses.length)];
       } else {
         const amountDollars = Math.abs(transaction.amountCents) / 100;
         if (amountDollars < 20) {
@@ -646,20 +993,23 @@ export async function processMessage(
             `Listo! $${formattedAmount}${categoryText}. Pequeños gastos suman, ojo 👀`,
             `Anotado! $${formattedAmount}${categoryText}.`,
           ];
-          sassyResponse = smallResponses[Math.floor(Math.random() * smallResponses.length)];
+          sassyResponse =
+            smallResponses[Math.floor(Math.random() * smallResponses.length)];
         } else if (amountDollars < 100) {
           const mediumResponses = [
             `$${formattedAmount}${categoryText}. Cada peso cuenta 💪`,
             `Registrado! $${formattedAmount}${categoryText}. ¿Estaba planeado? 🤔`,
           ];
-          sassyResponse = mediumResponses[Math.floor(Math.random() * mediumResponses.length)];
+          sassyResponse =
+            mediumResponses[Math.floor(Math.random() * mediumResponses.length)];
         } else {
           const largeResponses = [
             `Uff, $${formattedAmount}${categoryText} 💸 ¿Estaba en el presupuesto?`,
             `$${formattedAmount}${categoryText}. Ese sí se sintió... 🫣`,
             `Bueno bueno, $${formattedAmount}${categoryText}. Espero que valiera la pena 😅`,
           ];
-          sassyResponse = largeResponses[Math.floor(Math.random() * largeResponses.length)];
+          sassyResponse =
+            largeResponses[Math.floor(Math.random() * largeResponses.length)];
         }
       }
     }
@@ -687,7 +1037,9 @@ export async function processMessage(
     'Hmm, necesito más info. ¿Monto y descripción? 💭',
   ];
   return {
-    message: aiResponse.response || fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)],
+    message:
+      aiResponse.response ||
+      fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)],
     needsMoreInfo: true,
     missingFields: ['amount', 'description'],
   };
@@ -783,14 +1135,20 @@ function extractTransactionFromText(text: string): any {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     date = yesterday.toISOString().split('T')[0];
-  } else if (lowerText.includes('anteayer') || lowerText.includes('ante ayer')) {
+  } else if (
+    lowerText.includes('anteayer') ||
+    lowerText.includes('ante ayer')
+  ) {
     const dayBeforeYesterday = new Date();
     dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
     date = dayBeforeYesterday.toISOString().split('T')[0];
   }
 
   // Determine if it's income or expense
-  const isIncome = /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|pago.*recibido|me\s+pagar?on?|depositar?on?|bonificaci[oó]n|bono|transferencia.*recib/i.test(lowerText);
+  const isIncome =
+    /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|pago.*recibido|me\s+pagar?on?|depositar?on?|bonificaci[oó]n|bono|transferencia.*recib/i.test(
+      lowerText
+    );
   const type = isIncome ? 'income' : 'expense';
 
   // Extract description - what they spent on
@@ -814,15 +1172,18 @@ function extractTransactionFromText(text: string): any {
 
   // If no description found, use the whole text cleaned up
   if (!description) {
-    description = text
-      .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
-      .replace(/hoy|ayer|anteayer/gi, '')
-      .replace(/gast[eéo]/gi, '')
-      .trim() || 'Gasto';
+    description =
+      text
+        .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
+        .replace(/hoy|ayer|anteayer/gi, '')
+        .replace(/gast[eéo]/gi, '')
+        .trim() || 'Gasto';
   }
 
   // Try to extract merchant name (capitalized words, brand names)
-  const merchantMatch = text.match(/(?:en|de)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/);
+  const merchantMatch = text.match(
+    /(?:en|de)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/
+  );
   if (merchantMatch) {
     merchant = merchantMatch[1];
   }
@@ -846,12 +1207,18 @@ function extractTransactionFromText(text: string): any {
       needsMoreInfo: true,
       missingFields,
       followUpQuestion: '¿Cuánto gastaste?',
-      response: needsInfoResponses[Math.floor(Math.random() * needsInfoResponses.length)],
+      response:
+        needsInfoResponses[
+          Math.floor(Math.random() * needsInfoResponses.length)
+        ],
     };
   }
 
   // Get emoji for the category
-  const categoryEmoji = suggestedCategory ? CATEGORY_CONFIG[suggestedCategory]?.emoji || (type === 'income' ? '💰' : '📦') : null;
+  const categoryEmoji = suggestedCategory
+    ? CATEGORY_CONFIG[suggestedCategory]?.emoji ||
+      (type === 'income' ? '💰' : '📦')
+    : null;
 
   return {
     understood: true,
@@ -912,7 +1279,9 @@ export async function updateTransactionCategory(
   const tx = await db
     .select()
     .from(transactions)
-    .where(and(eq(transactions.id, transactionId), eq(transactions.userId, userId)));
+    .where(
+      and(eq(transactions.id, transactionId), eq(transactions.userId, userId))
+    );
 
   if (!tx.length) {
     return false;

@@ -9,7 +9,7 @@
 
 console.warn(
   '\n⚠️  WARNING: Running from deprecated entry point (src/index.ts)\n' +
-  '   Please use: tsx src/server/index.ts instead\n'
+    '   Please use: tsx src/server/index.ts instead\n'
 );
 
 // Re-export the new server for backwards compatibility

@@ -53,23 +53,52 @@ export function BudgetProgress({ envelopes, categories }: BudgetProgressProps) {
         }
 
         return (
-          <div
-            key={envelope.id}
-            className="relative group cursor-pointer"
-          >
+          <div key={envelope.id} className="relative group cursor-pointer">
             {/* Envelope Shape */}
-            <div className={`relative bg-gradient-to-br ${envelopeColor} rounded-xl p-4 shadow-lg transition-transform hover:scale-105 hover:shadow-xl overflow-hidden`}>
+            <div
+              className={`relative bg-gradient-to-br ${envelopeColor} rounded-xl p-4 shadow-lg transition-transform hover:scale-105 hover:shadow-xl overflow-hidden`}
+            >
               {/* Floating dollars on hover */}
               <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="absolute text-2xl animate-bounce" style={{ top: '10%', left: '10%', animationDelay: '0ms' }}>💵</span>
-                <span className="absolute text-xl animate-bounce" style={{ top: '20%', right: '15%', animationDelay: '150ms' }}>💰</span>
-                <span className="absolute text-lg animate-bounce" style={{ bottom: '30%', left: '20%', animationDelay: '300ms' }}>💲</span>
-                <span className="absolute text-xl animate-bounce" style={{ bottom: '20%', right: '10%', animationDelay: '100ms' }}>💵</span>
+                <span
+                  className="absolute text-2xl animate-bounce"
+                  style={{ top: '10%', left: '10%', animationDelay: '0ms' }}
+                >
+                  💵
+                </span>
+                <span
+                  className="absolute text-xl animate-bounce"
+                  style={{ top: '20%', right: '15%', animationDelay: '150ms' }}
+                >
+                  💰
+                </span>
+                <span
+                  className="absolute text-lg animate-bounce"
+                  style={{
+                    bottom: '30%',
+                    left: '20%',
+                    animationDelay: '300ms',
+                  }}
+                >
+                  💲
+                </span>
+                <span
+                  className="absolute text-xl animate-bounce"
+                  style={{
+                    bottom: '20%',
+                    right: '10%',
+                    animationDelay: '100ms',
+                  }}
+                >
+                  💵
+                </span>
               </div>
 
               {/* Envelope Flap (decorative triangle) */}
               <div className="absolute top-0 left-0 right-0 h-6 overflow-hidden">
-                <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[60px] border-r-[60px] border-t-[24px] border-l-transparent border-r-transparent border-t-gray-900/30`} />
+                <div
+                  className={`absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[60px] border-r-[60px] border-t-[24px] border-l-transparent border-r-transparent border-t-gray-900/30`}
+                />
               </div>
 
               {/* Content */}
@@ -87,7 +116,9 @@ export function BudgetProgress({ envelopes, categories }: BudgetProgressProps) {
                   <p className={`text-xs ${statusColor}`}>
                     {isOverBudget ? 'Excedido' : 'Disponible'}
                   </p>
-                  <p className={`text-lg font-bold ${isOverBudget ? 'text-red-300' : 'text-white'}`}>
+                  <p
+                    className={`text-lg font-bold ${isOverBudget ? 'text-red-300' : 'text-white'}`}
+                  >
                     ${Math.abs(remaining).toFixed(0)}
                   </p>
                 </div>

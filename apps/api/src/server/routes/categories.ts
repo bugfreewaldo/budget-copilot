@@ -33,11 +33,9 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to list categories');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to retrieve categories',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to retrieve categories', {
+          error: (error as Error).message,
+        })
       );
     }
   });
@@ -64,11 +62,9 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       request.log.error({ error }, 'Failed to create category');
       return reply.status(500).send(
-        createErrorResponse(
-          'DB_ERROR',
-          'Failed to create category',
-          { error: (error as Error).message }
-        )
+        createErrorResponse('DB_ERROR', 'Failed to create category', {
+          error: (error as Error).message,
+        })
       );
     }
   });

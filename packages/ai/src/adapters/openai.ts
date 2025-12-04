@@ -70,11 +70,12 @@ export class OpenAIProvider implements LLMProvider {
   async chat(messages: Message[], options?: ChatOptions): Promise<ChatResult> {
     this.ensureConfigured();
 
-    const apiMessages: OpenAI.Chat.ChatCompletionMessageParam[] =
-      messages.map((msg) => ({
+    const apiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = messages.map(
+      (msg) => ({
         role: msg.role,
         content: msg.content,
-      }));
+      })
+    );
 
     // Add system prompt if provided
     if (options?.systemPrompt) {

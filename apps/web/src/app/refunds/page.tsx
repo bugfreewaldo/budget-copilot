@@ -10,7 +10,8 @@ export default function RefundsPage() {
     es: {
       title: 'Política de Reembolsos',
       lastUpdated: 'Última actualización: Diciembre 2024',
-      intro: 'En Budget Copilot queremos que estés completamente satisfecho con nuestro servicio. Esta política describe nuestras condiciones de reembolso para planes de pago.',
+      intro:
+        'En Budget Copilot queremos que estés completamente satisfecho con nuestro servicio. Esta política describe nuestras condiciones de reembolso para planes de pago.',
       sections: [
         {
           title: '1. Resumen de la Política',
@@ -19,7 +20,7 @@ export default function RefundsPage() {
 • **Plan Gratuito:** Sin costo, sin compromiso - cancela cuando quieras
 • **Planes de Pago (Pro/Premium):** Garantía de satisfacción de 14 días
 
-Si no estás satisfecho con tu plan de pago, puedes solicitar un reembolso completo dentro de los primeros 14 días de tu suscripción.`
+Si no estás satisfecho con tu plan de pago, puedes solicitar un reembolso completo dentro de los primeros 14 días de tu suscripción.`,
         },
         {
           title: '2. Plan Gratuito',
@@ -28,7 +29,7 @@ Si no estás satisfecho con tu plan de pago, puedes solicitar un reembolso compl
 • No hay pagos que reembolsar
 • Puedes usar el plan gratuito indefinidamente
 • Puedes cancelar tu cuenta gratuita en cualquier momento sin penalización
-• No necesitas proporcionar información de pago para usar el plan gratuito`
+• No necesitas proporcionar información de pago para usar el plan gratuito`,
         },
         {
           title: '3. Período de Garantía (14 días)',
@@ -48,7 +49,7 @@ Si no estás satisfecho con tu plan de pago, puedes solicitar un reembolso compl
 1. Envía un email a billing@budgetcopilot.app
 2. Incluye tu correo de cuenta y motivo (opcional)
 3. Confirmaremos la solicitud en 24-48 horas
-4. El reembolso se procesará en 5-10 días hábiles`
+4. El reembolso se procesará en 5-10 días hábiles`,
         },
         {
           title: '4. Después del Período de Garantía',
@@ -64,7 +65,7 @@ Si no estás satisfecho con tu plan de pago, puedes solicitar un reembolso compl
 • Problemas técnicos graves que impidan el uso del servicio
 • Circunstancias excepcionales evaluadas caso por caso
 
-Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app explicando tu situación.`
+Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app explicando tu situación.`,
         },
         {
           title: '5. Método de Reembolso',
@@ -77,7 +78,7 @@ Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app ex
 **Tiempos estimados:**
 • Procesamiento interno: 1-3 días hábiles
 • Reflejo en tu cuenta: 5-10 días hábiles adicionales
-• Depende también de tu banco o institución financiera`
+• Depende también de tu banco o institución financiera`,
         },
         {
           title: '6. Cambios de Plan',
@@ -91,7 +92,7 @@ Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app ex
 **Downgrade (a plan inferior):**
 • Se aplica al siguiente período de facturación
 • Conservas las funcionalidades hasta el fin del período actual
-• No hay reembolso por el período en curso`
+• No hay reembolso por el período en curso`,
         },
         {
           title: '7. Promociones y Descuentos',
@@ -99,7 +100,7 @@ Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app ex
 
 • El reembolso será por el monto efectivamente pagado
 • No se reembolsa el valor del descuento
-• Los cupones usados no son recuperables tras el reembolso`
+• Los cupones usados no son recuperables tras el reembolso`,
         },
         {
           title: '8. Disputas de Cargo',
@@ -109,7 +110,7 @@ Para solicitar un reembolso excepcional, contacta a support@budgetcopilot.app ex
 • Intentaremos resolver cualquier problema directamente
 • Las disputas (chargebacks) pueden resultar en suspensión de cuenta
 
-Preferimos resolver los problemas amigablemente antes de llegar a disputas formales.`
+Preferimos resolver los problemas amigablemente antes de llegar a disputas formales.`,
         },
         {
           title: '9. Contacto',
@@ -118,14 +119,15 @@ Preferimos resolver los problemas amigablemente antes de llegar a disputas forma
 **Email de Facturación:** billing@budgetcopilot.app
 **Soporte General:** support@budgetcopilot.app
 
-Horario de atención: Lunes a Viernes, 9:00 AM - 6:00 PM (Hora de Panamá)`
-        }
-      ]
+Horario de atención: Lunes a Viernes, 9:00 AM - 6:00 PM (Hora de Panamá)`,
+        },
+      ],
     },
     en: {
       title: 'Refund Policy',
       lastUpdated: 'Last Updated: December 2024',
-      intro: 'At Budget Copilot, we want you to be completely satisfied with our service. This policy describes our refund conditions for paid plans.',
+      intro:
+        'At Budget Copilot, we want you to be completely satisfied with our service. This policy describes our refund conditions for paid plans.',
       sections: [
         {
           title: '1. Policy Summary',
@@ -134,7 +136,7 @@ Horario de atención: Lunes a Viernes, 9:00 AM - 6:00 PM (Hora de Panamá)`
 • **Free Plan:** No cost, no commitment - cancel anytime
 • **Paid Plans (Pro/Premium):** 14-day satisfaction guarantee
 
-If you are not satisfied with your paid plan, you can request a full refund within the first 14 days of your subscription.`
+If you are not satisfied with your paid plan, you can request a full refund within the first 14 days of your subscription.`,
         },
         {
           title: '2. Free Plan',
@@ -143,7 +145,7 @@ If you are not satisfied with your paid plan, you can request a full refund with
 • There are no payments to refund
 • You can use the free plan indefinitely
 • You can cancel your free account at any time without penalty
-• You do not need to provide payment information to use the free plan`
+• You do not need to provide payment information to use the free plan`,
         },
         {
           title: '3. Guarantee Period (14 days)',
@@ -163,7 +165,7 @@ If you are not satisfied with your paid plan, you can request a full refund with
 1. Send an email to billing@budgetcopilot.app
 2. Include your account email and reason (optional)
 3. We will confirm the request within 24-48 hours
-4. The refund will be processed in 5-10 business days`
+4. The refund will be processed in 5-10 business days`,
         },
         {
           title: '4. After the Guarantee Period',
@@ -179,7 +181,7 @@ If you are not satisfied with your paid plan, you can request a full refund with
 • Serious technical issues preventing service use
 • Exceptional circumstances evaluated case by case
 
-To request an exceptional refund, contact support@budgetcopilot.app explaining your situation.`
+To request an exceptional refund, contact support@budgetcopilot.app explaining your situation.`,
         },
         {
           title: '5. Refund Method',
@@ -192,7 +194,7 @@ To request an exceptional refund, contact support@budgetcopilot.app explaining y
 **Estimated times:**
 • Internal processing: 1-3 business days
 • Reflection in your account: 5-10 additional business days
-• Also depends on your bank or financial institution`
+• Also depends on your bank or financial institution`,
         },
         {
           title: '6. Plan Changes',
@@ -206,7 +208,7 @@ To request an exceptional refund, contact support@budgetcopilot.app explaining y
 **Downgrade (to a lower plan):**
 • Applied on the next billing period
 • You keep the features until the end of the current period
-• No refund for the current period`
+• No refund for the current period`,
         },
         {
           title: '7. Promotions and Discounts',
@@ -214,7 +216,7 @@ To request an exceptional refund, contact support@budgetcopilot.app explaining y
 
 • The refund will be for the amount actually paid
 • The discount value is not refunded
-• Used coupons are not recoverable after refund`
+• Used coupons are not recoverable after refund`,
         },
         {
           title: '8. Charge Disputes',
@@ -224,7 +226,7 @@ To request an exceptional refund, contact support@budgetcopilot.app explaining y
 • We will try to resolve any issue directly
 • Disputes (chargebacks) may result in account suspension
 
-We prefer to resolve issues amicably before reaching formal disputes.`
+We prefer to resolve issues amicably before reaching formal disputes.`,
         },
         {
           title: '9. Contact',
@@ -233,10 +235,10 @@ We prefer to resolve issues amicably before reaching formal disputes.`
 **Billing Email:** billing@budgetcopilot.app
 **General Support:** support@budgetcopilot.app
 
-Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
-        }
-      ]
-    }
+Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`,
+        },
+      ],
+    },
   };
 
   const t = content[lang];
@@ -258,7 +260,9 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
                 <button
                   onClick={() => setLang('es')}
                   className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm transition-all ${
-                    lang === 'es' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
+                    lang === 'es'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   ES
@@ -266,7 +270,9 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
                 <button
                   onClick={() => setLang('en')}
                   className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm transition-all ${
-                    lang === 'en' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
+                    lang === 'en'
+                      ? 'bg-cyan-600 text-white'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   EN
@@ -282,8 +288,12 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
           {t.title}
         </h1>
-        <p className="text-gray-500 text-sm sm:text-base mb-3 sm:mb-4">{t.lastUpdated}</p>
-        <p className="text-gray-300 mb-6 sm:mb-8 text-base sm:text-lg">{t.intro}</p>
+        <p className="text-gray-500 text-sm sm:text-base mb-3 sm:mb-4">
+          {t.lastUpdated}
+        </p>
+        <p className="text-gray-300 mb-6 sm:mb-8 text-base sm:text-lg">
+          {t.intro}
+        </p>
 
         {/* Highlight Box */}
         <div className="bg-gradient-to-r from-cyan-900/30 to-purple-900/30 rounded-xl p-4 sm:p-6 border border-cyan-500/30 mb-6 sm:mb-8">
@@ -302,11 +312,22 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
 
         <div className="space-y-4 sm:space-y-8">
           {t.sections.map((section, index) => (
-            <section key={index} className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-800">
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-cyan-400">{section.title}</h2>
+            <section
+              key={index}
+              className="bg-gray-900/50 rounded-xl p-4 sm:p-6 border border-gray-800"
+            >
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-cyan-400">
+                {section.title}
+              </h2>
               <div className="text-gray-300 whitespace-pre-line leading-relaxed text-sm sm:text-base">
                 {section.content.split('**').map((part, i) =>
-                  i % 2 === 1 ? <strong key={i} className="text-white">{part}</strong> : part
+                  i % 2 === 1 ? (
+                    <strong key={i} className="text-white">
+                      {part}
+                    </strong>
+                  ) : (
+                    part
+                  )
                 )}
               </div>
             </section>
@@ -316,12 +337,14 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
         {/* CTA Box */}
         <div className="mt-8 sm:mt-12 bg-gray-900/50 rounded-xl p-6 sm:p-8 border border-gray-800 text-center">
           <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
-            {lang === 'es' ? '¿Listo para comenzar gratis?' : 'Ready to start for free?'}
+            {lang === 'es'
+              ? '¿Listo para comenzar gratis?'
+              : 'Ready to start for free?'}
           </h3>
           <p className="text-gray-400 mb-5 sm:mb-6 text-sm sm:text-base">
             {lang === 'es'
               ? 'No necesitas tarjeta de crédito. Prueba todas las funciones básicas sin costo.'
-              : "No credit card required. Try all basic features at no cost."}
+              : 'No credit card required. Try all basic features at no cost.'}
           </p>
           <Link
             href="/register"
@@ -336,7 +359,10 @@ Business hours: Monday to Friday, 9:00 AM - 6:00 PM (Panama Time)`
           <Link href="/terms" className="hover:text-cyan-400 transition-colors">
             {lang === 'es' ? 'Términos de Servicio' : 'Terms of Service'}
           </Link>
-          <Link href="/privacy" className="hover:text-cyan-400 transition-colors">
+          <Link
+            href="/privacy"
+            className="hover:text-cyan-400 transition-colors"
+          >
             {lang === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}
           </Link>
           <Link href="/" className="hover:text-cyan-400 transition-colors">

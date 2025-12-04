@@ -40,7 +40,8 @@ async function buildServer() {
   await server.register(loggingPlugin);
   await server.register(securityPlugin);
   await server.register(cookie, {
-    secret: process.env.COOKIE_SECRET || 'budget-copilot-dev-secret-change-in-prod',
+    secret:
+      process.env.COOKIE_SECRET || 'budget-copilot-dev-secret-change-in-prod',
     parseOptions: {},
   });
   await server.register(authPlugin);
@@ -92,9 +93,7 @@ async function start() {
 
     await server.listen({ port, host });
 
-    server.log.info(
-      `🚀 Budget Copilot API running on http://${host}:${port}`
-    );
+    server.log.info(`🚀 Budget Copilot API running on http://${host}:${port}`);
     server.log.info(`📚 Health check: http://${host}:${port}/health`);
   } catch (err) {
     server.log.error(err);
@@ -114,9 +113,10 @@ signals.forEach((signal) => {
 // Start if run directly (not in test environment)
 // On Windows, paths need special handling for import.meta.url comparison
 const scriptPath = process.argv[1] ?? '';
-const isDirectRun = import.meta.url.includes(scriptPath.replace(/\\/g, '/')) ||
-                    import.meta.url === `file://${scriptPath}` ||
-                    import.meta.url === `file:///${scriptPath.replace(/\\/g, '/')}`;
+const isDirectRun =
+  import.meta.url.includes(scriptPath.replace(/\\/g, '/')) ||
+  import.meta.url === `file://${scriptPath}` ||
+  import.meta.url === `file:///${scriptPath.replace(/\\/g, '/')}`;
 
 if (isDirectRun && process.env.NODE_ENV !== 'test') {
   start();

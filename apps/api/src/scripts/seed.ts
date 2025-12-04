@@ -46,7 +46,9 @@ async function seed() {
         console.log(`ℹ️  User ${TEST_EMAIL} already exists, skipping...`);
         // Get existing user ID - for now just use a placeholder
         // In real scenario we'd query the DB
-        throw new Error('User already exists. Delete database and re-run seed.');
+        throw new Error(
+          'User already exists. Delete database and re-run seed.'
+        );
       }
       throw error;
     }
@@ -119,7 +121,10 @@ async function seed() {
       { name: 'Otros Ingresos', emoji: '📦' },
     ];
 
-    const createdCategories: Record<string, Awaited<ReturnType<typeof categoryRepo.createCategory>>> = {};
+    const createdCategories: Record<
+      string,
+      Awaited<ReturnType<typeof categoryRepo.createCategory>>
+    > = {};
 
     // Create expense subcategories
     for (const cat of expenseCategories) {
@@ -152,22 +157,25 @@ async function seed() {
     const entertainment = createdCategories['Entretenimiento'];
     const salaryCategory = createdCategories['Salario'];
 
-    const totalCategories = 2 + expenseCategories.length + incomeCategories.length;
-    console.log(`✅ Created ${totalCategories} categories (2 parents + ${expenseCategories.length} expense + ${incomeCategories.length} income)`);
+    const totalCategories =
+      2 + expenseCategories.length + incomeCategories.length;
+    console.log(
+      `✅ Created ${totalCategories} categories (2 parents + ${expenseCategories.length} expense + ${incomeCategories.length} income)`
+    );
 
     // 3. Create envelopes for current month
     console.log(`Creating envelopes for ${currentMonth}...`);
 
     const envelopeData = [
-      { cat: groceries, budget: 40000 },     // $400 - Supermercado
-      { cat: utilities, budget: 25000 },     // $250 - Servicios
+      { cat: groceries, budget: 40000 }, // $400 - Supermercado
+      { cat: utilities, budget: 25000 }, // $250 - Servicios
       { cat: entertainment, budget: 10000 }, // $100 - Entretenimiento
-      { cat: createdCategories['Transporte'], budget: 15000 },    // $150
-      { cat: createdCategories['Restaurantes'], budget: 20000 },  // $200
-      { cat: createdCategories['Café'], budget: 5000 },           // $50
-      { cat: createdCategories['Compras'], budget: 15000 },       // $150
-      { cat: createdCategories['Gimnasio'], budget: 6000 },       // $60
-      { cat: createdCategories['Suscripciones'], budget: 5000 },  // $50
+      { cat: createdCategories['Transporte'], budget: 15000 }, // $150
+      { cat: createdCategories['Restaurantes'], budget: 20000 }, // $200
+      { cat: createdCategories['Café'], budget: 5000 }, // $50
+      { cat: createdCategories['Compras'], budget: 15000 }, // $150
+      { cat: createdCategories['Gimnasio'], budget: 6000 }, // $60
+      { cat: createdCategories['Suscripciones'], budget: 5000 }, // $50
       { cat: createdCategories['Alquiler/Vivienda'], budget: 100000 }, // $1000
     ];
 
@@ -179,7 +187,9 @@ async function seed() {
         budgetCents: env.budget,
       });
     }
-    console.log(`✅ Created ${envelopeData.length} envelopes for ${currentMonth}`);
+    console.log(
+      `✅ Created ${envelopeData.length} envelopes for ${currentMonth}`
+    );
 
     // 4. Create sample transactions with realistic mock data
     console.log('Creating transactions...');
@@ -197,56 +207,248 @@ async function seed() {
     // All transactions for the month
     const transactions = [
       // Income
-      { date: `${currentMonth}-01`, desc: 'Depósito de Salario', amount: 350000, type: 'income' as const, cat: salaryCategory },
-      { date: `${currentMonth}-15`, desc: 'Pago Freelance - Diseño Web', amount: 75000, type: 'income' as const, cat: freelance },
+      {
+        date: `${currentMonth}-01`,
+        desc: 'Depósito de Salario',
+        amount: 350000,
+        type: 'income' as const,
+        cat: salaryCategory,
+      },
+      {
+        date: `${currentMonth}-15`,
+        desc: 'Pago Freelance - Diseño Web',
+        amount: 75000,
+        type: 'income' as const,
+        cat: freelance,
+      },
 
       // Housing
-      { date: `${currentMonth}-01`, desc: 'Alquiler del Apartamento', amount: -95000, type: 'expense' as const, cat: housing },
+      {
+        date: `${currentMonth}-01`,
+        desc: 'Alquiler del Apartamento',
+        amount: -95000,
+        type: 'expense' as const,
+        cat: housing,
+      },
 
       // Groceries (weekly)
-      { date: `${currentMonth}-02`, desc: 'Supermercado Rey', amount: -8745, type: 'expense' as const, cat: groceries },
-      { date: `${currentMonth}-09`, desc: 'Super 99 - Compras Semanales', amount: -6532, type: 'expense' as const, cat: groceries },
-      { date: `${currentMonth}-16`, desc: 'Riba Smith - Víveres', amount: -9821, type: 'expense' as const, cat: groceries },
-      { date: `${currentMonth}-23`, desc: 'Supermercado Rey', amount: -7456, type: 'expense' as const, cat: groceries },
+      {
+        date: `${currentMonth}-02`,
+        desc: 'Supermercado Rey',
+        amount: -8745,
+        type: 'expense' as const,
+        cat: groceries,
+      },
+      {
+        date: `${currentMonth}-09`,
+        desc: 'Super 99 - Compras Semanales',
+        amount: -6532,
+        type: 'expense' as const,
+        cat: groceries,
+      },
+      {
+        date: `${currentMonth}-16`,
+        desc: 'Riba Smith - Víveres',
+        amount: -9821,
+        type: 'expense' as const,
+        cat: groceries,
+      },
+      {
+        date: `${currentMonth}-23`,
+        desc: 'Supermercado Rey',
+        amount: -7456,
+        type: 'expense' as const,
+        cat: groceries,
+      },
 
       // Utilities
-      { date: `${currentMonth}-05`, desc: 'Recibo de Luz - ENSA', amount: -12500, type: 'expense' as const, cat: utilities },
-      { date: `${currentMonth}-08`, desc: 'Factura de Agua - IDAAN', amount: -4500, type: 'expense' as const, cat: utilities },
-      { date: `${currentMonth}-10`, desc: 'Internet - Cable & Wireless', amount: -6999, type: 'expense' as const, cat: utilities },
+      {
+        date: `${currentMonth}-05`,
+        desc: 'Recibo de Luz - ENSA',
+        amount: -12500,
+        type: 'expense' as const,
+        cat: utilities,
+      },
+      {
+        date: `${currentMonth}-08`,
+        desc: 'Factura de Agua - IDAAN',
+        amount: -4500,
+        type: 'expense' as const,
+        cat: utilities,
+      },
+      {
+        date: `${currentMonth}-10`,
+        desc: 'Internet - Cable & Wireless',
+        amount: -6999,
+        type: 'expense' as const,
+        cat: utilities,
+      },
 
       // Transport
-      { date: `${currentMonth}-03`, desc: 'Gasolina - Terpel', amount: -4500, type: 'expense' as const, cat: transport },
-      { date: `${currentMonth}-10`, desc: 'Uber - Trabajo', amount: -850, type: 'expense' as const, cat: transport },
-      { date: `${currentMonth}-17`, desc: 'Gasolina - Shell', amount: -5200, type: 'expense' as const, cat: transport },
-      { date: `${currentMonth}-24`, desc: 'Estacionamiento Mall', amount: -300, type: 'expense' as const, cat: transport },
+      {
+        date: `${currentMonth}-03`,
+        desc: 'Gasolina - Terpel',
+        amount: -4500,
+        type: 'expense' as const,
+        cat: transport,
+      },
+      {
+        date: `${currentMonth}-10`,
+        desc: 'Uber - Trabajo',
+        amount: -850,
+        type: 'expense' as const,
+        cat: transport,
+      },
+      {
+        date: `${currentMonth}-17`,
+        desc: 'Gasolina - Shell',
+        amount: -5200,
+        type: 'expense' as const,
+        cat: transport,
+      },
+      {
+        date: `${currentMonth}-24`,
+        desc: 'Estacionamiento Mall',
+        amount: -300,
+        type: 'expense' as const,
+        cat: transport,
+      },
 
       // Entertainment
-      { date: `${currentMonth}-01`, desc: 'Netflix', amount: -1599, type: 'expense' as const, cat: entertainment },
-      { date: `${currentMonth}-01`, desc: 'Spotify Premium', amount: -999, type: 'expense' as const, cat: subscriptions },
-      { date: `${currentMonth}-12`, desc: 'Cine - Cinépolis', amount: -2400, type: 'expense' as const, cat: entertainment },
-      { date: `${currentMonth}-20`, desc: 'Disney+', amount: -899, type: 'expense' as const, cat: subscriptions },
+      {
+        date: `${currentMonth}-01`,
+        desc: 'Netflix',
+        amount: -1599,
+        type: 'expense' as const,
+        cat: entertainment,
+      },
+      {
+        date: `${currentMonth}-01`,
+        desc: 'Spotify Premium',
+        amount: -999,
+        type: 'expense' as const,
+        cat: subscriptions,
+      },
+      {
+        date: `${currentMonth}-12`,
+        desc: 'Cine - Cinépolis',
+        amount: -2400,
+        type: 'expense' as const,
+        cat: entertainment,
+      },
+      {
+        date: `${currentMonth}-20`,
+        desc: 'Disney+',
+        amount: -899,
+        type: 'expense' as const,
+        cat: subscriptions,
+      },
 
       // Restaurants
-      { date: `${currentMonth}-04`, desc: 'McDonald\'s', amount: -1250, type: 'expense' as const, cat: restaurants },
-      { date: `${currentMonth}-07`, desc: 'Almuerzo - Niko\'s Café', amount: -1800, type: 'expense' as const, cat: restaurants },
-      { date: `${currentMonth}-14`, desc: 'Cena - Restaurante Beirut', amount: -4500, type: 'expense' as const, cat: restaurants },
-      { date: `${currentMonth}-21`, desc: 'Pizza Hut', amount: -2100, type: 'expense' as const, cat: restaurants },
-      { date: `${currentMonth}-28`, desc: 'Sushi - Matsuei', amount: -3500, type: 'expense' as const, cat: restaurants },
+      {
+        date: `${currentMonth}-04`,
+        desc: "McDonald's",
+        amount: -1250,
+        type: 'expense' as const,
+        cat: restaurants,
+      },
+      {
+        date: `${currentMonth}-07`,
+        desc: "Almuerzo - Niko's Café",
+        amount: -1800,
+        type: 'expense' as const,
+        cat: restaurants,
+      },
+      {
+        date: `${currentMonth}-14`,
+        desc: 'Cena - Restaurante Beirut',
+        amount: -4500,
+        type: 'expense' as const,
+        cat: restaurants,
+      },
+      {
+        date: `${currentMonth}-21`,
+        desc: 'Pizza Hut',
+        amount: -2100,
+        type: 'expense' as const,
+        cat: restaurants,
+      },
+      {
+        date: `${currentMonth}-28`,
+        desc: 'Sushi - Matsuei',
+        amount: -3500,
+        type: 'expense' as const,
+        cat: restaurants,
+      },
 
       // Coffee
-      { date: `${currentMonth}-02`, desc: 'Starbucks', amount: -650, type: 'expense' as const, cat: coffee },
-      { date: `${currentMonth}-06`, desc: 'Kotowa Coffee', amount: -450, type: 'expense' as const, cat: coffee },
-      { date: `${currentMonth}-11`, desc: 'Café Unido', amount: -550, type: 'expense' as const, cat: coffee },
-      { date: `${currentMonth}-18`, desc: 'Starbucks', amount: -750, type: 'expense' as const, cat: coffee },
-      { date: `${currentMonth}-25`, desc: 'Bajareque Coffee', amount: -500, type: 'expense' as const, cat: coffee },
+      {
+        date: `${currentMonth}-02`,
+        desc: 'Starbucks',
+        amount: -650,
+        type: 'expense' as const,
+        cat: coffee,
+      },
+      {
+        date: `${currentMonth}-06`,
+        desc: 'Kotowa Coffee',
+        amount: -450,
+        type: 'expense' as const,
+        cat: coffee,
+      },
+      {
+        date: `${currentMonth}-11`,
+        desc: 'Café Unido',
+        amount: -550,
+        type: 'expense' as const,
+        cat: coffee,
+      },
+      {
+        date: `${currentMonth}-18`,
+        desc: 'Starbucks',
+        amount: -750,
+        type: 'expense' as const,
+        cat: coffee,
+      },
+      {
+        date: `${currentMonth}-25`,
+        desc: 'Bajareque Coffee',
+        amount: -500,
+        type: 'expense' as const,
+        cat: coffee,
+      },
 
       // Shopping
-      { date: `${currentMonth}-06`, desc: 'Amazon - Accesorios', amount: -4599, type: 'expense' as const, cat: shopping },
-      { date: `${currentMonth}-19`, desc: 'Zara - Ropa', amount: -8999, type: 'expense' as const, cat: shopping },
+      {
+        date: `${currentMonth}-06`,
+        desc: 'Amazon - Accesorios',
+        amount: -4599,
+        type: 'expense' as const,
+        cat: shopping,
+      },
+      {
+        date: `${currentMonth}-19`,
+        desc: 'Zara - Ropa',
+        amount: -8999,
+        type: 'expense' as const,
+        cat: shopping,
+      },
 
       // Health & Gym
-      { date: `${currentMonth}-01`, desc: 'Gimnasio PowerClub', amount: -5500, type: 'expense' as const, cat: gym },
-      { date: `${currentMonth}-15`, desc: 'Farmacia Arrocha', amount: -2350, type: 'expense' as const, cat: health },
+      {
+        date: `${currentMonth}-01`,
+        desc: 'Gimnasio PowerClub',
+        amount: -5500,
+        type: 'expense' as const,
+        cat: gym,
+      },
+      {
+        date: `${currentMonth}-15`,
+        desc: 'Farmacia Arrocha',
+        amount: -2350,
+        type: 'expense' as const,
+        cat: health,
+      },
     ];
 
     let txCount = 0;
@@ -273,9 +475,13 @@ async function seed() {
     console.log('\nSummary:');
     console.log(`  - 1 user (${TEST_EMAIL})`);
     console.log(`  - 1 account (${account?.name})`);
-    console.log(`  - ${totalCategories} categories (2 parents: Gastos/Ingresos + subcategorías)`);
+    console.log(
+      `  - ${totalCategories} categories (2 parents: Gastos/Ingresos + subcategorías)`
+    );
     console.log(`  - ${envelopeData.length} envelopes for ${currentMonth}`);
-    console.log(`  - ${txCount} transactions (2 income, ${txCount - 2} expenses)`);
+    console.log(
+      `  - ${txCount} transactions (2 income, ${txCount - 2} expenses)`
+    );
     console.log('\n📧 Login credentials:');
     console.log(`   Email: ${TEST_EMAIL}`);
     console.log(`   Password: ${TEST_PASSWORD}`);
@@ -287,9 +493,10 @@ async function seed() {
 }
 
 // Run if called directly (handles Windows paths)
-const isDirectRun = import.meta.url.includes('seed.ts') ||
-                    import.meta.url === `file://${process.argv[1]}` ||
-                    import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}`;
+const isDirectRun =
+  import.meta.url.includes('seed.ts') ||
+  import.meta.url === `file://${process.argv[1]}` ||
+  import.meta.url === `file:///${process.argv[1]?.replace(/\\/g, '/')}`;
 
 if (isDirectRun) {
   seed()

@@ -15,7 +15,12 @@ import { nanoid } from 'nanoid';
 // ============================================================================
 
 const goalTypeEnum = z.enum([
-  'savings', 'debt_payoff', 'purchase', 'emergency_fund', 'investment', 'other'
+  'savings',
+  'debt_payoff',
+  'purchase',
+  'emergency_fund',
+  'investment',
+  'other',
 ]);
 
 const goalStatusEnum = z.enum(['active', 'completed', 'paused', 'abandoned']);
@@ -26,7 +31,10 @@ export const createGoalSchema = z.object({
   emoji: z.string().max(4).optional(),
   target_amount_cents: z.number().int().positive(),
   current_amount_cents: z.number().int().min(0).optional().default(0),
-  target_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  target_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   goal_type: goalTypeEnum,
   linked_debt_id: z.string().min(1).nullable().optional(),
   linked_account_id: z.string().min(1).nullable().optional(),
@@ -38,7 +46,11 @@ export const updateGoalSchema = z.object({
   emoji: z.string().max(4).optional(),
   target_amount_cents: z.number().int().positive().optional(),
   current_amount_cents: z.number().int().min(0).optional(),
-  target_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  target_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
   status: goalStatusEnum.optional(),
 });
 
@@ -67,7 +79,12 @@ function calculateProgress(
   targetCents: number,
   startDate: string,
   targetDate: string | null
-): { progressPercent: number; onTrack: boolean; projectedCompletionDate: string | null; recommendedMonthlyCents: number } {
+): {
+  progressPercent: number;
+  onTrack: boolean;
+  projectedCompletionDate: string | null;
+  recommendedMonthlyCents: number;
+} {
   const progressPercent = Math.min((currentCents / targetCents) * 100, 100);
 
   if (!targetDate) {
@@ -84,7 +101,8 @@ function calculateProgress(
   const target = new Date(targetDate);
 
   // Calculate expected progress based on time elapsed
-  const totalDays = (target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  const totalDays =
+    (target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
   const elapsedDays = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
   const expectedProgress = (elapsedDays / totalDays) * 100;
 
@@ -189,7 +207,10 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get('/goals', async (request, reply) => {
     try {
-      const validation = fastify.safeValidate(listGoalsQuerySchema, request.query);
+      const validation = fastify.safeValidate(
+        listGoalsQuerySchema,
+        request.query
+      );
 
       if (!validation.success) {
         return reply.badRequest('Invalid query parameters', validation.errors);
@@ -229,7 +250,11 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
       const query = db
         .select()
         .from(goals)
-        .orderBy(desc(goals.progressPercent), asc(goals.createdAt), asc(goals.id))
+        .orderBy(
+          desc(goals.progressPercent),
+          asc(goals.createdAt),
+          asc(goals.id)
+        )
         .limit(limit + 1);
 
       if (conditions.length > 0) {
@@ -239,9 +264,18 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
       const results = await query;
 
       // Calculate summary stats
-      const allActiveGoals = await db.select().from(goals).where(eq(goals.status, 'active'));
-      const totalTargetCents = allActiveGoals.reduce((sum, g) => sum + g.targetAmountCents, 0);
-      const totalCurrentCents = allActiveGoals.reduce((sum, g) => sum + g.currentAmountCents, 0);
+      const allActiveGoals = await db
+        .select()
+        .from(goals)
+        .where(eq(goals.status, 'active'));
+      const totalTargetCents = allActiveGoals.reduce(
+        (sum, g) => sum + g.targetAmountCents,
+        0
+      );
+      const totalCurrentCents = allActiveGoals.reduce(
+        (sum, g) => sum + g.currentAmountCents,
+        0
+      );
       const onTrackCount = allActiveGoals.filter((g) => g.onTrack).length;
 
       const response = fastify.createPaginatedResponse(
@@ -257,7 +291,10 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
           activeCount: allActiveGoals.length,
           totalTargetCents,
           totalCurrentCents,
-          overallProgressPercent: totalTargetCents > 0 ? (totalCurrentCents / totalTargetCents) * 100 : 0,
+          overallProgressPercent:
+            totalTargetCents > 0
+              ? (totalCurrentCents / totalTargetCents) * 100
+              : 0,
           onTrackCount,
         },
       });
@@ -271,210 +308,279 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/goals/:id
    * Get a single goal by ID
    */
-  fastify.get<{ Params: { id: string } }>('/goals/:id', async (request, reply) => {
-    try {
-      const validation = fastify.safeValidate(goalIdSchema, request.params.id);
+  fastify.get<{ Params: { id: string } }>(
+    '/goals/:id',
+    async (request, reply) => {
+      try {
+        const validation = fastify.safeValidate(
+          goalIdSchema,
+          request.params.id
+        );
 
-      if (!validation.success) {
-        return reply.badRequest('Invalid goal ID', validation.errors);
+        if (!validation.success) {
+          return reply.badRequest('Invalid goal ID', validation.errors);
+        }
+
+        const db = await getDb();
+        const [goal] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
+
+        if (!goal) {
+          return reply.notFound('Goal', request.params.id);
+        }
+
+        return reply.send({ data: goal });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to get goal');
+        return reply.internalError();
       }
-
-      const db = await getDb();
-      const [goal] = await db.select().from(goals).where(eq(goals.id, request.params.id));
-
-      if (!goal) {
-        return reply.notFound('Goal', request.params.id);
-      }
-
-      return reply.send({ data: goal });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to get goal');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * PATCH /v1/goals/:id
    * Update a goal
    */
-  fastify.patch<{ Params: { id: string } }>('/goals/:id', async (request, reply) => {
-    try {
-      const idValidation = fastify.safeValidate(goalIdSchema, request.params.id);
+  fastify.patch<{ Params: { id: string } }>(
+    '/goals/:id',
+    async (request, reply) => {
+      try {
+        const idValidation = fastify.safeValidate(
+          goalIdSchema,
+          request.params.id
+        );
 
-      if (!idValidation.success) {
-        return reply.badRequest('Invalid goal ID', idValidation.errors);
-      }
+        if (!idValidation.success) {
+          return reply.badRequest('Invalid goal ID', idValidation.errors);
+        }
 
-      const bodyValidation = fastify.safeValidate(updateGoalSchema, request.body);
+        const bodyValidation = fastify.safeValidate(
+          updateGoalSchema,
+          request.body
+        );
 
-      if (!bodyValidation.success) {
-        return reply.badRequest('Invalid request body', bodyValidation.errors);
-      }
+        if (!bodyValidation.success) {
+          return reply.badRequest(
+            'Invalid request body',
+            bodyValidation.errors
+          );
+        }
 
-      const data = bodyValidation.data;
-      const db = await getDb();
+        const data = bodyValidation.data;
+        const db = await getDb();
 
-      const [existing] = await db.select().from(goals).where(eq(goals.id, request.params.id));
+        const [existing] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
 
-      if (!existing) {
-        return reply.notFound('Goal', request.params.id);
-      }
+        if (!existing) {
+          return reply.notFound('Goal', request.params.id);
+        }
 
-      const updates: any = { updatedAt: Date.now() };
-      if (data.name !== undefined) updates.name = data.name;
-      if (data.description !== undefined) updates.description = data.description;
-      if (data.emoji !== undefined) updates.emoji = data.emoji;
-      if (data.target_amount_cents !== undefined) updates.targetAmountCents = data.target_amount_cents;
-      if (data.current_amount_cents !== undefined) updates.currentAmountCents = data.current_amount_cents;
-      if (data.target_date !== undefined) updates.targetDate = data.target_date;
-      if (data.status !== undefined) {
-        updates.status = data.status;
-        if (data.status === 'completed') {
+        const updates: any = { updatedAt: Date.now() };
+        if (data.name !== undefined) updates.name = data.name;
+        if (data.description !== undefined)
+          updates.description = data.description;
+        if (data.emoji !== undefined) updates.emoji = data.emoji;
+        if (data.target_amount_cents !== undefined)
+          updates.targetAmountCents = data.target_amount_cents;
+        if (data.current_amount_cents !== undefined)
+          updates.currentAmountCents = data.current_amount_cents;
+        if (data.target_date !== undefined)
+          updates.targetDate = data.target_date;
+        if (data.status !== undefined) {
+          updates.status = data.status;
+          if (data.status === 'completed') {
+            updates.completedAt = Date.now();
+          }
+        }
+
+        // Recalculate progress
+        const currentCents =
+          data.current_amount_cents ?? existing.currentAmountCents;
+        const targetCents =
+          data.target_amount_cents ?? existing.targetAmountCents;
+        const targetDate =
+          data.target_date !== undefined
+            ? data.target_date
+            : existing.targetDate;
+
+        const progress = calculateProgress(
+          currentCents,
+          targetCents,
+          existing.startDate,
+          targetDate
+        );
+
+        updates.progressPercent = progress.progressPercent;
+        updates.onTrack = progress.onTrack;
+        updates.projectedCompletionDate = progress.projectedCompletionDate;
+        updates.recommendedMonthlyCents = progress.recommendedMonthlyCents;
+
+        // Auto-complete if reached target
+        if (currentCents >= targetCents && existing.status === 'active') {
+          updates.status = 'completed';
           updates.completedAt = Date.now();
         }
+
+        await db
+          .update(goals)
+          .set(updates)
+          .where(eq(goals.id, request.params.id));
+
+        const [goal] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
+
+        const responseBody = { data: goal };
+        fastify.cacheIdempotentResponse(request, reply, responseBody);
+        return reply.send(responseBody);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to update goal');
+        return reply.internalError();
       }
-
-      // Recalculate progress
-      const currentCents = data.current_amount_cents ?? existing.currentAmountCents;
-      const targetCents = data.target_amount_cents ?? existing.targetAmountCents;
-      const targetDate = data.target_date !== undefined ? data.target_date : existing.targetDate;
-
-      const progress = calculateProgress(
-        currentCents,
-        targetCents,
-        existing.startDate,
-        targetDate
-      );
-
-      updates.progressPercent = progress.progressPercent;
-      updates.onTrack = progress.onTrack;
-      updates.projectedCompletionDate = progress.projectedCompletionDate;
-      updates.recommendedMonthlyCents = progress.recommendedMonthlyCents;
-
-      // Auto-complete if reached target
-      if (currentCents >= targetCents && existing.status === 'active') {
-        updates.status = 'completed';
-        updates.completedAt = Date.now();
-      }
-
-      await db.update(goals).set(updates).where(eq(goals.id, request.params.id));
-
-      const [goal] = await db.select().from(goals).where(eq(goals.id, request.params.id));
-
-      const responseBody = { data: goal };
-      fastify.cacheIdempotentResponse(request, reply, responseBody);
-      return reply.send(responseBody);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to update goal');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * POST /v1/goals/:id/contribute
    * Add money towards a goal
    */
-  fastify.post<{ Params: { id: string } }>('/goals/:id/contribute', async (request, reply) => {
-    try {
-      const idValidation = fastify.safeValidate(goalIdSchema, request.params.id);
+  fastify.post<{ Params: { id: string } }>(
+    '/goals/:id/contribute',
+    async (request, reply) => {
+      try {
+        const idValidation = fastify.safeValidate(
+          goalIdSchema,
+          request.params.id
+        );
 
-      if (!idValidation.success) {
-        return reply.badRequest('Invalid goal ID', idValidation.errors);
+        if (!idValidation.success) {
+          return reply.badRequest('Invalid goal ID', idValidation.errors);
+        }
+
+        const bodyValidation = fastify.safeValidate(
+          contributeSchema,
+          request.body
+        );
+
+        if (!bodyValidation.success) {
+          return reply.badRequest(
+            'Invalid request body',
+            bodyValidation.errors
+          );
+        }
+
+        const { amount_cents } = bodyValidation.data;
+        const db = await getDb();
+
+        const [existing] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
+
+        if (!existing) {
+          return reply.notFound('Goal', request.params.id);
+        }
+
+        if (existing.status !== 'active') {
+          return reply.badRequest('Cannot contribute to a non-active goal');
+        }
+
+        const newAmount = existing.currentAmountCents + amount_cents;
+
+        // Recalculate progress
+        const progress = calculateProgress(
+          newAmount,
+          existing.targetAmountCents,
+          existing.startDate,
+          existing.targetDate
+        );
+
+        const updates: any = {
+          currentAmountCents: newAmount,
+          progressPercent: progress.progressPercent,
+          onTrack: progress.onTrack,
+          projectedCompletionDate: progress.projectedCompletionDate,
+          recommendedMonthlyCents: progress.recommendedMonthlyCents,
+          updatedAt: Date.now(),
+        };
+
+        // Auto-complete if reached target
+        if (newAmount >= existing.targetAmountCents) {
+          updates.status = 'completed';
+          updates.completedAt = Date.now();
+        }
+
+        await db
+          .update(goals)
+          .set(updates)
+          .where(eq(goals.id, request.params.id));
+
+        const [goal] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
+
+        const responseBody = {
+          data: goal,
+          contribution: {
+            amountCents: amount_cents,
+            newTotalCents: newAmount,
+            isCompleted: newAmount >= existing.targetAmountCents,
+          },
+        };
+        fastify.cacheIdempotentResponse(request, reply, responseBody);
+        return reply.send(responseBody);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to contribute to goal');
+        return reply.internalError();
       }
-
-      const bodyValidation = fastify.safeValidate(contributeSchema, request.body);
-
-      if (!bodyValidation.success) {
-        return reply.badRequest('Invalid request body', bodyValidation.errors);
-      }
-
-      const { amount_cents } = bodyValidation.data;
-      const db = await getDb();
-
-      const [existing] = await db.select().from(goals).where(eq(goals.id, request.params.id));
-
-      if (!existing) {
-        return reply.notFound('Goal', request.params.id);
-      }
-
-      if (existing.status !== 'active') {
-        return reply.badRequest('Cannot contribute to a non-active goal');
-      }
-
-      const newAmount = existing.currentAmountCents + amount_cents;
-
-      // Recalculate progress
-      const progress = calculateProgress(
-        newAmount,
-        existing.targetAmountCents,
-        existing.startDate,
-        existing.targetDate
-      );
-
-      const updates: any = {
-        currentAmountCents: newAmount,
-        progressPercent: progress.progressPercent,
-        onTrack: progress.onTrack,
-        projectedCompletionDate: progress.projectedCompletionDate,
-        recommendedMonthlyCents: progress.recommendedMonthlyCents,
-        updatedAt: Date.now(),
-      };
-
-      // Auto-complete if reached target
-      if (newAmount >= existing.targetAmountCents) {
-        updates.status = 'completed';
-        updates.completedAt = Date.now();
-      }
-
-      await db.update(goals).set(updates).where(eq(goals.id, request.params.id));
-
-      const [goal] = await db.select().from(goals).where(eq(goals.id, request.params.id));
-
-      const responseBody = {
-        data: goal,
-        contribution: {
-          amountCents: amount_cents,
-          newTotalCents: newAmount,
-          isCompleted: newAmount >= existing.targetAmountCents,
-        },
-      };
-      fastify.cacheIdempotentResponse(request, reply, responseBody);
-      return reply.send(responseBody);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to contribute to goal');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * DELETE /v1/goals/:id
    * Delete a goal
    */
-  fastify.delete<{ Params: { id: string } }>('/goals/:id', async (request, reply) => {
-    try {
-      const validation = fastify.safeValidate(goalIdSchema, request.params.id);
+  fastify.delete<{ Params: { id: string } }>(
+    '/goals/:id',
+    async (request, reply) => {
+      try {
+        const validation = fastify.safeValidate(
+          goalIdSchema,
+          request.params.id
+        );
 
-      if (!validation.success) {
-        return reply.badRequest('Invalid goal ID', validation.errors);
+        if (!validation.success) {
+          return reply.badRequest('Invalid goal ID', validation.errors);
+        }
+
+        const db = await getDb();
+
+        const [existing] = await db
+          .select()
+          .from(goals)
+          .where(eq(goals.id, request.params.id));
+
+        if (!existing) {
+          return reply.notFound('Goal', request.params.id);
+        }
+
+        await db.delete(goals).where(eq(goals.id, request.params.id));
+
+        fastify.cacheIdempotentResponse(request, reply, null);
+        return reply.code(204).send();
+      } catch (error) {
+        request.log.error({ error }, 'Failed to delete goal');
+        return reply.internalError();
       }
-
-      const db = await getDb();
-
-      const [existing] = await db.select().from(goals).where(eq(goals.id, request.params.id));
-
-      if (!existing) {
-        return reply.notFound('Goal', request.params.id);
-      }
-
-      await db.delete(goals).where(eq(goals.id, request.params.id));
-
-      fastify.cacheIdempotentResponse(request, reply, null);
-      return reply.code(204).send();
-    } catch (error) {
-      request.log.error({ error }, 'Failed to delete goal');
-      return reply.internalError();
     }
-  });
+  );
 };
 
 export default goalsRoutes;

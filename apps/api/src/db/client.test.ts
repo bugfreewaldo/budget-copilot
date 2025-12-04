@@ -59,7 +59,13 @@ describe('Database Persistence', () => {
       await db.run({
         sql: `INSERT INTO accounts (id, name, type, institution, created_at)
               VALUES (?, ?, ?, ?, ?)`,
-        params: ['test-account-1', 'Test Account', 'checking', 'Test Bank', Date.now()],
+        params: [
+          'test-account-1',
+          'Test Account',
+          'checking',
+          'Test Bank',
+          Date.now(),
+        ],
       });
 
       // Flush to disk
@@ -147,13 +153,7 @@ describe('Database Persistence', () => {
       await db.run({
         sql: `INSERT INTO accounts (id, name, type, institution, created_at)
               VALUES (?, ?, ?, ?, ?)`,
-        params: [
-          `account-${i}`,
-          `Account ${i}`,
-          'checking',
-          null,
-          Date.now(),
-        ],
+        params: [`account-${i}`, `Account ${i}`, 'checking', null, Date.now()],
       });
     }
 

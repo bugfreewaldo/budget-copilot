@@ -71,10 +71,7 @@ export function notFound(
 /**
  * 409 Conflict - business logic constraint violation
  */
-export function conflict(
-  reply: FastifyReply,
-  detail: string
-): FastifyReply {
+export function conflict(reply: FastifyReply, detail: string): FastifyReply {
   return createProblem(reply, {
     type: 'https://budget-copilot.dev/problems/conflict',
     title: 'Conflict',
@@ -121,29 +118,47 @@ export function internalError(
 
 const problemPlugin: FastifyPluginAsync = async (fastify) => {
   // Add problem helpers to reply
-  fastify.decorateReply('problem', function (this: FastifyReply, problem: ProblemDetails) {
-    return createProblem(this, problem);
-  });
+  fastify.decorateReply(
+    'problem',
+    function (this: FastifyReply, problem: ProblemDetails) {
+      return createProblem(this, problem);
+    }
+  );
 
-  fastify.decorateReply('badRequest', function (this: FastifyReply, detail: string, errors?: ValidationError[]) {
-    return badRequest(this, detail, errors);
-  });
+  fastify.decorateReply(
+    'badRequest',
+    function (this: FastifyReply, detail: string, errors?: ValidationError[]) {
+      return badRequest(this, detail, errors);
+    }
+  );
 
-  fastify.decorateReply('notFound', function (this: FastifyReply, resource: string, id?: string) {
-    return notFound(this, resource, id);
-  });
+  fastify.decorateReply(
+    'notFound',
+    function (this: FastifyReply, resource: string, id?: string) {
+      return notFound(this, resource, id);
+    }
+  );
 
-  fastify.decorateReply('conflict', function (this: FastifyReply, detail: string) {
-    return conflict(this, detail);
-  });
+  fastify.decorateReply(
+    'conflict',
+    function (this: FastifyReply, detail: string) {
+      return conflict(this, detail);
+    }
+  );
 
-  fastify.decorateReply('unprocessableEntity', function (this: FastifyReply, detail: string, errors?: ValidationError[]) {
-    return unprocessableEntity(this, detail, errors);
-  });
+  fastify.decorateReply(
+    'unprocessableEntity',
+    function (this: FastifyReply, detail: string, errors?: ValidationError[]) {
+      return unprocessableEntity(this, detail, errors);
+    }
+  );
 
-  fastify.decorateReply('internalError', function (this: FastifyReply, detail?: string) {
-    return internalError(this, detail);
-  });
+  fastify.decorateReply(
+    'internalError',
+    function (this: FastifyReply, detail?: string) {
+      return internalError(this, detail);
+    }
+  );
 };
 
 export default fp(problemPlugin, {
@@ -158,7 +173,10 @@ declare module 'fastify' {
     badRequest(detail: string, errors?: ValidationError[]): FastifyReply;
     notFound(resource: string, id?: string): FastifyReply;
     conflict(detail: string): FastifyReply;
-    unprocessableEntity(detail: string, errors?: ValidationError[]): FastifyReply;
+    unprocessableEntity(
+      detail: string,
+      errors?: ValidationError[]
+    ): FastifyReply;
     internalError(detail?: string): FastifyReply;
   }
 }

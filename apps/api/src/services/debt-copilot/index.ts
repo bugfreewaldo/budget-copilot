@@ -16,7 +16,12 @@ import { nanoid } from 'nanoid';
 import { getDb } from '../../db/client.js';
 import { debts, debtPayments } from '../../db/schema.js';
 import { eq, desc } from 'drizzle-orm';
-import type { Debt, NewDebt, DebtPayment, NewDebtPayment } from '../../db/schema.js';
+import type {
+  Debt,
+  NewDebt,
+  DebtPayment,
+  NewDebtPayment,
+} from '../../db/schema.js';
 
 // Types
 export interface DebtWithProjections extends Debt {
@@ -52,7 +57,9 @@ export interface WhatIfResult {
 /**
  * Create a new debt
  */
-export async function createDebt(debt: Omit<NewDebt, 'id' | 'createdAt' | 'updatedAt'>): Promise<Debt> {
+export async function createDebt(
+  debt: Omit<NewDebt, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<Debt> {
   const db = await getDb();
   const now = Date.now();
   const id = nanoid();
@@ -74,7 +81,11 @@ export async function createDebt(debt: Omit<NewDebt, 'id' | 'createdAt' | 'updat
     id,
     deathDate: projections.payoffDate,
     totalInterestProjectedCents: projections.totalInterestCents,
-    dangerScore: calculateDangerScore(debt.currentBalanceCents, debt.aprPercent, debt.minimumPaymentCents || 0),
+    dangerScore: calculateDangerScore(
+      debt.currentBalanceCents,
+      debt.aprPercent,
+      debt.minimumPaymentCents || 0
+    ),
     createdAt: now,
     updatedAt: now,
   };
@@ -149,7 +160,11 @@ export async function updateDebtBalance(
       currentBalanceCents: newBalanceCents,
       deathDate: projections.payoffDate,
       totalInterestProjectedCents: projections.totalInterestCents,
-      dangerScore: calculateDangerScore(newBalanceCents, debt.aprPercent, debt.minimumPaymentCents || 0),
+      dangerScore: calculateDangerScore(
+        newBalanceCents,
+        debt.aprPercent,
+        debt.minimumPaymentCents || 0
+      ),
       updatedAt: now,
       status: newBalanceCents <= 0 ? 'paid_off' : 'active',
     })
@@ -181,7 +196,9 @@ export async function recordDebtPayment(
   }
 
   // Calculate principal vs interest split
-  const monthlyInterest = Math.round((debt.currentBalanceCents * (debt.aprPercent / 100)) / 12);
+  const monthlyInterest = Math.round(
+    (debt.currentBalanceCents * (debt.aprPercent / 100)) / 12
+  );
   const interestCents = Math.min(amountCents, monthlyInterest);
   const principalCents = amountCents - interestCents;
 
@@ -269,7 +286,9 @@ function calculateDebtProjections(debt: Debt): {
     totalInterestCents = 0;
   } else {
     // No minimum payment set
-    monthsToPayoff = Math.ceil(balance / (monthlyInterestCents + Math.round(balance / 60)));
+    monthsToPayoff = Math.ceil(
+      balance / (monthlyInterestCents + Math.round(balance / 60))
+    );
     totalInterestCents = monthlyInterestCents * monthsToPayoff;
   }
 
@@ -284,7 +303,9 @@ function calculateDebtProjections(debt: Debt): {
   if (monthlyRate > 0) {
     // M = P * (r * (1 + r)^n) / ((1 + r)^n - 1)
     const factor = Math.pow(1 + monthlyRate, targetMonths);
-    monthlyPaymentNeeded = Math.round(balance * (monthlyRate * factor) / (factor - 1));
+    monthlyPaymentNeeded = Math.round(
+      (balance * (monthlyRate * factor)) / (factor - 1)
+    );
   } else {
     monthlyPaymentNeeded = Math.round(balance / targetMonths);
   }
@@ -344,7 +365,9 @@ export async function getPayoffStrategies(
   extraMonthlyBudgetCents: number = 0
 ): Promise<PayoffStrategy[]> {
   const allDebts = await getAllDebts();
-  const activeDebts = allDebts.filter((d) => d.status === 'active' && d.currentBalanceCents > 0);
+  const activeDebts = allDebts.filter(
+    (d) => d.status === 'active' && d.currentBalanceCents > 0
+  );
 
   if (activeDebts.length === 0) {
     return [];
@@ -353,16 +376,28 @@ export async function getPayoffStrategies(
   const strategies: PayoffStrategy[] = [];
 
   // Avalanche: Highest APR first
-  const avalancheOrder = [...activeDebts].sort((a, b) => b.aprPercent - a.aprPercent);
-  strategies.push(calculateStrategy('avalanche', avalancheOrder, extraMonthlyBudgetCents));
+  const avalancheOrder = [...activeDebts].sort(
+    (a, b) => b.aprPercent - a.aprPercent
+  );
+  strategies.push(
+    calculateStrategy('avalanche', avalancheOrder, extraMonthlyBudgetCents)
+  );
 
   // Snowball: Lowest balance first
-  const snowballOrder = [...activeDebts].sort((a, b) => a.currentBalanceCents - b.currentBalanceCents);
-  strategies.push(calculateStrategy('snowball', snowballOrder, extraMonthlyBudgetCents));
+  const snowballOrder = [...activeDebts].sort(
+    (a, b) => a.currentBalanceCents - b.currentBalanceCents
+  );
+  strategies.push(
+    calculateStrategy('snowball', snowballOrder, extraMonthlyBudgetCents)
+  );
 
   // Hybrid: Balance danger score
-  const hybridOrder = [...activeDebts].sort((a, b) => (b.dangerScore || 0) - (a.dangerScore || 0));
-  strategies.push(calculateStrategy('hybrid', hybridOrder, extraMonthlyBudgetCents));
+  const hybridOrder = [...activeDebts].sort(
+    (a, b) => (b.dangerScore || 0) - (a.dangerScore || 0)
+  );
+  strategies.push(
+    calculateStrategy('hybrid', hybridOrder, extraMonthlyBudgetCents)
+  );
 
   return strategies;
 }
@@ -443,7 +478,10 @@ function simulatePayoff(
       debt.totalPaid += payment;
 
       // Apply extra payment to first debt in order
-      if (monthlyExtra > 0 && simDebts.indexOf(debt) === simDebts.findIndex((d) => d.balance > 0)) {
+      if (
+        monthlyExtra > 0 &&
+        simDebts.indexOf(debt) === simDebts.findIndex((d) => d.balance > 0)
+      ) {
         const extraPayment = Math.min(monthlyExtra, debt.balance);
         debt.balance -= extraPayment;
         debt.totalPaid += extraPayment;
@@ -470,8 +508,14 @@ function simulatePayoff(
   }
 
   // Calculate interest saved vs minimum payments only
-  const totalInterestPaid = simDebts.reduce((sum, d) => sum + d.interestPaid, 0);
-  const baselineInterest = orderedDebts.reduce((sum, d) => sum + d.totalInterestCents, 0);
+  const totalInterestPaid = simDebts.reduce(
+    (sum, d) => sum + d.interestPaid,
+    0
+  );
+  const baselineInterest = orderedDebts.reduce(
+    (sum, d) => sum + d.totalInterestCents,
+    0
+  );
   const interestSaved = Math.max(0, baselineInterest - totalInterestPaid);
 
   return {
@@ -506,7 +550,8 @@ export async function whatIfExtraPayment(
       ? originalProjections.monthsToPayoff - newProjections.monthsToPayoff
       : 0;
 
-  const interestSaved = originalProjections.totalInterestCents - newProjections.totalInterestCents;
+  const interestSaved =
+    originalProjections.totalInterestCents - newProjections.totalInterestCents;
 
   return {
     originalPayoffDate: originalProjections.payoffDate,
@@ -548,18 +593,33 @@ export async function getDebtSummary(): Promise<{
     };
   }
 
-  const totalDebtCents = activeDebts.reduce((sum, d) => sum + d.currentBalanceCents, 0);
-  const totalMinimumPaymentCents = activeDebts.reduce((sum, d) => sum + (d.minimumPaymentCents || 0), 0);
+  const totalDebtCents = activeDebts.reduce(
+    (sum, d) => sum + d.currentBalanceCents,
+    0
+  );
+  const totalMinimumPaymentCents = activeDebts.reduce(
+    (sum, d) => sum + (d.minimumPaymentCents || 0),
+    0
+  );
   const highestApr = Math.max(...activeDebts.map((d) => d.aprPercent));
-  const averageApr = activeDebts.reduce((sum, d) => sum + d.aprPercent, 0) / activeDebts.length;
-  const projectedInterestCents = activeDebts.reduce((sum, d) => sum + d.totalInterestCents, 0);
+  const averageApr =
+    activeDebts.reduce((sum, d) => sum + d.aprPercent, 0) / activeDebts.length;
+  const projectedInterestCents = activeDebts.reduce(
+    (sum, d) => sum + d.totalInterestCents,
+    0
+  );
 
-  const payoffDates = activeDebts.map((d) => d.payoffDate).filter(Boolean) as string[];
-  const earliestPayoffDate = payoffDates.length > 0 ? payoffDates.sort()[0] : null;
-  const latestPayoffDate = payoffDates.length > 0 ? payoffDates.sort().reverse()[0] : null;
+  const payoffDates = activeDebts
+    .map((d) => d.payoffDate)
+    .filter(Boolean) as string[];
+  const earliestPayoffDate =
+    payoffDates.length > 0 ? payoffDates.sort()[0] : null;
+  const latestPayoffDate =
+    payoffDates.length > 0 ? payoffDates.sort().reverse()[0] : null;
 
   const averageDangerScore =
-    activeDebts.reduce((sum, d) => sum + (d.dangerScore || 0), 0) / activeDebts.length;
+    activeDebts.reduce((sum, d) => sum + (d.dangerScore || 0), 0) /
+    activeDebts.length;
 
   return {
     totalDebtCents,

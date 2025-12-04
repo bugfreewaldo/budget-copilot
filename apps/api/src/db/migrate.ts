@@ -36,8 +36,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS user_email_idx ON users(email)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS user_status_idx ON users(status)`);
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS user_email_idx ON users(email)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS user_status_idx ON users(status)`
+    );
 
     // Sessions table
     await db.run(sql`
@@ -55,9 +59,15 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS session_token_idx ON sessions(token)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS session_user_idx ON sessions(user_id)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS session_expires_idx ON sessions(expires_at)`);
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS session_token_idx ON sessions(token)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS session_user_idx ON sessions(user_id)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS session_expires_idx ON sessions(expires_at)`
+    );
 
     // Password reset tokens table
     await db.run(sql`
@@ -71,8 +81,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS password_reset_token_idx ON password_reset_tokens(token)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS password_reset_user_idx ON password_reset_tokens(user_id)`);
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS password_reset_token_idx ON password_reset_tokens(token)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS password_reset_user_idx ON password_reset_tokens(user_id)`
+    );
 
     // Email verification tokens table
     await db.run(sql`
@@ -87,8 +101,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS email_verification_token_idx ON email_verification_tokens(token)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS email_verification_user_idx ON email_verification_tokens(user_id)`);
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS email_verification_token_idx ON email_verification_tokens(token)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS email_verification_user_idx ON email_verification_tokens(user_id)`
+    );
 
     // OAuth connections table
     await db.run(sql`
@@ -105,8 +123,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS oauth_user_idx ON oauth_connections(user_id)`);
-    await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS oauth_provider_idx ON oauth_connections(provider, provider_user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS oauth_user_idx ON oauth_connections(user_id)`
+    );
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS oauth_provider_idx ON oauth_connections(provider, provider_user_id)`
+    );
 
     // ========================================================================
     // CORE FINANCIAL ENTITIES
@@ -125,7 +147,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS account_user_idx ON accounts(user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS account_user_idx ON accounts(user_id)`
+    );
 
     // Create categories table
     await db.run(sql`
@@ -140,7 +164,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS category_user_idx ON categories(user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS category_user_idx ON categories(user_id)`
+    );
 
     // Create envelopes table
     await db.run(sql`
@@ -155,7 +181,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS envelope_user_idx ON envelopes(user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS envelope_user_idx ON envelopes(user_id)`
+    );
 
     // Create transactions table
     await db.run(sql`
@@ -175,7 +203,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS transaction_user_idx ON transactions(user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS transaction_user_idx ON transactions(user_id)`
+    );
 
     // Create indexes for core tables
     await db.run(sql`
@@ -221,10 +251,16 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS debt_user_idx ON debts(user_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS debt_user_idx ON debts(user_id)`
+    );
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS debt_status_idx ON debts(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS debt_danger_idx ON debts(danger_score)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS debt_status_idx ON debts(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS debt_danger_idx ON debts(danger_score)`
+    );
 
     // Debt payments table
     await db.run(sql`
@@ -240,8 +276,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS debt_payment_debt_idx ON debt_payments(debt_id)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS debt_payment_date_idx ON debt_payments(payment_date)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS debt_payment_debt_idx ON debt_payments(debt_id)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS debt_payment_date_idx ON debt_payments(payment_date)`
+    );
 
     // ========================================================================
     // DOCUMENT PROCESSING TABLES
@@ -265,8 +305,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS document_status_idx ON documents(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS document_source_idx ON documents(source_type)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS document_status_idx ON documents(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS document_source_idx ON documents(source_type)`
+    );
 
     // ========================================================================
     // TRANSACTION INBOX TABLES
@@ -291,8 +335,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS inbox_status_idx ON transaction_inbox(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS inbox_document_idx ON transaction_inbox(document_id)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS inbox_status_idx ON transaction_inbox(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS inbox_document_idx ON transaction_inbox(document_id)`
+    );
 
     // ========================================================================
     // CATEGORY LEARNING TABLES
@@ -313,8 +361,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS pattern_category_idx ON category_patterns(category_id)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS pattern_type_value_idx ON category_patterns(pattern_type, pattern_value)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS pattern_category_idx ON category_patterns(category_id)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS pattern_type_value_idx ON category_patterns(pattern_type, pattern_value)`
+    );
 
     // ========================================================================
     // RECURRING TRANSACTIONS TABLES
@@ -346,9 +398,15 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS recurring_status_idx ON recurring_transactions(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS recurring_type_idx ON recurring_transactions(type)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS recurring_next_date_idx ON recurring_transactions(next_expected_date)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS recurring_status_idx ON recurring_transactions(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS recurring_type_idx ON recurring_transactions(type)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS recurring_next_date_idx ON recurring_transactions(next_expected_date)`
+    );
 
     // ========================================================================
     // BEHAVIOR MODEL TABLES
@@ -371,7 +429,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS pattern_day_idx ON spending_patterns(day_of_week)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS pattern_day_idx ON spending_patterns(day_of_week)`
+    );
 
     // Monthly snapshots table
     await db.run(sql`
@@ -393,7 +453,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS snapshot_month_idx ON monthly_snapshots(month)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS snapshot_month_idx ON monthly_snapshots(month)`
+    );
 
     // ========================================================================
     // PREDICTIONS & FORECASTS TABLES
@@ -418,7 +480,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS forecast_date_idx ON daily_forecasts(forecast_date)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS forecast_date_idx ON daily_forecasts(forecast_date)`
+    );
 
     // Cash runway table
     await db.run(sql`
@@ -438,7 +502,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS runway_calculated_idx ON cash_runway(calculated_at)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS runway_calculated_idx ON cash_runway(calculated_at)`
+    );
 
     // ========================================================================
     // ALERTS TABLES
@@ -462,9 +528,15 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS alert_status_idx ON alerts(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS alert_type_idx ON alerts(type)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS alert_scheduled_idx ON alerts(scheduled_for)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS alert_status_idx ON alerts(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS alert_type_idx ON alerts(type)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS alert_scheduled_idx ON alerts(scheduled_for)`
+    );
 
     // ========================================================================
     // GOALS TABLES
@@ -495,8 +567,12 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS goal_status_idx ON goals(status)`);
-    await db.run(sql`CREATE INDEX IF NOT EXISTS goal_type_idx ON goals(goal_type)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS goal_status_idx ON goals(status)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS goal_type_idx ON goals(goal_type)`
+    );
 
     // ========================================================================
     // DAILY SUMMARIES TABLES
@@ -526,7 +602,9 @@ async function runMigrations() {
       )
     `);
 
-    await db.run(sql`CREATE INDEX IF NOT EXISTS summary_date_idx ON daily_summaries(summary_date)`);
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS summary_date_idx ON daily_summaries(summary_date)`
+    );
 
     // Flush database to disk immediately after migrations
     await flushSave();
@@ -541,9 +619,13 @@ async function runMigrations() {
 // Run if called directly
 const isMainModule = () => {
   const scriptPath = process.argv[1]?.replace(/\\/g, '/');
-  const moduleUrl = import.meta.url.replace('file:///', '').replace('file://', '');
-  return moduleUrl.endsWith(scriptPath?.split('/').pop() || '') ||
-         import.meta.url === `file://${scriptPath}`;
+  const moduleUrl = import.meta.url
+    .replace('file:///', '')
+    .replace('file://', '');
+  return (
+    moduleUrl.endsWith(scriptPath?.split('/').pop() || '') ||
+    import.meta.url === `file://${scriptPath}`
+  );
 };
 
 if (isMainModule()) {

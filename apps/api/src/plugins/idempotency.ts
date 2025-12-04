@@ -57,7 +57,9 @@ export function checkIdempotency(
   request: FastifyRequest,
   reply: FastifyReply
 ): boolean {
-  const idempotencyKey = request.headers['idempotency-key'] as string | undefined;
+  const idempotencyKey = request.headers['idempotency-key'] as
+    | string
+    | undefined;
 
   // Only apply to mutating methods
   const method = request.method;

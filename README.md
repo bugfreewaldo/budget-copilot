@@ -161,29 +161,29 @@ docker-compose down
 
 ## Project Structure
 
-| Package/App | Description | Tech Stack |
-|------------|-------------|------------|
-| `apps/web` | Next.js web application | Next.js 14, React 18, Tailwind CSS |
-| `apps/api` | Fastify REST API | Fastify, Drizzle ORM, Zod |
-| `apps/mobile` | Mobile app (planned) | React Native, Expo |
-| `packages/ui` | Shared UI components | React, Tailwind CSS |
-| `packages/core` | Domain logic | Pure TypeScript, Vitest |
-| `packages/ai` | LLM provider adapters | OpenAI SDK, Anthropic SDK |
-| `packages/config` | Shared configs | ESLint, Prettier, TypeScript |
+| Package/App       | Description             | Tech Stack                         |
+| ----------------- | ----------------------- | ---------------------------------- |
+| `apps/web`        | Next.js web application | Next.js 14, React 18, Tailwind CSS |
+| `apps/api`        | Fastify REST API        | Fastify, Drizzle ORM, Zod          |
+| `apps/mobile`     | Mobile app (planned)    | React Native, Expo                 |
+| `packages/ui`     | Shared UI components    | React, Tailwind CSS                |
+| `packages/core`   | Domain logic            | Pure TypeScript, Vitest            |
+| `packages/ai`     | LLM provider adapters   | OpenAI SDK, Anthropic SDK          |
+| `packages/config` | Shared configs          | ESLint, Prettier, TypeScript       |
 
 ---
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start all apps in development mode |
-| `pnpm build` | Build all packages and apps |
-| `pnpm lint` | Lint all packages |
-| `pnpm test` | Run all tests |
-| `pnpm format` | Format code with Prettier |
-| `pnpm web:dev` | Run web app only |
-| `pnpm api:dev` | Run API service only |
+| Command        | Description                        |
+| -------------- | ---------------------------------- |
+| `pnpm dev`     | Start all apps in development mode |
+| `pnpm build`   | Build all packages and apps        |
+| `pnpm lint`    | Lint all packages                  |
+| `pnpm test`    | Run all tests                      |
+| `pnpm format`  | Format code with Prettier          |
+| `pnpm web:dev` | Run web app only                   |
+| `pnpm api:dev` | Run API service only               |
 
 ---
 
@@ -268,6 +268,7 @@ License TBD - This project is currently private.
 ## Acknowledgments
 
 Built with:
+
 - [Next.js](https://nextjs.org/)
 - [Turborepo](https://turbo.build/repo)
 - [Tailwind CSS](https://tailwindcss.com/)

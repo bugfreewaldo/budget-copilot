@@ -13,7 +13,12 @@ import { useDashboardData } from '@/lib/hooks';
 
 import { Sidebar } from '@/components/layout';
 import { TransactionCopilot } from '@/components/copilot/TransactionCopilot';
-import { SpendingByCategory, BudgetProgress, IncomeVsExpenses, FinancialWeather } from '@/components/charts';
+import {
+  SpendingByCategory,
+  BudgetProgress,
+  IncomeVsExpenses,
+  FinancialWeather,
+} from '@/components/charts';
 import { CreateTransactionModal } from '@/components/transactions';
 
 // Get last day of current month
@@ -28,7 +33,9 @@ function getLastDayOfMonth(): string {
  */
 export default function DashboardPage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>(
+    'expense'
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const currentMonth = getCurrentMonth();
@@ -36,8 +43,17 @@ export default function DashboardPage() {
   const to = getLastDayOfMonth();
 
   // Use SWR for cached data fetching - instant navigation!
-  const { categories, transactions, envelopes, isLoading: loading, error: fetchError, refresh } = useDashboardData(currentMonth, from, to);
-  const error = fetchError ? 'Failed to load dashboard data. Is the API server running?' : null;
+  const {
+    categories,
+    transactions,
+    envelopes,
+    isLoading: loading,
+    error: fetchError,
+    refresh,
+  } = useDashboardData(currentMonth, from, to);
+  const error = fetchError
+    ? 'Failed to load dashboard data. Is the API server running?'
+    : null;
 
   const handleTransactionCreated = () => {
     // Refresh data when a new transaction is created via copilot
@@ -82,7 +98,9 @@ export default function DashboardPage() {
           {/* Page Header */}
           <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">Dashboard</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">
+                Dashboard
+              </h1>
               <p className="text-sm lg:text-base text-gray-400">
                 ¡Bienvenido de vuelta! Aquí está tu resumen financiero.
               </p>
@@ -92,13 +110,15 @@ export default function DashboardPage() {
                 onClick={openIncomeModal}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
               >
-                <span>↑</span> <span className="hidden sm:inline">Agregar</span> Ingreso
+                <span>↑</span> <span className="hidden sm:inline">Agregar</span>{' '}
+                Ingreso
               </button>
               <button
                 onClick={openExpenseModal}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
               >
-                <span>↓</span> <span className="hidden sm:inline">Agregar</span> Gasto
+                <span>↓</span> <span className="hidden sm:inline">Agregar</span>{' '}
+                Gasto
               </button>
             </div>
           </div>
@@ -126,7 +146,10 @@ export default function DashboardPage() {
                 <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
                   <span>🌤️</span> Tu Clima Financiero
                 </h3>
-                <FinancialWeather transactions={transactions} envelopes={envelopes} />
+                <FinancialWeather
+                  transactions={transactions}
+                  envelopes={envelopes}
+                />
               </div>
 
               {/* Charts Grid */}
@@ -144,7 +167,10 @@ export default function DashboardPage() {
                   <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
                     <span>📊</span> Gastos por Categoría
                   </h3>
-                  <SpendingByCategory transactions={transactions} categories={categories} />
+                  <SpendingByCategory
+                    transactions={transactions}
+                    categories={categories}
+                  />
                 </div>
               </div>
 
@@ -165,27 +191,39 @@ export default function DashboardPage() {
                 </div>
                 {transactions.length === 0 ? (
                   <div className="p-6 lg:p-8 text-center">
-                    <span className="text-5xl lg:text-6xl mb-4 lg:mb-6 block">🤖</span>
+                    <span className="text-5xl lg:text-6xl mb-4 lg:mb-6 block">
+                      🤖
+                    </span>
                     <h4 className="text-lg lg:text-xl font-semibold text-white mb-2 lg:mb-3">
                       ¡Comienza a registrar tus finanzas!
                     </h4>
                     <p className="text-gray-400 mb-4 max-w-md mx-auto text-sm lg:text-base">
-                      Usa el asistente inteligente en la esquina inferior derecha para agregar tus ingresos y gastos de forma natural.
+                      Usa el asistente inteligente en la esquina inferior
+                      derecha para agregar tus ingresos y gastos de forma
+                      natural.
                     </p>
                     <p className="text-cyan-400 text-sm font-medium mb-2">
                       Prueba decir:
                     </p>
                     <div className="flex flex-wrap justify-center gap-2 text-xs lg:text-sm">
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">"Recibí mi salario de $3,500"</span>
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">"Gasté $50 en Uber"</span>
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">"Pagué $120 de luz"</span>
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
+                        "Recibí mi salario de $3,500"
+                      </span>
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
+                        "Gasté $50 en Uber"
+                      </span>
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
+                        "Pagué $120 de luz"
+                      </span>
                     </div>
                   </div>
                 ) : (
                   <div className="p-4 lg:p-6">
                     <div className="space-y-2 lg:space-y-3">
                       {transactions.slice(0, 5).map((tx) => {
-                        const category = categories.find((c) => c.id === tx.categoryId);
+                        const category = categories.find(
+                          (c) => c.id === tx.categoryId
+                        );
                         return (
                           <div
                             key={tx.id}
@@ -206,14 +244,17 @@ export default function DashboardPage() {
                                   {tx.description}
                                 </div>
                                 <div className="text-xs lg:text-sm text-gray-500 truncate">
-                                  {category?.name || 'Sin categoría'} • {tx.date}
+                                  {category?.name || 'Sin categoría'} •{' '}
+                                  {tx.date}
                                 </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-2">
                               <div
                                 className={`font-semibold text-sm lg:text-base ${
-                                  tx.type === 'expense' ? 'text-red-400' : 'text-green-400'
+                                  tx.type === 'expense'
+                                    ? 'text-red-400'
+                                    : 'text-green-400'
                                 }`}
                               >
                                 {formatCents(tx.amountCents)}
@@ -227,8 +268,18 @@ export default function DashboardPage() {
                                 {deletingId === tx.id ? (
                                   <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
                                   </svg>
                                 )}
                               </button>
@@ -248,14 +299,20 @@ export default function DashboardPage() {
                     <span>🏷️</span> Tus Categorías
                   </h3>
                   <Link href="/categories">
-                    <Button variant="outline" size="sm" className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-cyan-500/50 text-xs lg:text-sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-cyan-500/50 text-xs lg:text-sm"
+                    >
                       Manejar
                     </Button>
                   </Link>
                 </div>
                 {categories.length === 0 ? (
                   <div className="p-6 lg:p-8 text-center">
-                    <span className="text-3xl lg:text-4xl mb-3 lg:mb-4 block">📭</span>
+                    <span className="text-3xl lg:text-4xl mb-3 lg:mb-4 block">
+                      📭
+                    </span>
                     <p className="text-gray-400 mb-4 text-sm lg:text-base">
                       No hay categorías aún. ¡Crea algunas para empezar!
                     </p>
@@ -275,7 +332,9 @@ export default function DashboardPage() {
                         >
                           <div className="flex items-center gap-2">
                             {category.emoji && (
-                              <span className="text-lg lg:text-xl">{category.emoji}</span>
+                              <span className="text-lg lg:text-xl">
+                                {category.emoji}
+                              </span>
                             )}
                             <span className="font-medium text-white group-hover:text-cyan-400 transition-colors text-sm lg:text-base truncate">
                               {category.name}
@@ -287,7 +346,11 @@ export default function DashboardPage() {
                     {categories.length > 9 && (
                       <div className="mt-4 lg:mt-6 text-center">
                         <Link href="/categories">
-                          <Button variant="outline" size="sm" className="border-gray-700 text-gray-300 hover:bg-gray-800 text-xs lg:text-sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-gray-700 text-gray-300 hover:bg-gray-800 text-xs lg:text-sm"
+                          >
                             Ver Todas las {categories.length} Categorías →
                           </Button>
                         </Link>

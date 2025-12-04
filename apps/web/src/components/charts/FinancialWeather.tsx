@@ -18,39 +18,49 @@ interface WeatherState {
 /**
  * Calculate financial "weather" based on spending patterns and budget usage
  */
-function calculateWeather(transactions: Transaction[], envelopes: Envelope[]): WeatherState {
+function calculateWeather(
+  transactions: Transaction[],
+  envelopes: Envelope[]
+): WeatherState {
   // Calculate total income and expenses this period
   const income = transactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amountCents, 0);
 
   const expenses = transactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + Math.abs(t.amountCents), 0);
 
   // Calculate budget usage
   const totalBudget = envelopes.reduce((sum, e) => sum + e.budgetCents, 0);
   const totalSpent = envelopes.reduce((sum, e) => sum + e.spentCents, 0);
-  const budgetUsagePercent = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+  const budgetUsagePercent =
+    totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   // Calculate net position
   const netPosition = income - expenses;
 
   // Calculate "safe to spend" based on remaining budget
   const remainingBudget = totalBudget - totalSpent;
-  const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const daysInMonth = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() + 1,
+    0
+  ).getDate();
   const currentDay = new Date().getDate();
   const daysRemaining = daysInMonth - currentDay + 1;
-  const safeToSpendDaily = remainingBudget > 0 ? Math.floor(remainingBudget / daysRemaining / 100) : 0;
+  const safeToSpendDaily =
+    remainingBudget > 0 ? Math.floor(remainingBudget / daysRemaining / 100) : 0;
 
   // Determine weather based on multiple factors
   if (budgetUsagePercent >= 100 || netPosition < 0) {
     return {
       emoji: '⛈️',
       status: 'Alerta de Tormenta',
-      message: netPosition < 0
-        ? `Gastos exceden ingresos por $${Math.abs(netPosition / 100).toFixed(0)}`
-        : 'Presupuesto agotado. Evita compras grandes.',
+      message:
+        netPosition < 0
+          ? `Gastos exceden ingresos por $${Math.abs(netPosition / 100).toFixed(0)}`
+          : 'Presupuesto agotado. Evita compras grandes.',
       color: 'from-purple-500 to-red-500',
       bgColor: 'bg-red-900/30',
     };
@@ -85,40 +95,50 @@ function calculateWeather(transactions: Transaction[], envelopes: Envelope[]): W
   };
 }
 
-export function FinancialWeather({ transactions, envelopes }: FinancialWeatherProps) {
+export function FinancialWeather({
+  transactions,
+  envelopes,
+}: FinancialWeatherProps) {
   const weather = calculateWeather(transactions, envelopes);
 
   // Calculate key metrics for display
-  const income = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amountCents, 0) / 100;
+  const income =
+    transactions
+      .filter((t) => t.type === 'income')
+      .reduce((sum, t) => sum + t.amountCents, 0) / 100;
 
-  const expenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + Math.abs(t.amountCents), 0) / 100;
+  const expenses =
+    transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + Math.abs(t.amountCents), 0) / 100;
 
-  const totalBudget = envelopes.reduce((sum, e) => sum + e.budgetCents, 0) / 100;
+  const totalBudget =
+    envelopes.reduce((sum, e) => sum + e.budgetCents, 0) / 100;
   const totalSpent = envelopes.reduce((sum, e) => sum + e.spentCents, 0) / 100;
   const remainingBudget = totalBudget - totalSpent;
 
   // Calculate days of runway
-  const avgDailySpend = transactions.length > 0
-    ? expenses / Math.max(new Date().getDate(), 1)
-    : 0;
-  const daysOfRunway = avgDailySpend > 0
-    ? Math.floor(remainingBudget / avgDailySpend)
-    : 999;
+  const avgDailySpend =
+    transactions.length > 0 ? expenses / Math.max(new Date().getDate(), 1) : 0;
+  const daysOfRunway =
+    avgDailySpend > 0 ? Math.floor(remainingBudget / avgDailySpend) : 999;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl ${weather.bgColor} border border-gray-700/50 p-6`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl ${weather.bgColor} border border-gray-700/50 p-6`}
+    >
       {/* Animated background glow */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${weather.color} opacity-10 blur-2xl`} />
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${weather.color} opacity-10 blur-2xl`}
+      />
 
       <div className="relative z-10">
         {/* Weather Icon and Status */}
         <div className="text-center mb-6">
           <div className="text-7xl mb-3 animate-pulse">{weather.emoji}</div>
-          <h3 className={`text-2xl font-bold bg-gradient-to-r ${weather.color} bg-clip-text text-transparent mb-2`}>
+          <h3
+            className={`text-2xl font-bold bg-gradient-to-r ${weather.color} bg-clip-text text-transparent mb-2`}
+          >
             {weather.status}
           </h3>
           <p className="text-gray-300">{weather.message}</p>
@@ -139,7 +159,9 @@ export function FinancialWeather({ transactions, envelopes }: FinancialWeatherPr
             <p className="text-xs text-gray-500">Gastos</p>
           </div>
           <div className="text-center">
-            <p className={`text-2xl font-bold ${daysOfRunway < 7 ? 'text-red-400' : daysOfRunway < 14 ? 'text-yellow-400' : 'text-cyan-400'}`}>
+            <p
+              className={`text-2xl font-bold ${daysOfRunway < 7 ? 'text-red-400' : daysOfRunway < 14 ? 'text-yellow-400' : 'text-cyan-400'}`}
+            >
               {daysOfRunway > 30 ? '30+' : daysOfRunway}
             </p>
             <p className="text-xs text-gray-500">Días de Pista</p>
@@ -152,13 +174,22 @@ export function FinancialWeather({ transactions, envelopes }: FinancialWeatherPr
             <div className="flex justify-between text-sm mb-2">
               <span className="text-gray-400">Presupuesto Usado</span>
               <span className="text-white font-medium">
-                ${totalSpent.toLocaleString('es-MX', { maximumFractionDigits: 0 })} / ${totalBudget.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+                $
+                {totalSpent.toLocaleString('es-MX', {
+                  maximumFractionDigits: 0,
+                })}{' '}
+                / $
+                {totalBudget.toLocaleString('es-MX', {
+                  maximumFractionDigits: 0,
+                })}
               </span>
             </div>
             <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full bg-gradient-to-r ${weather.color} transition-all duration-500`}
-                style={{ width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%` }}
+                style={{
+                  width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%`,
+                }}
               />
             </div>
           </div>

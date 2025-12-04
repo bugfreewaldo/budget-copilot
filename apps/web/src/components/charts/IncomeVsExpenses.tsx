@@ -7,13 +7,15 @@ interface IncomeVsExpensesProps {
 }
 
 export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
-  const income = transactions
-    .filter((tx) => tx.type === 'income')
-    .reduce((sum, tx) => sum + tx.amountCents, 0) / 100;
+  const income =
+    transactions
+      .filter((tx) => tx.type === 'income')
+      .reduce((sum, tx) => sum + tx.amountCents, 0) / 100;
 
-  const expenses = transactions
-    .filter((tx) => tx.type === 'expense')
-    .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0) / 100;
+  const expenses =
+    transactions
+      .filter((tx) => tx.type === 'expense')
+      .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0) / 100;
 
   const balance = income - expenses;
   const savingsRate = income > 0 ? ((balance / income) * 100).toFixed(0) : 0;
@@ -31,11 +33,18 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
       {/* Main Balance Display */}
       <div className="text-center py-4">
         <p className="text-gray-400 text-sm mb-1">Balance del Mes</p>
-        <p className={`text-4xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {balance >= 0 ? '+' : ''}${Math.abs(balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        <p
+          className={`text-4xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}
+        >
+          {balance >= 0 ? '+' : ''}$
+          {Math.abs(balance).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+          })}
         </p>
         {balance > 0 && (
-          <p className="text-cyan-400 text-sm mt-1">Ahorrando {savingsRate}% de tus ingresos</p>
+          <p className="text-cyan-400 text-sm mt-1">
+            Ahorrando {savingsRate}% de tus ingresos
+          </p>
         )}
       </div>
 

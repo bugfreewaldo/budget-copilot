@@ -235,7 +235,10 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!bodyValidation.success) {
-          return reply.badRequest('Invalid request body', bodyValidation.errors);
+          return reply.badRequest(
+            'Invalid request body',
+            bodyValidation.errors
+          );
         }
 
         const data = bodyValidation.data;
@@ -254,7 +257,8 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
         // Build update object with only provided fields
         const updates: any = {};
         if (data.name !== undefined) updates.name = data.name;
-        if (data.institution !== undefined) updates.institution = data.institution;
+        if (data.institution !== undefined)
+          updates.institution = data.institution;
         if (data.type !== undefined) updates.type = data.type;
 
         // Perform update if there are changes

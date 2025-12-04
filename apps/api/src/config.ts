@@ -5,9 +5,7 @@ import { z } from 'zod';
  * Environment configuration with validation
  */
 const configSchema = z.object({
-  nodeEnv: z
-    .enum(['development', 'production', 'test'])
-    .default('development'),
+  nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
   port: z.coerce.number().default(4000),
   host: z.string().default('0.0.0.0'),
   databaseUrl: z.string().default('./data/budget.db'),

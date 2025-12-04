@@ -39,8 +39,7 @@ export function DeleteCategoryDialog({
         } else if (error.statusCode === 409) {
           // Extract user-friendly message from Problem+JSON detail
           message =
-            error.problem?.detail ||
-            'Cannot delete category that is in use';
+            error.problem?.detail || 'Cannot delete category that is in use';
         } else {
           message = error.message;
         }
@@ -91,8 +90,8 @@ export function DeleteCategoryDialog({
 
           <p className="text-gray-300 mb-6">
             ¿Estás seguro de que quieres eliminar{' '}
-            <span className="font-semibold text-white">{category.name}</span>? Esta acción
-            no se puede deshacer.
+            <span className="font-semibold text-white">{category.name}</span>?
+            Esta acción no se puede deshacer.
           </p>
 
           <div className="flex justify-end gap-3">

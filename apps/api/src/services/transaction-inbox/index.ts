@@ -97,7 +97,9 @@ export async function getPendingInboxItems(
 /**
  * Get inbox item by ID
  */
-export async function getInboxItem(id: string): Promise<InboxItemWithSuggestion | null> {
+export async function getInboxItem(
+  id: string
+): Promise<InboxItemWithSuggestion | null> {
   const db = await getDb();
 
   const item = await db.query.transactionInbox.findFirst({
@@ -264,7 +266,10 @@ export async function suggestCategories(
 
     switch (pattern.patternType) {
       case 'merchant':
-        if (merchantLower && merchantLower.includes(pattern.patternValue.toLowerCase())) {
+        if (
+          merchantLower &&
+          merchantLower.includes(pattern.patternValue.toLowerCase())
+        ) {
           matched = true;
         }
         break;
@@ -303,7 +308,9 @@ export async function suggestCategories(
 
     if (matched) {
       // Check if category already suggested
-      const existing = suggestions.find((s) => s.categoryId === pattern.categoryId);
+      const existing = suggestions.find(
+        (s) => s.categoryId === pattern.categoryId
+      );
       if (!existing) {
         // Get category name
         const category = await db.query.categories.findFirst({
@@ -418,11 +425,54 @@ async function upsertPattern(params: {
 function extractKeywords(description: string): string[] {
   // Remove common words and extract meaningful terms
   const stopWords = new Set([
-    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-    'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
-    'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-    'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought',
-    'used', 'pos', 'terminal', 'purchase', 'payment', 'card', 'debit', 'credit',
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'from',
+    'as',
+    'is',
+    'was',
+    'are',
+    'were',
+    'been',
+    'be',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'will',
+    'would',
+    'could',
+    'should',
+    'may',
+    'might',
+    'must',
+    'shall',
+    'can',
+    'need',
+    'dare',
+    'ought',
+    'used',
+    'pos',
+    'terminal',
+    'purchase',
+    'payment',
+    'card',
+    'debit',
+    'credit',
   ]);
 
   // Split by non-alphanumeric, filter, and return unique

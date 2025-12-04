@@ -328,7 +328,10 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!bodyValidation.success) {
-          return reply.badRequest('Invalid request body', bodyValidation.errors);
+          return reply.badRequest(
+            'Invalid request body',
+            bodyValidation.errors
+          );
         }
 
         const data = bodyValidation.data;
@@ -352,7 +355,9 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
           if (data.parent_id !== null) {
             const parentExists = await categoryExists(db, data.parent_id);
             if (!parentExists) {
-              return reply.badRequest('Invalid parent_id: category does not exist');
+              return reply.badRequest(
+                'Invalid parent_id: category does not exist'
+              );
             }
 
             // Check for cycles
@@ -429,9 +434,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
         // Check if category has children
         if (await hasChildren(db, request.params.id)) {
-          return reply.conflict(
-            'Cannot delete category with child categories'
-          );
+          return reply.conflict('Cannot delete category with child categories');
         }
 
         // Check if category is referenced

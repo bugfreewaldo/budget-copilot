@@ -54,7 +54,10 @@ export interface LLMProvider {
   /**
    * Generate a single completion from a prompt
    */
-  complete(prompt: string, options?: CompletionOptions): Promise<CompletionResult>;
+  complete(
+    prompt: string,
+    options?: CompletionOptions
+  ): Promise<CompletionResult>;
 
   /**
    * Generate a chat completion from a list of messages

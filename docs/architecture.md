@@ -36,6 +36,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 ### Apps (`apps/`)
 
 #### Web App (`apps/web`)
+
 - **Technology**: Next.js 14 with App Router
 - **Purpose**: Primary user interface
 - **Routes**:
@@ -49,6 +50,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
   - Shared UI components from `@budget-copilot/ui`
 
 #### API Service (`apps/api`)
+
 - **Technology**: Fastify with TypeScript
 - **Purpose**: RESTful API service
 - **Endpoints**:
@@ -62,6 +64,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
   - PII redaction
 
 #### Mobile App (`apps/mobile`)
+
 - **Status**: Placeholder
 - **Technology**: React Native + Expo (planned)
 - **Purpose**: Native mobile experience
@@ -69,6 +72,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 ### Packages (`packages/`)
 
 #### UI Package (`packages/ui`)
+
 - **Purpose**: Shared React components
 - **Components**:
   - Button
@@ -79,6 +83,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 - **Export Strategy**: Named exports for tree-shaking
 
 #### Core Package (`packages/core`)
+
 - **Purpose**: Framework-agnostic domain logic
 - **Modules**:
   - `categories.ts` - Category matching and rules
@@ -93,6 +98,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
   - Fully tested business logic
 
 #### AI Package (`packages/ai`)
+
 - **Purpose**: LLM provider abstraction
 - **Architecture**:
   ```
@@ -107,6 +113,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
   - Usage tracking
 
 #### Config Package (`packages/config`)
+
 - **Purpose**: Shared configuration
 - **Contents**:
   - `eslint-config.js` - ESLint rules
@@ -152,6 +159,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 ### Tables
 
 #### transactions
+
 - `id` - Unique identifier
 - `date` - Transaction date
 - `description` - Transaction description
@@ -162,6 +170,7 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 - `created_at`, `updated_at` - Timestamps
 
 #### categories
+
 - `id` - Unique identifier
 - `name` - Category name
 - `type` - enum: income, expense, transfer
@@ -170,12 +179,14 @@ Budget Copilot is built as a monorepo using Turborepo and pnpm workspaces, with 
 - `created_at` - Timestamp
 
 #### budgets
+
 - `id` - Unique identifier
 - `name` - Budget name
 - `start_date`, `end_date` - Budget period
 - `created_at`, `updated_at` - Timestamps
 
 #### envelopes
+
 - `id` - Unique identifier
 - `budget_id` - Foreign key to budgets
 - `name` - Envelope name
@@ -229,6 +240,7 @@ Before sending data to LLM providers:
 ### Deployment Options
 
 #### Local (SQLite)
+
 ```bash
 pnpm install
 pnpm build
@@ -236,11 +248,13 @@ pnpm start
 ```
 
 #### Docker (PostgreSQL)
+
 ```bash
 docker-compose up -d
 ```
 
 #### Cloud (Planned)
+
 - **Web**: Vercel
 - **API**: Railway/Fly.io
 - **Database**: Managed PostgreSQL (RDS, Supabase)
@@ -248,16 +262,19 @@ docker-compose up -d
 ## Testing Strategy
 
 ### Unit Tests
+
 - **Location**: `packages/core/test/`
 - **Framework**: Vitest
 - **Coverage**: Business logic, calculations, utilities
 
 ### Integration Tests (Planned)
+
 - API endpoint testing
 - Database integration
 - AI provider mocking
 
 ### E2E Tests (Planned)
+
 - **Framework**: Playwright
 - **Scope**: Critical user flows
 - **Coverage**: Dashboard, transaction import
@@ -265,18 +282,21 @@ docker-compose up -d
 ## Performance Considerations
 
 ### Frontend
+
 - Next.js App Router for optimal loading
 - Code splitting by route
 - Image optimization
 - Font optimization (Inter from Google Fonts)
 
 ### Backend
+
 - Fastify for high performance
 - Database connection pooling
 - Query optimization with Drizzle
 - Response caching (planned)
 
 ### AI
+
 - Token usage tracking
 - Rate limiting (planned)
 - Fallback responses when AI unavailable

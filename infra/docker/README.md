@@ -29,6 +29,7 @@ docker-compose up -d
 ```
 
 Access points:
+
 - API: http://localhost:4000
 - Adminer: http://localhost:8080
 - PostgreSQL: localhost:5432

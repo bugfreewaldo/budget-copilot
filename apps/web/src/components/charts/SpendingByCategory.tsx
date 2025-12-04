@@ -18,7 +18,10 @@ const COLORS = [
   '#14b8a6', // teal
 ];
 
-export function SpendingByCategory({ transactions, categories }: SpendingByCategoryProps) {
+export function SpendingByCategory({
+  transactions,
+  categories,
+}: SpendingByCategoryProps) {
   // Calculate spending by category (only expenses)
   const spendingByCategory = transactions
     .filter((tx) => tx.type === 'expense')
@@ -61,9 +64,14 @@ export function SpendingByCategory({ transactions, categories }: SpendingByCateg
             <span className="text-xl w-8 text-center">{item.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm text-gray-300 truncate">{item.name}</span>
+                <span className="text-sm text-gray-300 truncate">
+                  {item.name}
+                </span>
                 <span className="text-sm font-medium text-white ml-2">
-                  ${item.value.toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                  $
+                  {item.value.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                  })}
                 </span>
               </div>
               <div className="h-2 bg-gray-800 rounded-full overflow-hidden">

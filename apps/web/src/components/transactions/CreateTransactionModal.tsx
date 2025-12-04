@@ -89,7 +89,10 @@ export function CreateTransactionModal({
     }
 
     if (!accountId) {
-      showToast('Error: No se pudo crear la cuenta. Intenta de nuevo.', 'error');
+      showToast(
+        'Error: No se pudo crear la cuenta. Intenta de nuevo.',
+        'error'
+      );
       return;
     }
 
@@ -229,7 +232,11 @@ export function CreateTransactionModal({
                 maxLength={100}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
-                placeholder={isExpense ? 'ej., Compras en supermercado' : 'ej., Salario mensual'}
+                placeholder={
+                  isExpense
+                    ? 'ej., Compras en supermercado'
+                    : 'ej., Salario mensual'
+                }
               />
             </div>
 
@@ -287,14 +294,18 @@ export function CreateTransactionModal({
               </button>
               <button
                 type="submit"
-                disabled={loading || !amount.trim() || !description.trim() || !accountId}
+                disabled={
+                  loading || !amount.trim() || !description.trim() || !accountId
+                }
                 className={`px-4 py-2 text-sm font-medium text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
                   isExpense
                     ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600'
                     : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
                 }`}
               >
-                {loading ? 'Guardando...' : `✓ ${isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}`}
+                {loading
+                  ? 'Guardando...'
+                  : `✓ ${isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}`}
               </button>
             </div>
           </form>

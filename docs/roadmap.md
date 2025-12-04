@@ -13,6 +13,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 **Status**: Complete
 
 **Goals**:
+
 - [x] Monorepo setup with Turborepo + pnpm
 - [x] Next.js web app with basic UI
 - [x] Fastify API service
@@ -24,6 +25,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 - [x] Shared UI component library
 
 **Deliverables**:
+
 - Working local development environment
 - Basic landing page and dashboard
 - `/health` endpoint
@@ -37,6 +39,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 **Status**: In Progress
 
 **Goals**:
+
 - [ ] Complete transaction management
   - [ ] Create, read, update, delete transactions
   - [ ] Bulk import from CSV
@@ -61,6 +64,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
   - [ ] Protected routes
 
 **Deliverables**:
+
 - Functional budget management system
 - User authentication
 - CSV import feature
@@ -71,6 +75,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 ### 📱 Phase 2: Mobile & Integrations (April - June 2024)
 
 **Goals**:
+
 - [ ] React Native mobile app
   - [ ] Basic transaction viewing
   - [ ] Quick transaction entry
@@ -90,6 +95,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
   - [ ] Natural language queries
 
 **Deliverables**:
+
 - Mobile app (iOS & Android)
 - Live bank account syncing
 - AI-powered insights dashboard
@@ -99,6 +105,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 ### 📊 Phase 3: Analytics & Insights (July - September 2024)
 
 **Goals**:
+
 - [ ] Advanced analytics
   - [ ] Interactive charts and graphs
   - [ ] Spending trends over time
@@ -118,6 +125,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
   - [ ] Milestone celebrations
 
 **Deliverables**:
+
 - Comprehensive analytics dashboard
 - Automated monthly reports
 - Goal tracking system
@@ -127,6 +135,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 ### 🌐 Phase 4: Collaboration & Enterprise (Q4 2024)
 
 **Goals**:
+
 - [ ] Multi-user support
   - [ ] Shared budgets (couples, families)
   - [ ] Permission management
@@ -146,6 +155,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
   - [ ] Webhooks/API access
 
 **Deliverables**:
+
 - Shared budget functionality
 - Enterprise-ready features
 - Public API
@@ -155,6 +165,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
 ### 🚀 Phase 5: Scale & Optimize (2025)
 
 **Goals**:
+
 - [ ] Performance optimization
   - [ ] Database query optimization
   - [ ] Frontend caching strategies
@@ -174,6 +185,7 @@ Build the most intelligent, privacy-respecting budget management tool that helps
   - [ ] Voice interface
 
 **Deliverables**:
+
 - Sub-second page loads
 - Support for 100+ currencies
 - 10+ language translations
@@ -288,18 +300,18 @@ Track feature requests in [GitHub Issues](https://github.com/yourusername/budget
 
 ## Release Schedule
 
-| Version | Target Date | Focus |
-|---------|-------------|-------|
-| 0.1.0 | Jan 2024 | Foundation (✅ Complete) |
-| 0.2.0 | Feb 2024 | Transaction management |
-| 0.3.0 | Mar 2024 | Envelope budgeting |
-| 0.4.0 | Apr 2024 | Authentication |
-| 0.5.0 | May 2024 | Mobile app alpha |
-| 0.6.0 | Jun 2024 | Bank integration |
-| 0.7.0 | Jul 2024 | Analytics |
-| 0.8.0 | Aug 2024 | Reporting |
-| 0.9.0 | Sep 2024 | Goal tracking |
-| 1.0.0 | Q4 2024 | Public launch |
+| Version | Target Date | Focus                    |
+| ------- | ----------- | ------------------------ |
+| 0.1.0   | Jan 2024    | Foundation (✅ Complete) |
+| 0.2.0   | Feb 2024    | Transaction management   |
+| 0.3.0   | Mar 2024    | Envelope budgeting       |
+| 0.4.0   | Apr 2024    | Authentication           |
+| 0.5.0   | May 2024    | Mobile app alpha         |
+| 0.6.0   | Jun 2024    | Bank integration         |
+| 0.7.0   | Jul 2024    | Analytics                |
+| 0.8.0   | Aug 2024    | Reporting                |
+| 0.9.0   | Sep 2024    | Goal tracking            |
+| 1.0.0   | Q4 2024     | Public launch            |
 
 ---
 
