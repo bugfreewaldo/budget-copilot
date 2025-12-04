@@ -1,0 +1,33 @@
+FROM node:20-slim
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
+
+WORKDIR /app
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/core/package.json ./packages/core/
+COPY packages/ai/package.json ./packages/ai/
+COPY packages/config/package.json ./packages/config/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY packages/core ./packages/core
+COPY packages/ai ./packages/ai
+COPY packages/config ./packages/config
+COPY apps/api ./apps/api
+
+# Build
+RUN pnpm --filter @budget-copilot/core build || true
+RUN pnpm --filter @budget-copilot/ai build || true
+RUN pnpm --filter api build
+
+WORKDIR /app/apps/api
+
+EXPOSE 4000
+
+CMD ["node", "dist/server/index.js"]
