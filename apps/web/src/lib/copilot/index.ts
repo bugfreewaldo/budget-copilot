@@ -291,8 +291,8 @@ export async function processMessage(
 
     // Find or create category
     let categoryId: string | null = null;
-    let categoryName = txData.suggestedCategory;
-    let categoryEmoji = txData.suggestedEmoji;
+    const categoryName = txData.suggestedCategory;
+    const categoryEmoji = txData.suggestedEmoji;
 
     if (categoryName) {
       const existingCategory = userCategories.find(
