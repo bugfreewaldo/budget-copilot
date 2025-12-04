@@ -1,0 +1,61 @@
+# Production Dockerfile for API service
+FROM node:20-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.1
+
+WORKDIR /app
+
+# Copy workspace files
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY turbo.json ./
+
+# Copy package files for dependency installation
+COPY packages/config/package.json ./packages/config/
+COPY packages/core/package.json ./packages/core/
+COPY packages/ai/package.json ./packages/ai/
+COPY apps/api/package.json ./apps/api/
+
+# Install dependencies
+FROM base AS dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY packages ./packages
+COPY apps/api ./apps/api
+
+# Build packages and API
+FROM dependencies AS build
+RUN pnpm --filter @budget-copilot/config build || true
+RUN pnpm --filter @budget-copilot/core build || true
+RUN pnpm --filter @budget-copilot/ai build || true
+RUN pnpm --filter api build
+
+# Production image
+FROM node:20-alpine AS production
+
+RUN npm install -g pnpm@8.15.1
+
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=build /app/package.json ./
+COPY --from=build /app/pnpm-workspace.yaml ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build /app/apps/api/package.json ./apps/api/
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=build /app/apps/api/sql-wasm.wasm ./apps/api/sql-wasm.wasm
+
+# Copy workspace packages that might be needed at runtime
+COPY --from=build /app/packages/core/dist ./packages/core/dist
+COPY --from=build /app/packages/core/package.json ./packages/core/
+COPY --from=build /app/packages/ai/dist ./packages/ai/dist
+COPY --from=build /app/packages/ai/package.json ./packages/ai/
+
+EXPOSE 4000
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+CMD ["node", "apps/api/dist/server/index.js"]
