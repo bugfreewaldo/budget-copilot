@@ -48,4 +48,4 @@ COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
 
 EXPOSE 4000
 
-CMD ["node", "apps/api/dist/index.js"]
+CMD ["node", "apps/api/dist/server/index.js"]
