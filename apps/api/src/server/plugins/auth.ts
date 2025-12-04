@@ -67,7 +67,10 @@ export async function optionalAuth(
  * Use after requireAuth to restrict routes to certain plans
  */
 export function requirePlan(...plans: ('free' | 'pro' | 'premium')[]) {
-  return async function (request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  return async function (
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<void> {
     if (!request.user) {
       reply.status(401).send({
         error: 'UNAUTHORIZED',
