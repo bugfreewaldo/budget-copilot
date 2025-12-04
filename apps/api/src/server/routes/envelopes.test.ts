@@ -1,24 +1,32 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../index.js';
 import type { FastifyInstance } from 'fastify';
-import { runMigrations } from '../../db/migrate.js';
+import { setupIsolatedDb } from '../../test/db.js';
+import { createTestUser, type TestUser } from '../../test/auth.js';
 
 describe('Envelope Routes', () => {
   let server: FastifyInstance;
+  let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
+  let _testUser: TestUser;
   let accountId: string;
   let categoryId: string;
   const testMonth = '2024-01';
 
   beforeAll(async () => {
-    // Use in-memory database for tests
-    process.env.DATABASE_URL = ':memory:';
+    testDb = await setupIsolatedDb();
     server = await buildServer();
-    await runMigrations();
+
+    // Create a test user with the fixed test-user-id
+    _testUser = await createTestUser({ id: 'test-user-id' });
 
     // Create test account
     const accountResponse = await server.inject({
       method: 'POST',
       url: '/v1/accounts',
+      headers: {
+        'idempotency-key': 'envelope-test-account-1',
+        'content-type': 'application/json',
+      },
       payload: { name: 'Test Account', type: 'checking' },
     });
     accountId = JSON.parse(accountResponse.body).data.id;
@@ -27,6 +35,10 @@ describe('Envelope Routes', () => {
     const categoryResponse = await server.inject({
       method: 'POST',
       url: '/v1/categories',
+      headers: {
+        'idempotency-key': 'envelope-test-category-1',
+        'content-type': 'application/json',
+      },
       payload: { name: 'Test Category' },
     });
     categoryId = JSON.parse(categoryResponse.body).data.id;
@@ -34,12 +46,18 @@ describe('Envelope Routes', () => {
 
   afterAll(async () => {
     await server.close();
+    await testDb.teardown();
+    testDb.restoreEnv();
   });
 
   it('POST /v1/envelopes should create an envelope', async () => {
     const response = await server.inject({
       method: 'POST',
       url: '/v1/envelopes',
+      headers: {
+        'idempotency-key': 'envelope-create-1',
+        'content-type': 'application/json',
+      },
       payload: {
         categoryId,
         month: testMonth,
@@ -60,6 +78,10 @@ describe('Envelope Routes', () => {
     await server.inject({
       method: 'POST',
       url: '/v1/transactions',
+      headers: {
+        'idempotency-key': 'envelope-test-transaction-1',
+        'content-type': 'application/json',
+      },
       payload: {
         date: '2024-01-15',
         description: 'Test Expense',
@@ -92,6 +114,10 @@ describe('Envelope Routes', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/v1/envelopes',
+      headers: {
+        'idempotency-key': 'envelope-upsert-1',
+        'content-type': 'application/json',
+      },
       payload: {
         categoryId,
         month: testMonth,

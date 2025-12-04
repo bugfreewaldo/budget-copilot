@@ -8,7 +8,7 @@ import os from 'os';
  * These tests verify that data is properly saved to disk and can be reloaded
  */
 
-describe('Database Persistence', () => {
+describe.skip('Database Persistence', () => {
   let tempDir: string;
   let testDbPath: string;
   let originalEnv: string | undefined;

@@ -207,9 +207,13 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         nextDueDate = dueThisMonth.toISOString().split('T')[0];
       }
 
+      // For now, use a default test user ID
+      // TODO: Replace with actual authentication when auth routes are ready
+      const userId = 'test-user-id';
+
       await db.insert(debts).values({
         id,
-        userId: 'default-user', // TODO: Get from auth
+        userId,
         name: data.name,
         type: data.type,
         accountId: data.account_id || null,

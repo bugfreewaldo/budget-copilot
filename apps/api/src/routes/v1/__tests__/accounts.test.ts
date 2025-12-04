@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../../../server/index.js';
 import type { FastifyInstance } from 'fastify';
 import { setupIsolatedDb } from '../../../test/db.js';
+import { createTestUser, type TestUser } from '../../../test/auth.js';
 
 /**
  * Accounts V1 Routes - Integration Tests
@@ -11,10 +12,14 @@ import { setupIsolatedDb } from '../../../test/db.js';
 // Share single server instance across all tests
 let server: FastifyInstance;
 let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
+let _testUser: TestUser; // Used to ensure test user exists in DB
 
 beforeAll(async () => {
   testDb = await setupIsolatedDb(); // Set DB path first
   server = await buildServer(); // Then build server (will use that path)
+
+  // Create a test user with the fixed test-user-id
+  _testUser = await createTestUser({ id: 'test-user-id' });
 });
 
 afterAll(async () => {
@@ -152,9 +157,17 @@ describe('POST /v1/accounts', () => {
       url: '/v1/accounts',
     });
 
-    const listBody = JSON.parse(listResponse.body);
+    interface AccountData {
+      id: string;
+      name: string;
+      institution: string;
+      type: string;
+      createdAt: number;
+    }
+
+    const listBody = JSON.parse(listResponse.body) as { data: AccountData[] };
     const matchingAccounts = listBody.data.filter(
-      (acc: any) => acc.name === 'Idempotent Account'
+      (acc) => acc.name === 'Idempotent Account'
     );
     expect(matchingAccounts).toHaveLength(1);
   });
@@ -472,7 +485,15 @@ describe('GET /v1/accounts (pagination)', () => {
   });
 
   it('should paginate through all records with stable ordering', async () => {
-    const allAccounts: any[] = [];
+    interface AccountData {
+      id: string;
+      name: string;
+      institution: string;
+      type: string;
+      createdAt: number;
+    }
+
+    const allAccounts: AccountData[] = [];
     let cursor: string | null = null;
     let pageCount = 0;
 
@@ -667,8 +688,8 @@ describe('GET /v1/accounts (search)', () => {
       const body2 = JSON.parse(response2.body);
 
       // Verify no duplicates across pages
-      const page1Ids = body.data.map((a: any) => a.id);
-      const page2Ids = body2.data.map((a: any) => a.id);
+      const page1Ids = body.data.map((a) => a.id);
+      const page2Ids = body2.data.map((a) => a.id);
       const intersection = page1Ids.filter((id: string) =>
         page2Ids.includes(id)
       );

@@ -109,7 +109,7 @@ export function checkIdempotency(
   }
 
   // Store cache key in request for later use
-  (request as any).idempotencyCacheKey = cacheKey;
+  (request as IdempotencyRequest).idempotencyCacheKey = cacheKey;
 
   return false; // Continue processing
 }
@@ -117,12 +117,16 @@ export function checkIdempotency(
 /**
  * Cache the response for future idempotent requests
  */
+interface IdempotencyRequest extends FastifyRequest {
+  idempotencyCacheKey?: string;
+}
+
 export function cacheIdempotentResponse(
   request: FastifyRequest,
   reply: FastifyReply,
   body: unknown
 ): void {
-  const cacheKey = (request as any).idempotencyCacheKey as string | undefined;
+  const cacheKey = (request as IdempotencyRequest).idempotencyCacheKey;
 
   if (!cacheKey) {
     return;

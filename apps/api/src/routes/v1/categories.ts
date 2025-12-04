@@ -143,7 +143,10 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       if (!validation.success) {
-        return reply.badRequest('Invalid request body', validation.errors);
+        return reply.badRequest(
+          'Invalid request body',
+          'errors' in validation ? validation.errors : []
+        );
       }
 
       const data = validation.data;
@@ -161,9 +164,14 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
       const id = nanoid();
       const now = Date.now();
 
+      // For now, use a default test user ID
+      // TODO: Replace with actual authentication when auth routes are ready
+      const userId = 'test-user-id';
+
       // Insert category
       await db.insert(categories).values({
         id,
+        userId,
         name: data.name,
         parentId: data.parent_id || null,
         createdAt: now,
@@ -202,7 +210,10 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       if (!validation.success) {
-        return reply.badRequest('Invalid query parameters', validation.errors);
+        return reply.badRequest(
+          'Invalid query parameters',
+          'errors' in validation ? validation.errors : []
+        );
       }
 
       const { cursor, limit, q } = validation.data;
@@ -282,7 +293,10 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!validation.success) {
-          return reply.badRequest('Invalid category ID', validation.errors);
+          return reply.badRequest(
+            'Invalid category ID',
+            'errors' in validation ? validation.errors : []
+          );
         }
 
         const db = await getDb();
@@ -318,7 +332,10 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!idValidation.success) {
-          return reply.badRequest('Invalid category ID', idValidation.errors);
+          return reply.badRequest(
+            'Invalid category ID',
+            'errors' in idValidation ? idValidation.errors : []
+          );
         }
 
         // Validate body
@@ -330,7 +347,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         if (!bodyValidation.success) {
           return reply.badRequest(
             'Invalid request body',
-            bodyValidation.errors
+            'errors' in bodyValidation ? bodyValidation.errors : []
           );
         }
 

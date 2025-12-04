@@ -69,7 +69,13 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      const envelope = await envelopeRepo.upsertEnvelope(db, validation.data);
+      // For now, use a default test user ID
+      // TODO: Replace with actual authentication when auth routes are ready
+      const userId = 'test-user-id';
+      const envelope = await envelopeRepo.upsertEnvelope(db, {
+        ...validation.data,
+        userId,
+      });
 
       // Save database after mutation
       saveDatabase();

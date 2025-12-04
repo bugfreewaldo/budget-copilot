@@ -17,10 +17,31 @@ type DatabaseInstance =
   | BetterSQLite3Database<typeof schema>
   | LibSQLDatabase<typeof schema>;
 
+interface SqlJsDatabase {
+  prepare: (sql: string) => SqlJsStatement;
+  run: (sql: string) => void;
+  exec: (sql: string) => void;
+  export: () => Uint8Array;
+  close: () => void;
+}
+
+interface SqlJsStatement {
+  bind: (params: unknown[]) => void;
+  step: () => boolean;
+  get: () => unknown[];
+  getAsObject: () => Record<string, unknown>;
+  reset: () => void;
+  free: () => void;
+}
+
+interface SqlJsStatic {
+  Database: new (data?: Uint8Array) => SqlJsDatabase;
+}
+
 let dbInstance: DatabaseInstance | null = null;
 let libsqlClient: LibSQLClient | null = null;
-let sqlJsDb: any = null;
-let SQL: any = null;
+let sqlJsDb: SqlJsDatabase | null = null;
+let SQL: SqlJsStatic | null = null;
 let isDirty = false;
 let saveTimer: NodeJS.Timeout | null = null;
 const SAVE_DEBOUNCE_MS = 150;
@@ -246,7 +267,7 @@ function flushSaveSync(): void {
   }
 }
 
-function createBetterSqlite3Adapter(sqlJsDb: any) {
+function createBetterSqlite3Adapter(sqlJsDb: SqlJsDatabase) {
   let inTransaction = false;
 
   const isMutatingStatement = (sql: string): boolean => {
@@ -269,7 +290,7 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
       const isCommit = normalized.startsWith('COMMIT');
       const isRollback = normalized.startsWith('ROLLBACK');
 
-      let stmt: any = null;
+      let stmt: SqlJsStatement | null = null;
       if (!isBegin && !isCommit && !isRollback) {
         try {
           stmt = sqlJsDb.prepare(sql);
@@ -342,7 +363,7 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
         raw: function () {
           return {
             get: (...params: unknown[]) => {
-              let ownStmt: any = null;
+              let ownStmt: SqlJsStatement | null = null;
               try {
                 ownStmt = sqlJsDb.prepare(sql);
                 ownStmt.bind(params as never[]);
@@ -362,7 +383,7 @@ function createBetterSqlite3Adapter(sqlJsDb: any) {
               }
             },
             all: (...params: unknown[]) => {
-              let ownStmt: any = null;
+              let ownStmt: SqlJsStatement | null = null;
               try {
                 ownStmt = sqlJsDb.prepare(sql);
                 ownStmt.bind(params as never[]);

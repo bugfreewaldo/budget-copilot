@@ -168,8 +168,13 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         data.target_date || null
       );
 
+      // For now, use a default test user ID
+      // TODO: Replace with actual authentication when auth routes are ready
+      const userId = 'test-user-id';
+
       await db.insert(goals).values({
         id,
+        userId,
         name: data.name,
         description: data.description || null,
         emoji: data.emoji || null,

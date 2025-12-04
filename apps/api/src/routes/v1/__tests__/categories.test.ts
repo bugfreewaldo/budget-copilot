@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../../../server/index.js';
 import type { FastifyInstance } from 'fastify';
 import { setupIsolatedDb } from '../../../test/db.js';
+import { createTestUser, type TestUser } from '../../../test/auth.js';
 import { getDb } from '../../../db/client.js';
 import { envelopes, transactions } from '../../../db/schema.js';
 import { nanoid } from 'nanoid';
@@ -14,10 +15,14 @@ import { nanoid } from 'nanoid';
 // Share single server instance across all tests
 let server: FastifyInstance;
 let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
+let testUser: TestUser;
 
 beforeAll(async () => {
   testDb = await setupIsolatedDb(); // Set DB path first
   server = await buildServer(); // Then build server (will use that path)
+
+  // Create a test user with the fixed test-user-id
+  testUser = await createTestUser({ id: 'test-user-id' });
 });
 
 afterAll(async () => {
@@ -565,6 +570,7 @@ describe('DELETE /v1/categories/:id', () => {
     const db = await getDb();
     await db.insert(envelopes).values({
       id: nanoid(),
+      userId: testUser.id,
       categoryId: testCategoryId,
       month: '2024-01',
       budgetCents: 10000,
@@ -620,6 +626,7 @@ describe('DELETE /v1/categories/:id', () => {
     const db = await getDb();
     await db.insert(transactions).values({
       id: nanoid(),
+      userId: testUser.id,
       date: '2024-01-15',
       description: 'Test transaction',
       amountCents: -5000,
@@ -684,7 +691,14 @@ describe('GET /v1/categories (pagination)', () => {
   });
 
   it('should paginate through all records with stable ordering', async () => {
-    const allCategories: any[] = [];
+    interface CategoryData {
+      id: string;
+      name: string;
+      parentId: string | null;
+      createdAt: number;
+    }
+
+    const allCategories: CategoryData[] = [];
     let cursor: string | undefined = undefined;
 
     // Fetch first page
@@ -791,10 +805,14 @@ describe('GET /v1/categories (search)', () => {
       url: '/v1/categories?q=shop',
     });
 
+    interface CategoryData {
+      name: string;
+    }
+
     expect(response.statusCode).toBe(200);
-    const body = JSON.parse(response.body);
+    const body = JSON.parse(response.body) as { data: CategoryData[] };
     expect(body.data.length).toBeGreaterThan(0);
-    expect(body.data.some((c: any) => c.name.includes('Shopping'))).toBe(true);
+    expect(body.data.some((c) => c.name.includes('Shopping'))).toBe(true);
   });
 
   it('should combine search with pagination', async () => {

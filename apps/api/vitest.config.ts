@@ -5,6 +5,12 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    // Clear Turso environment variables for tests
+    env: {
+      TURSO_DATABASE_URL: '',
+      TURSO_AUTH_TOKEN: '',
+      NODE_ENV: 'test',
+    },
     pool: 'forks',
     poolOptions: {
       forks: {

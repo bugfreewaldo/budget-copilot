@@ -39,12 +39,13 @@ async function authPlugin(fastify: FastifyInstance) {
 export async function requireAuth(
   request: FastifyRequest,
   reply: FastifyReply
-) {
+): Promise<void> {
   if (!request.user) {
-    return reply.status(401).send({
+    reply.status(401).send({
       error: 'UNAUTHORIZED',
       message: 'Authentication required',
     });
+    return;
   }
 }
 
@@ -66,21 +67,23 @@ export async function optionalAuth(
  * Use after requireAuth to restrict routes to certain plans
  */
 export function requirePlan(...plans: ('free' | 'pro' | 'premium')[]) {
-  return async function (request: FastifyRequest, reply: FastifyReply) {
+  return async function (request: FastifyRequest, reply: FastifyReply): Promise<void> {
     if (!request.user) {
-      return reply.status(401).send({
+      reply.status(401).send({
         error: 'UNAUTHORIZED',
         message: 'Authentication required',
       });
+      return;
     }
 
     if (!plans.includes(request.user.plan)) {
-      return reply.status(403).send({
+      reply.status(403).send({
         error: 'PLAN_REQUIRED',
         message: `This feature requires one of the following plans: ${plans.join(', ')}`,
         requiredPlans: plans,
         currentPlan: request.user.plan,
       });
+      return;
     }
   };
 }
@@ -92,19 +95,21 @@ export function requirePlan(...plans: ('free' | 'pro' | 'premium')[]) {
 export async function requireVerifiedEmail(
   request: FastifyRequest,
   reply: FastifyReply
-) {
+): Promise<void> {
   if (!request.user) {
-    return reply.status(401).send({
+    reply.status(401).send({
       error: 'UNAUTHORIZED',
       message: 'Authentication required',
     });
+    return;
   }
 
   if (!request.user.emailVerified) {
-    return reply.status(403).send({
+    reply.status(403).send({
       error: 'EMAIL_NOT_VERIFIED',
       message: 'Please verify your email address to access this feature',
     });
+    return;
   }
 }
 

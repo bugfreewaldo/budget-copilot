@@ -1,22 +1,30 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../index.js';
 import type { FastifyInstance } from 'fastify';
-import { runMigrations } from '../../db/migrate.js';
+import { setupIsolatedDb } from '../../test/db.js';
+import { createTestUser, type TestUser } from '../../test/auth.js';
 
 describe('Transaction Routes', () => {
   let server: FastifyInstance;
+  let testDb: Awaited<ReturnType<typeof setupIsolatedDb>>;
+  let _testUser: TestUser;
   let accountId: string;
 
   beforeAll(async () => {
-    // Use in-memory database for tests
-    process.env.DATABASE_URL = ':memory:';
+    testDb = await setupIsolatedDb();
     server = await buildServer();
-    await runMigrations();
+
+    // Create a test user with the fixed test-user-id
+    _testUser = await createTestUser({ id: 'test-user-id' });
 
     // Create a test account
     const accountResponse = await server.inject({
       method: 'POST',
       url: '/v1/accounts',
+      headers: {
+        'idempotency-key': 'transaction-test-account-1',
+        'content-type': 'application/json',
+      },
       payload: {
         name: 'Test Account',
         type: 'checking',
@@ -29,12 +37,18 @@ describe('Transaction Routes', () => {
 
   afterAll(async () => {
     await server.close();
+    await testDb.teardown();
+    testDb.restoreEnv();
   });
 
   it('POST /v1/transactions should create a transaction', async () => {
     const response = await server.inject({
       method: 'POST',
       url: '/v1/transactions',
+      headers: {
+        'idempotency-key': 'transaction-create-1',
+        'content-type': 'application/json',
+      },
       payload: {
         date: '2024-01-15',
         description: 'Test Transaction',
@@ -82,6 +96,10 @@ describe('Transaction Routes', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/v1/transactions',
+      headers: {
+        'idempotency-key': 'transaction-invalid-1',
+        'content-type': 'application/json',
+      },
       payload: {
         // Missing required fields
         description: 'Invalid',
