@@ -12,7 +12,7 @@ import paginationPlugin from '../plugins/pagination.js';
 import idempotencyPlugin from '../plugins/idempotency.js';
 import { healthRoutes } from './routes/health.js';
 import { debugRoutes } from './routes/debug.js';
-import { categoryRoutes } from './routes/categories.js';
+import { categoryRoutes as _categoryRoutes } from './routes/categories.js';
 import { envelopeRoutes } from './routes/envelopes.js';
 import { transactionRoutes } from './routes/transactions.js';
 import accountsV1Routes from '../routes/v1/accounts.js';

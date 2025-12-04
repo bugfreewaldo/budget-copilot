@@ -13,7 +13,7 @@ import { nanoid } from 'nanoid';
 import { getDb } from '../../db/client.js';
 import { documents, transactionInbox } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
-import type { NewDocument, NewTransactionInboxItem } from '../../db/schema.js';
+import type { NewDocument } from '../../db/schema.js';
 
 // Types for extracted data
 export interface ExtractedTransaction {

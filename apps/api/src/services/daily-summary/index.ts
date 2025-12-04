@@ -17,17 +17,13 @@ import { getDb } from '../../db/client.js';
 import {
   dailySummaries,
   transactions,
-  accounts,
   recurringTransactions,
   debts,
   goals,
   cashRunway,
-  alerts,
   envelopes,
-  categories,
 } from '../../db/schema.js';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
-import type { DailySummary, NewDailySummary } from '../../db/schema.js';
 
 // Types
 export interface FinancialWeather {

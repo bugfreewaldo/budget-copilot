@@ -11,8 +11,8 @@
 
 import { nanoid } from 'nanoid';
 import { getDb, saveDatabase } from '../../db/client.js';
-import { categories, transactions, accounts, userProfiles, debts } from '../../db/schema.js';
-import { eq, and, like, desc, count } from 'drizzle-orm';
+import { categories, transactions, accounts, userProfiles } from '../../db/schema.js';
+import { eq, and, count } from 'drizzle-orm';
 import type { Message } from '@budget-copilot/ai';
 import { getProvider } from '@budget-copilot/ai';
 import * as categoryRepo from '../../server/lib/repo/categories.js';
@@ -231,7 +231,7 @@ async function processOnboardingResponse(
   userMessage: string,
   currentStep: number
 ): Promise<CopilotResponse> {
-  const profile = await getOrCreateUserProfile(db, userId);
+  const _profile = await getOrCreateUserProfile(db, userId);
   const lowerMessage = userMessage.toLowerCase();
 
   // Process based on current step
@@ -249,7 +249,7 @@ async function processOnboardingResponse(
         onboardingStep: 1,
       };
 
-    case 1: // Salary
+    case 1: { // Salary
       const salaryMatch = userMessage.match(/\$?\s*([\d,]+(?:\.\d{2})?)/);
       if (salaryMatch) {
         const salaryCents = parseMoneyToCents(salaryMatch[1]);
@@ -271,8 +271,9 @@ async function processOnboardingResponse(
         isOnboarding: true,
         onboardingStep: 1,
       };
+    }
 
-    case 2: // Pay frequency
+    case 2: { // Pay frequency
       let frequency: string | null = null;
       if (lowerMessage.includes('semanal') || lowerMessage.includes('semana')) {
         frequency = 'weekly';
@@ -301,6 +302,7 @@ async function processOnboardingResponse(
         isOnboarding: true,
         onboardingStep: 2,
       };
+    }
 
     case 3: // Debts
       if (lowerMessage.includes('no') || lowerMessage.includes('ninguna') || lowerMessage.includes('nada')) {
@@ -327,7 +329,7 @@ async function processOnboardingResponse(
         onboardingStep: 4,
       };
 
-    case 4: // Savings goal
+    case 4: { // Savings goal
       const savingsMatch = userMessage.match(/\$?\s*([\d,]+(?:\.\d{2})?)/);
       if (savingsMatch) {
         const savingsCents = parseMoneyToCents(savingsMatch[1]);
@@ -367,6 +369,7 @@ async function processOnboardingResponse(
         isOnboarding: true,
         onboardingStep: 4,
       };
+    }
 
     default:
       return {
@@ -426,7 +429,7 @@ export async function processMessage(
     .where(eq(categories.userId, userId));
 
   // Get user's default account (or create one if none exists)
-  let userAccounts = await db
+  const userAccounts = await db
     .select()
     .from(accounts)
     .where(eq(accounts.userId, userId));

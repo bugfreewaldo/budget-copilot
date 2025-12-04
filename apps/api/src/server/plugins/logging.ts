@@ -7,7 +7,7 @@ import fp from 'fastify-plugin';
  */
 const loggingPluginImpl: FastifyPluginAsync = async (fastify) => {
   // Log all requests with timing
-  fastify.addHook('onRequest', async (request, reply) => {
+  fastify.addHook('onRequest', async (request, _reply) => {
     request.log.info({
       reqId: request.id,
       method: request.method,

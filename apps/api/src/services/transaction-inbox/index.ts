@@ -18,7 +18,7 @@ import {
   categoryPatterns,
   categories,
 } from '../../db/schema.js';
-import { eq, and, desc, asc, like, sql } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import type {
   TransactionInboxItem,
   NewTransactionInboxItem,
@@ -334,8 +334,8 @@ async function learnFromCategorization(
   merchant: string | undefined,
   categoryId: string
 ): Promise<void> {
-  const db = await getDb();
-  const now = Date.now();
+  const _db = await getDb();
+  const _now = Date.now();
 
   // Extract keywords from description (simple word extraction)
   const keywords = extractKeywords(description);

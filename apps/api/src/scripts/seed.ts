@@ -27,7 +27,7 @@ async function seed() {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   // Get current date (YYYY-MM-DD)
-  const currentDate = now.toISOString().split('T')[0];
+  const _currentDate = now.toISOString().split('T')[0];
 
   try {
     // 0. Create test user

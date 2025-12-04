@@ -14,8 +14,8 @@
 
 import { nanoid } from 'nanoid';
 import { getDb } from '../../db/client.js';
-import { debts, debtPayments, transactions } from '../../db/schema.js';
-import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
+import { debts, debtPayments } from '../../db/schema.js';
+import { eq, desc } from 'drizzle-orm';
 import type { Debt, NewDebt, DebtPayment, NewDebtPayment } from '../../db/schema.js';
 
 // Types

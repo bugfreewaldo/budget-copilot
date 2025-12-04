@@ -54,7 +54,7 @@ export async function requireAuth(
  * Useful for routes that have different behavior for authenticated users
  */
 export async function optionalAuth(
-  request: FastifyRequest,
+  _request: FastifyRequest,
   _reply: FastifyReply
 ) {
   // User is already populated by the plugin hook if authenticated

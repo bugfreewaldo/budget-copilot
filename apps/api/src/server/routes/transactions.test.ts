@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildServer } from '../index.js';
 import type { FastifyInstance } from 'fastify';
 import { runMigrations } from '../../db/migrate.js';
