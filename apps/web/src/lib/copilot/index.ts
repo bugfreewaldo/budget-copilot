@@ -243,20 +243,38 @@ function extractTransactionFromText(text: string): {
 } {
   const lowerText = text.toLowerCase();
 
-  // Extract amount
+  // Extract amount - more flexible patterns for Spanish
   const amountPatterns = [
+    // $2400 or $ 2,400.00
     /\$\s*([\d,]+(?:\.\d{1,2})?)/,
+    // 2400 pesos/dólares/usd
     /([\d,]+(?:\.\d{1,2})?)\s*(?:dólares?|dolares?|pesos?|usd)/i,
+    // gasté/gasto 2400
     /gast[eéo]\s+\$?([\d,]+(?:\.\d{1,2})?)/i,
+    // de 2400, por 2400 (preposition BEFORE number - common in Spanish)
+    /(?:de|por)\s+\$?([\d,.]+)/i,
+    // 2400 en/de something
     /([\d,]+(?:\.\d{1,2})?)\s+(?:en|de)/i,
+    // cobré/recibí/gané 2400
+    /(?:cobr[eé]|recib[ií]|gan[eé]|pagar?on?)\s+\$?([\d,.]+)/i,
+    // ingreso de/por NUMBER or just ingreso NUMBER
+    /ingreso\s+(?:de\s+|por\s+)?\$?([\d,.]+)/i,
+    // Just a number at end of sentence (fallback for simple cases like "quincena de 2400")
+    /\b([\d]{3,}(?:[.,]\d+)?)\s*$/,
+    // Any standalone number 100+ that looks like money (last resort)
+    /\b([\d]{3,}(?:[.,]\d{1,2})?)\b/,
   ];
 
   let amountCents: number | null = null;
   for (const pattern of amountPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      amountCents = parseMoneyToCents(match[1]);
-      break;
+      const parsed = parseMoneyToCents(match[1]);
+      // Sanity check: amount should be reasonable (1 cent to 10 million)
+      if (parsed > 0 && parsed <= 1000000000) {
+        amountCents = parsed;
+        break;
+      }
     }
   }
 
@@ -272,35 +290,107 @@ function extractTransactionFromText(text: string): {
       yesterday.toISOString().slice(0, 10);
   }
 
-  // Determine income or expense
-  const isIncome =
-    /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|me\s+pagar?on?/i.test(
-      lowerText
-    );
+  // Determine income or expense - expanded patterns
+  const incomePatterns = [
+    /recib[íi]/i, // recibí
+    /cobr[eé]/i, // cobré
+    /gan[eé]/i, // gané
+    /ingreso/i, // ingreso
+    /salario/i, // salario
+    /quincena/i, // quincena
+    /sueldo/i, // sueldo
+    /me\s+pagar?on?/i, // me pagaron
+    /deposit[oó]/i, // depósito/deposito
+    /transferencia/i, // transferencia (could be either, but often income)
+    /bonificaci[oó]n/i, // bonificación
+    /bono/i, // bono
+    /reembolso/i, // reembolso
+    /devoluci[oó]n/i, // devolución
+    /entrada\s+de\s+dinero/i, // entrada de dinero
+    /me\s+(?:dieron|transfirieron|depositaron)/i, // me dieron/transfirieron/depositaron
+  ];
+  const isIncome = incomePatterns.some((p) => p.test(lowerText));
   const type = isIncome ? 'income' : 'expense';
 
-  // Extract description
+  // Extract description based on type (income vs expense)
   let description = '';
-  const descPatterns = [
-    /(?:en|de)\s+(.+?)(?:\s+por|\s+en|\s+\$|$)/i,
-    /gast[eéo]\s+(?:\$?\d+(?:[.,]\d{2})?)\s+(?:en|de)\s+(.+)/i,
-    /compr[eéo]\s+(.+?)(?:\s+por|\s+en|\s+\$|$)/i,
-  ];
 
-  for (const pattern of descPatterns) {
-    const match = text.match(pattern);
-    if (match && match[1]) {
-      description = match[1].trim();
-      break;
+  if (isIncome) {
+    // Income-specific description patterns
+    const incomeDescPatterns = [
+      // "quincena de trabajo", "salario del mes", "sueldo de diciembre"
+      /(?:quincena|salario|sueldo|bono|bonificación|reembolso)(?:\s+(?:de|del)\s+(.+?))?(?:\s+(?:de|por)\s+\$?[\d,.]+|$)/i,
+      // "me pagaron mi quincena" -> extract "quincena"
+      /me\s+pagar?on?\s+(?:mi\s+)?(.+?)(?:\s+(?:de|por)\s+\$?[\d,.]+|$)/i,
+      // "recibí el pago de freelance" -> "pago de freelance"
+      /recib[ií]\s+(?:el\s+|un\s+)?(.+?)(?:\s+(?:de|por)\s+\$?[\d,.]+|$)/i,
+      // "cobré proyecto", "cobré trabajo extra"
+      /cobr[eé]\s+(?:el\s+|un\s+|mi\s+)?(.+?)(?:\s+(?:de|por)\s+\$?[\d,.]+|$)/i,
+      // "ingreso de trabajo" or "ingreso por freelance"
+      /ingreso\s+(?:de|por)\s+(.+?)(?:\s+\$?[\d,.]+|$)/i,
+    ];
+
+    for (const pattern of incomeDescPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1] && match[1].trim()) {
+        description = match[1].trim();
+        break;
+      }
     }
-  }
 
-  if (!description) {
-    description =
-      text
-        .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
-        .replace(/gast[eéo]/gi, '')
-        .trim() || 'Gasto';
+    // If no specific description found, try to extract key income word
+    if (!description) {
+      const incomeKeywords = [
+        'quincena',
+        'salario',
+        'sueldo',
+        'nómina',
+        'bono',
+        'bonificación',
+        'reembolso',
+        'devolución',
+        'freelance',
+        'proyecto',
+        'trabajo',
+        'pago',
+        'transferencia',
+        'depósito',
+      ];
+      for (const keyword of incomeKeywords) {
+        if (lowerText.includes(keyword)) {
+          description = keyword.charAt(0).toUpperCase() + keyword.slice(1);
+          break;
+        }
+      }
+    }
+
+    // Final fallback for income
+    if (!description) {
+      description = 'Ingreso';
+    }
+  } else {
+    // Expense description patterns
+    const descPatterns = [
+      /(?:en|de)\s+(.+?)(?:\s+por|\s+en|\s+\$|$)/i,
+      /gast[eéo]\s+(?:\$?\d+(?:[.,]\d{2})?)\s+(?:en|de)\s+(.+)/i,
+      /compr[eéo]\s+(.+?)(?:\s+por|\s+en|\s+\$|$)/i,
+    ];
+
+    for (const pattern of descPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        description = match[1].trim();
+        break;
+      }
+    }
+
+    if (!description) {
+      description =
+        text
+          .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
+          .replace(/gast[eéo]/gi, '')
+          .trim() || 'Gasto';
+    }
   }
 
   // Need more info if no amount
