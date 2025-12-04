@@ -23,7 +23,7 @@ import {
   cashRunway,
   envelopes,
 } from '../../db/schema.js';
-import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
 // Types
 export interface FinancialWeather {
