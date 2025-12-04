@@ -54,8 +54,6 @@ export function categorizeTransactions(
  * Build a category tree from flat category list
  */
 export function buildCategoryTree(categories: Category[]): Category[] {
-  // Map reserved for future hierarchical operations
-  const _categoryMap = new Map(categories.map((c) => [c.id, c]));
   const rootCategories: Category[] = [];
 
   for (const category of categories) {

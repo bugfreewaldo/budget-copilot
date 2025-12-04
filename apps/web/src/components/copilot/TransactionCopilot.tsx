@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@budget-copilot/ui/button';
 import {
   sendCopilotMessage,
   updateCopilotTransactionCategory,

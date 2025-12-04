@@ -7,12 +7,9 @@ import { CreateTransactionModal } from '@/components/transactions';
 import { useDashboardData } from '@/lib/hooks';
 import {
   getCurrentMonth,
-  getFirstDayOfMonth,
   formatCents,
   deleteTransaction,
-  updateTransaction,
   type Transaction,
-  type Category,
 } from '@/lib/api';
 
 // Get first day of 3 months ago for wider date range
@@ -36,7 +33,7 @@ export default function TransaccionesPage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>('expense');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [_editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const currentMonth = getCurrentMonth();
   const from = getThreeMonthsAgo();
