@@ -16,7 +16,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "web:dev": "pnpm --filter web dev",
     "api:dev": "pnpm --filter api dev",
-    "prepare": "husky install"
+    "prepare": "node -e \"if (process.env.CI !== 'true') require('husky').install()\""
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
