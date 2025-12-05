@@ -84,7 +84,7 @@ function calculateMonthlyPayment(
 // Calculate total interest paid over the loan period
 function calculateTotalInterest(
   balanceCents: number,
-  aprPercent: number,
+  _aprPercent: number,
   monthlyPayment: number,
   months: number
 ): number {
