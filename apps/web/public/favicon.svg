@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGrad)"/>
+  <!-- Piggy body -->
+  <ellipse cx="50" cy="55" rx="28" ry="22" fill="#fda4af"/>
+  <!-- Piggy snout -->
+  <ellipse cx="75" cy="58" rx="10" ry="8" fill="#fb7185"/>
+  <!-- Nostrils -->
+  <circle cx="73" cy="56" r="2" fill="#be123c"/>
+  <circle cx="77" cy="56" r="2" fill="#be123c"/>
+  <!-- Eye -->
+  <circle cx="60" cy="48" r="4" fill="#1f2937"/>
+  <circle cx="61" cy="47" r="1.5" fill="white"/>
+  <!-- Ear -->
+  <path d="M35 38 Q30 28 40 32 Q45 35 40 42 Z" fill="#fb7185"/>
+  <!-- Coin slot -->
+  <rect x="42" y="33" width="16" height="4" rx="2" fill="#1f2937"/>
+  <!-- Coin going in -->
+  <circle cx="50" cy="28" r="8" fill="url(#coinGrad)" stroke="#d97706" stroke-width="1"/>
+  <text x="50" y="32" font-family="Arial" font-size="10" font-weight="bold" fill="#92400e" text-anchor="middle">$</text>
+  <!-- Legs -->
+  <rect x="30" y="72" width="8" height="10" rx="3" fill="#fda4af"/>
+  <rect x="62" y="72" width="8" height="10" rx="3" fill="#fda4af"/>
+  <!-- Tail -->
+  <path d="M22 52 Q15 48 18 55 Q21 62 24 58" stroke="#fb7185" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>
