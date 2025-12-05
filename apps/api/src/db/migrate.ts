@@ -130,6 +130,76 @@ async function runMigrations() {
       sql`CREATE UNIQUE INDEX IF NOT EXISTS oauth_provider_idx ON oauth_connections(provider, provider_user_id)`
     );
 
+    // ========================================================================
+    // HOUSEHOLD TABLES
+    // ========================================================================
+
+    // Households table
+    await db.run(sql`
+      CREATE TABLE IF NOT EXISTS households (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        invite_code TEXT,
+        created_by_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `);
+
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS household_invite_code_idx ON households(invite_code)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS household_created_by_idx ON households(created_by_id)`
+    );
+
+    // Household members table
+    await db.run(sql`
+      CREATE TABLE IF NOT EXISTS household_members (
+        id TEXT PRIMARY KEY NOT NULL,
+        household_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('owner', 'admin', 'member', 'viewer')),
+        invited_at INTEGER NOT NULL,
+        accepted_at INTEGER
+      )
+    `);
+
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS household_member_household_idx ON household_members(household_id)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS household_member_user_idx ON household_members(user_id)`
+    );
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS household_member_unique_idx ON household_members(household_id, user_id)`
+    );
+
+    // Household invites table
+    await db.run(sql`
+      CREATE TABLE IF NOT EXISTS household_invites (
+        id TEXT PRIMARY KEY NOT NULL,
+        household_id TEXT NOT NULL,
+        email TEXT,
+        token TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('admin', 'member', 'viewer')),
+        expires_at INTEGER NOT NULL,
+        used_at INTEGER,
+        created_by_id TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    `);
+
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS household_invite_token_idx ON household_invites(token)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS household_invite_household_idx ON household_invites(household_id)`
+    );
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS household_invite_email_idx ON household_invites(email)`
+    );
+
     // User profiles table (financial profile & preferences)
     await db.run(sql`
       CREATE TABLE IF NOT EXISTS user_profiles (

@@ -60,6 +60,12 @@ const NAV_ITEMS: NavItem[] = [
     emoji: '🏷️',
     description: 'Organiza tus gastos',
   },
+  {
+    href: '/familia',
+    label: 'Familia',
+    emoji: '👨‍👩‍👧‍👦',
+    description: 'Comparte con tu familia',
+  },
 ];
 
 interface SidebarProps {

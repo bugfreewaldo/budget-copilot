@@ -91,6 +91,7 @@ export default function RegisterPage() {
     try {
       await register({ email, password, name: name || undefined });
       router.push('/dashboard');
+      router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.statusCode === 409) {

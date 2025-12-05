@@ -148,6 +148,81 @@ export const emailVerificationTokens = sqliteTable(
   })
 );
 
+// ============================================================================
+// HOUSEHOLDS - Family sharing
+// ============================================================================
+
+// Households table - family/group sharing
+export const households = sqliteTable(
+  'households',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    inviteCode: text('invite_code'), // Optional static invite code
+    createdById: text('created_by_id').notNull(),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    inviteCodeIdx: uniqueIndex('household_invite_code_idx').on(table.inviteCode),
+    createdByIdx: index('household_created_by_idx').on(table.createdById),
+  })
+);
+
+// Household members - links users to households
+export const householdMembers = sqliteTable(
+  'household_members',
+  {
+    id: text('id').primaryKey(),
+    householdId: text('household_id').notNull(),
+    userId: text('user_id').notNull(),
+    role: text('role', { enum: ['owner', 'admin', 'member', 'viewer'] })
+      .notNull()
+      .default('member'),
+    invitedAt: integer('invited_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    acceptedAt: integer('accepted_at'),
+  },
+  (table) => ({
+    householdIdx: index('household_member_household_idx').on(table.householdId),
+    userIdx: index('household_member_user_idx').on(table.userId),
+    uniqueMemberIdx: uniqueIndex('household_member_unique_idx').on(
+      table.householdId,
+      table.userId
+    ),
+  })
+);
+
+// Household invites - pending invitations
+export const householdInvites = sqliteTable(
+  'household_invites',
+  {
+    id: text('id').primaryKey(),
+    householdId: text('household_id').notNull(),
+    email: text('email'), // Optional - if null, anyone with link can join
+    token: text('token').notNull(),
+    role: text('role', { enum: ['admin', 'member', 'viewer'] })
+      .notNull()
+      .default('member'),
+    expiresAt: integer('expires_at').notNull(),
+    usedAt: integer('used_at'),
+    createdById: text('created_by_id').notNull(),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('household_invite_token_idx').on(table.token),
+    householdIdx: index('household_invite_household_idx').on(table.householdId),
+    emailIdx: index('household_invite_email_idx').on(table.email),
+  })
+);
+
 // OAuth connections (for future Google/Apple login)
 export const oauthConnections = sqliteTable(
   'oauth_connections',
@@ -982,6 +1057,16 @@ export type NewEmailVerificationToken =
 
 export type OAuthConnection = typeof oauthConnections.$inferSelect;
 export type NewOAuthConnection = typeof oauthConnections.$inferInsert;
+
+// Households
+export type Household = typeof households.$inferSelect;
+export type NewHousehold = typeof households.$inferInsert;
+
+export type HouseholdMember = typeof householdMembers.$inferSelect;
+export type NewHouseholdMember = typeof householdMembers.$inferInsert;
+
+export type HouseholdInvite = typeof householdInvites.$inferSelect;
+export type NewHouseholdInvite = typeof householdInvites.$inferInsert;
 
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
