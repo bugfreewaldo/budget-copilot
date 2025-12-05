@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
-import { households, householdMembers, users } from '@/lib/db/schema';
+import { householdMembers, users } from '@/lib/db/schema';
 import { json, errorJson, idSchema } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 

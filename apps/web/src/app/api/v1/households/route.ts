@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/lib/db/client';
-import { households, householdMembers, users } from '@/lib/db/schema';
+import { households, householdMembers } from '@/lib/db/schema';
 import { json, errorJson } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId, generateToken } from '@/lib/auth/crypto';

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from '@/components/layout';
-import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface Household {
   id: string;
