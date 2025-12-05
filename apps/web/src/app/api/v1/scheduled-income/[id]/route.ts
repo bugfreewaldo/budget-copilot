@@ -11,7 +11,7 @@ interface RouteParams {
 /**
  * DELETE /api/v1/scheduled-income/:id - Delete a scheduled income
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const validation = idSchema.safeParse(id);
