@@ -571,6 +571,7 @@ async function runMigrations() {
     await db.run(sql`
       CREATE TABLE IF NOT EXISTS goals (
         id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT,
         emoji TEXT,
@@ -592,6 +593,9 @@ async function runMigrations() {
       )
     `);
 
+    await db.run(
+      sql`CREATE INDEX IF NOT EXISTS goal_user_idx ON goals(user_id)`
+    );
     await db.run(
       sql`CREATE INDEX IF NOT EXISTS goal_status_idx ON goals(status)`
     );
