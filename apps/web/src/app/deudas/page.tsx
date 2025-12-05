@@ -56,12 +56,31 @@ function getDangerLabel(score: number | null): string {
   return 'Bajo Control';
 }
 
+type PaymentStrategy = 'avalanche' | 'snowball';
+
 export default function DeudasPage() {
   const { debts, summary, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<Debt | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<PaymentStrategy>(
+    () => {
+      if (typeof window !== 'undefined') {
+        return (
+          (localStorage.getItem('debt-payment-strategy') as PaymentStrategy) ||
+          'avalanche'
+        );
+      }
+      return 'avalanche';
+    }
+  );
+
+  // Save strategy selection to localStorage
+  const handleSelectStrategy = (strategy: PaymentStrategy) => {
+    setSelectedStrategy(strategy);
+    localStorage.setItem('debt-payment-strategy', strategy);
+  };
 
   // Form state for new debt
   const [newDebt, setNewDebt] = useState({
@@ -303,13 +322,21 @@ export default function DeudasPage() {
               {/* Strategy Comparison */}
               {strategies && (
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
-                  <h2 className="text-lg font-semibold mb-4">
+                  <h2 className="text-lg font-semibold mb-2">
                     Estrategias de Pago
                   </h2>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Selecciona tu estrategia preferida para pagar tus deudas
+                  </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Avalanche */}
-                    <div
-                      className={`p-4 rounded-lg border ${strategies.recommendation === 'avalanche' ? 'border-green-500 bg-green-500/10' : 'border-gray-700'}`}
+                    <button
+                      onClick={() => handleSelectStrategy('avalanche')}
+                      className={`p-4 rounded-lg border text-left transition-all ${
+                        selectedStrategy === 'avalanche'
+                          ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
+                          : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                      }`}
                     >
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-2xl">🏔️</span>
@@ -319,11 +346,18 @@ export default function DeudasPage() {
                             Paga primero la deuda con mayor APR
                           </p>
                         </div>
-                        {strategies.recommendation === 'avalanche' && (
-                          <span className="ml-auto px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                            Recomendado
-                          </span>
-                        )}
+                        <div className="ml-auto flex flex-col items-end gap-1">
+                          {selectedStrategy === 'avalanche' && (
+                            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
+                              ✓ Seleccionado
+                            </span>
+                          )}
+                          {strategies.recommendation === 'avalanche' && (
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                              Recomendado
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
@@ -341,11 +375,16 @@ export default function DeudasPage() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
 
                     {/* Snowball */}
-                    <div
-                      className={`p-4 rounded-lg border ${strategies.recommendation === 'snowball' ? 'border-green-500 bg-green-500/10' : 'border-gray-700'}`}
+                    <button
+                      onClick={() => handleSelectStrategy('snowball')}
+                      className={`p-4 rounded-lg border text-left transition-all ${
+                        selectedStrategy === 'snowball'
+                          ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
+                          : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                      }`}
                     >
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-2xl">⛄</span>
@@ -357,11 +396,18 @@ export default function DeudasPage() {
                             Paga primero la deuda más pequeña
                           </p>
                         </div>
-                        {strategies.recommendation === 'snowball' && (
-                          <span className="ml-auto px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                            Recomendado
-                          </span>
-                        )}
+                        <div className="ml-auto flex flex-col items-end gap-1">
+                          {selectedStrategy === 'snowball' && (
+                            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
+                              ✓ Seleccionado
+                            </span>
+                          )}
+                          {strategies.recommendation === 'snowball' && (
+                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                              Recomendado
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
@@ -379,7 +425,7 @@ export default function DeudasPage() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   </div>
 
                   {strategies.savingsWithAvalanche > 0 && (
