@@ -25,6 +25,18 @@ const NAV_ITEMS: NavItem[] = [
     description: 'Gestiona tus movimientos',
   },
   {
+    href: '/presupuesto',
+    label: 'Presupuesto',
+    emoji: '📊',
+    description: 'Controla tus sobres',
+  },
+  {
+    href: '/alcancia',
+    label: 'Alcancía',
+    emoji: '🐷',
+    description: 'Ahorra monedita a monedita',
+  },
+  {
     href: '/recurrentes',
     label: 'Recurrentes',
     emoji: '🔄',
