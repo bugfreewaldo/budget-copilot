@@ -2,7 +2,11 @@ import { NextRequest } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/lib/db/client';
-import { households, householdMembers, householdInvites } from '@/lib/db/schema';
+import {
+  households,
+  householdMembers,
+  householdInvites,
+} from '@/lib/db/schema';
 import { json, errorJson, idSchema } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId, generateToken } from '@/lib/auth/crypto';
@@ -156,7 +160,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         )
       );
 
-    if (!membership || (membership.role !== 'owner' && membership.role !== 'admin')) {
+    if (
+      !membership ||
+      (membership.role !== 'owner' && membership.role !== 'admin')
+    ) {
       return errorJson('UNAUTHORIZED', 'Access denied', 403);
     }
 

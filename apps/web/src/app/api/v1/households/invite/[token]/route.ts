@@ -40,7 +40,11 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
     // Check if invite is still valid
     if (invite.usedAt) {
-      return errorJson('VALIDATION_ERROR', 'This invite has already been used', 400);
+      return errorJson(
+        'VALIDATION_ERROR',
+        'This invite has already been used',
+        400
+      );
     }
 
     if (invite.expiresAt < Date.now()) {
@@ -121,7 +125,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Check if invite is still valid
     if (invite.usedAt) {
-      return errorJson('VALIDATION_ERROR', 'This invite has already been used', 400);
+      return errorJson(
+        'VALIDATION_ERROR',
+        'This invite has already been used',
+        400
+      );
     }
 
     if (invite.expiresAt < Date.now()) {
@@ -129,7 +137,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if invite is for a specific email
-    if (invite.email && invite.email.toLowerCase() !== user.email.toLowerCase()) {
+    if (
+      invite.email &&
+      invite.email.toLowerCase() !== user.email.toLowerCase()
+    ) {
       return errorJson(
         'VALIDATION_ERROR',
         'This invite was sent to a different email address',

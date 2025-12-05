@@ -168,7 +168,9 @@ export const households = sqliteTable(
       .$defaultFn(() => Date.now()),
   },
   (table) => ({
-    inviteCodeIdx: uniqueIndex('household_invite_code_idx').on(table.inviteCode),
+    inviteCodeIdx: uniqueIndex('household_invite_code_idx').on(
+      table.inviteCode
+    ),
     createdByIdx: index('household_created_by_idx').on(table.createdById),
   })
 );

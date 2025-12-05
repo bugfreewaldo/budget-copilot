@@ -358,7 +358,10 @@ export default function FamiliaPage() {
                               {ROLE_LABELS[member.role]?.label}
                             </span>
                             <span className="text-xs text-gray-500">
-                              Desde {formatDate(member.acceptedAt || member.invitedAt)}
+                              Desde{' '}
+                              {formatDate(
+                                member.acceptedAt || member.invitedAt
+                              )}
                             </span>
                           </div>
                         </div>
@@ -379,7 +382,10 @@ export default function FamiliaPage() {
                     Crear Nuevo Hogar
                   </h2>
                 </div>
-                <form onSubmit={handleCreateHousehold} className="p-6 space-y-4">
+                <form
+                  onSubmit={handleCreateHousehold}
+                  className="p-6 space-y-4"
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Nombre del Hogar
@@ -425,7 +431,10 @@ export default function FamiliaPage() {
                 </div>
 
                 {!generatedInvite ? (
-                  <form onSubmit={handleGenerateInvite} className="p-6 space-y-4">
+                  <form
+                    onSubmit={handleGenerateInvite}
+                    className="p-6 space-y-4"
+                  >
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
                         Correo electrónico (opcional)
