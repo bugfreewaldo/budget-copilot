@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from '@/components/layout';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import {
   getCategories,
   getEnvelopes,
@@ -63,6 +64,8 @@ export default function PresupuestoPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingEnvelope, setEditingEnvelope] = useState<Envelope | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Envelope | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Form state
@@ -133,11 +136,12 @@ export default function PresupuestoPage() {
   };
 
   // Delete envelope
-  const handleDeleteEnvelope = async (id: string) => {
-    if (!confirm('¿Seguro que quieres eliminar este sobre?')) return;
+  const handleDeleteEnvelope = async () => {
+    if (!deleteConfirm) return;
 
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/v1/envelopes/${id}`, {
+      const response = await fetch(`/api/v1/envelopes/${deleteConfirm.id}`, {
         method: 'DELETE',
       });
 
@@ -145,10 +149,12 @@ export default function PresupuestoPage() {
         throw new Error('Failed to delete envelope');
       }
 
+      setDeleteConfirm(null);
       await loadData();
     } catch (err) {
       console.error('Failed to delete envelope:', err);
-      alert('Error al eliminar el sobre.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -405,7 +411,7 @@ export default function PresupuestoPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDeleteEnvelope(envelope.id)}
+                              onClick={() => setDeleteConfirm(envelope)}
                               className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                               title="Eliminar"
                             >
@@ -580,6 +586,19 @@ export default function PresupuestoPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDeleteEnvelope}
+          title="Eliminar Sobre"
+          message={`¿Estás seguro de eliminar el sobre de "${categories.find(c => c.id === deleteConfirm?.categoryId)?.name || 'esta categoría'}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          isLoading={isDeleting}
+        />
       </div>
     </Sidebar>
   );

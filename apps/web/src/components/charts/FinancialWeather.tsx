@@ -213,7 +213,7 @@ export function FinancialWeather({
             >
               {daysOfRunway > 30 ? '30+' : daysOfRunway}
             </p>
-            <p className="text-xs text-gray-500">Días de Pista</p>
+            <p className="text-xs text-gray-500">Días de Margen</p>
           </div>
         </div>
 

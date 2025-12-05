@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { getDb } from '@/lib/db/client';
-import { scheduledBills, scheduledIncome } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 // ============================================================================
 // TYPES
@@ -87,6 +84,11 @@ export default function RecurrentesPage() {
   const [editingItem, setEditingItem] = useState<
     ScheduledBill | ScheduledIncomeItem | null
   >(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    item: ScheduledBill | ScheduledIncomeItem;
+    type: 'bill' | 'income';
+  } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form state for bills
   const [billForm, setBillForm] = useState({
@@ -110,8 +112,6 @@ export default function RecurrentesPage() {
     notes: '',
   });
 
-  const userId = 'demo-user';
-
   // Load data
   useEffect(() => {
     loadData();
@@ -120,22 +120,20 @@ export default function RecurrentesPage() {
   async function loadData() {
     setIsLoading(true);
     try {
-      const db = getDb();
+      const [billsRes, incomesRes] = await Promise.all([
+        fetch('/api/v1/scheduled-bills'),
+        fetch('/api/v1/scheduled-income'),
+      ]);
 
-      const billsData = await db
-        .select()
-        .from(scheduledBills)
-        .where(eq(scheduledBills.userId, userId))
-        .orderBy(desc(scheduledBills.createdAt));
+      if (billsRes.ok) {
+        const billsData = await billsRes.json();
+        setBills(billsData.data || []);
+      }
 
-      const incomesData = await db
-        .select()
-        .from(scheduledIncome)
-        .where(eq(scheduledIncome.userId, userId))
-        .orderBy(desc(scheduledIncome.createdAt));
-
-      setBills(billsData as ScheduledBill[]);
-      setIncomes(incomesData as ScheduledIncomeItem[]);
+      if (incomesRes.ok) {
+        const incomesData = await incomesRes.json();
+        setIncomes(incomesData.data || []);
+      }
     } catch (error) {
       console.error('Error loading recurring items:', error);
     } finally {
@@ -146,124 +144,117 @@ export default function RecurrentesPage() {
   async function handleSaveBill() {
     if (!billForm.name || !billForm.amount) return;
 
-    const db = getDb();
-    const now = Date.now();
     const amountCents = Math.round(parseFloat(billForm.amount) * 100);
+    const dueDay = parseInt(billForm.dueDay);
 
     // Calculate next due date
     const today = new Date();
-    const dueDay = parseInt(billForm.dueDay);
     const nextDueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
     if (nextDueDate <= today) {
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
 
-    if (editingItem && 'dueDay' in editingItem) {
-      // Update existing bill
-      await db
-        .update(scheduledBills)
-        .set({
-          name: billForm.name,
-          type: billForm.type as any,
-          amountCents,
-          dueDay,
-          frequency: billForm.frequency as any,
-          autoPay: billForm.autoPay,
-          notes: billForm.notes || null,
-          nextDueDate: nextDueDate.toISOString().split('T')[0],
-          updatedAt: now,
-        })
-        .where(eq(scheduledBills.id, editingItem.id));
-    } else {
-      // Create new bill
-      await db.insert(scheduledBills).values({
-        id: nanoid(),
-        userId,
-        name: billForm.name,
-        type: billForm.type as any,
-        amountCents,
-        dueDay,
-        frequency: billForm.frequency as any,
-        autoPay: billForm.autoPay,
-        notes: billForm.notes || null,
-        status: 'active',
-        nextDueDate: nextDueDate.toISOString().split('T')[0],
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
+    const payload = {
+      name: billForm.name,
+      type: billForm.type,
+      amountCents,
+      dueDay,
+      frequency: billForm.frequency,
+      autoPay: billForm.autoPay,
+      notes: billForm.notes || null,
+      nextDueDate: nextDueDate.toISOString().split('T')[0],
+    };
 
-    resetForm();
-    loadData();
+    try {
+      if (editingItem && 'dueDay' in editingItem) {
+        // Update existing bill
+        await fetch('/api/v1/scheduled-bills', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingItem.id, ...payload }),
+        });
+      } else {
+        // Create new bill
+        await fetch('/api/v1/scheduled-bills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      resetForm();
+      loadData();
+    } catch (error) {
+      console.error('Error saving bill:', error);
+    }
   }
 
   async function handleSaveIncome() {
     if (!incomeForm.name || !incomeForm.amount) return;
 
-    const db = getDb();
-    const now = Date.now();
     const amountCents = Math.round(parseFloat(incomeForm.amount) * 100);
+    const payDay = parseInt(incomeForm.payDay);
 
     // Calculate next pay date
     const today = new Date();
-    const payDay = parseInt(incomeForm.payDay);
     const nextPayDate = new Date(today.getFullYear(), today.getMonth(), payDay);
     if (nextPayDate <= today) {
       nextPayDate.setMonth(nextPayDate.getMonth() + 1);
     }
 
-    if (editingItem && 'payDay' in editingItem) {
-      // Update existing income
-      await db
-        .update(scheduledIncome)
-        .set({
-          name: incomeForm.name,
-          source: incomeForm.source as any,
-          amountCents,
-          payDay,
-          frequency: incomeForm.frequency as any,
-          isVariable: incomeForm.isVariable,
-          notes: incomeForm.notes || null,
-          nextPayDate: nextPayDate.toISOString().split('T')[0],
-          updatedAt: now,
-        })
-        .where(eq(scheduledIncome.id, editingItem.id));
-    } else {
-      // Create new income
-      await db.insert(scheduledIncome).values({
-        id: nanoid(),
-        userId,
-        name: incomeForm.name,
-        source: incomeForm.source as any,
-        amountCents,
-        payDay,
-        frequency: incomeForm.frequency as any,
-        isVariable: incomeForm.isVariable,
-        notes: incomeForm.notes || null,
-        status: 'active',
-        nextPayDate: nextPayDate.toISOString().split('T')[0],
-        createdAt: now,
-        updatedAt: now,
-      });
-    }
+    const payload = {
+      name: incomeForm.name,
+      source: incomeForm.source,
+      amountCents,
+      payDay,
+      frequency: incomeForm.frequency,
+      isVariable: incomeForm.isVariable,
+      notes: incomeForm.notes || null,
+      nextPayDate: nextPayDate.toISOString().split('T')[0],
+    };
 
-    resetForm();
-    loadData();
+    try {
+      if (editingItem && 'payDay' in editingItem) {
+        // Update existing income
+        await fetch('/api/v1/scheduled-income', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingItem.id, ...payload }),
+        });
+      } else {
+        // Create new income
+        await fetch('/api/v1/scheduled-income', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      resetForm();
+      loadData();
+    } catch (error) {
+      console.error('Error saving income:', error);
+    }
   }
 
-  async function handleDelete(
-    item: ScheduledBill | ScheduledIncomeItem,
-    type: 'bill' | 'income'
-  ) {
-    if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
+  async function handleDelete() {
+    if (!deleteConfirm) return;
 
-    const db = getDb();
-    if (type === 'bill') {
-      await db.delete(scheduledBills).where(eq(scheduledBills.id, item.id));
-    } else {
-      await db.delete(scheduledIncome).where(eq(scheduledIncome.id, item.id));
+    setIsDeleting(true);
+    try {
+      const endpoint =
+        deleteConfirm.type === 'bill'
+          ? `/api/v1/scheduled-bills/${deleteConfirm.item.id}`
+          : `/api/v1/scheduled-income/${deleteConfirm.item.id}`;
+
+      await fetch(endpoint, { method: 'DELETE' });
+      setDeleteConfirm(null);
+      loadData();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    } finally {
+      setIsDeleting(false);
     }
-    loadData();
   }
 
   function handleEdit(
@@ -859,7 +850,7 @@ export default function RecurrentesPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDelete(bill, 'bill')}
+                              onClick={() => setDeleteConfirm({ item: bill, type: 'bill' })}
                               className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                             >
                               <svg
@@ -948,7 +939,7 @@ export default function RecurrentesPage() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(income, 'income')}
+                            onClick={() => setDeleteConfirm({ item: income, type: 'income' })}
                             className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                           >
                             <svg
@@ -974,6 +965,19 @@ export default function RecurrentesPage() {
             )}
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDelete}
+          title={deleteConfirm?.type === 'bill' ? 'Eliminar Gasto Recurrente' : 'Eliminar Ingreso Recurrente'}
+          message={`¿Estás seguro de eliminar "${deleteConfirm?.item.name}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          isLoading={isDeleting}
+        />
       </div>
     </Sidebar>
   );

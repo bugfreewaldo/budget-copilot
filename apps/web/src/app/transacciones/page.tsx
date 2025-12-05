@@ -11,6 +11,7 @@ import {
   deleteTransaction,
   type Transaction,
 } from '@/lib/api';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 // Get first day of 3 months ago for wider date range
 function getThreeMonthsAgo(): string {
@@ -37,6 +38,7 @@ export default function TransaccionesPage() {
     'expense'
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Transaction | null>(null);
   const [_editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
@@ -80,18 +82,16 @@ export default function TransaccionesPage() {
     });
   }, [transactions, searchQuery, typeFilter, categoryFilter]);
 
-  const handleDeleteTransaction = async (id: string) => {
-    if (deletingId) return;
-    if (!confirm('¿Estás seguro de que quieres eliminar esta transacción?'))
-      return;
+  const handleDeleteTransaction = async () => {
+    if (!deleteConfirm || deletingId) return;
 
-    setDeletingId(id);
+    setDeletingId(deleteConfirm.id);
     try {
-      await deleteTransaction(id);
+      await deleteTransaction(deleteConfirm.id);
+      setDeleteConfirm(null);
       refresh();
     } catch (error) {
       console.error('Failed to delete transaction:', error);
-      alert('Error al eliminar la transacción');
     } finally {
       setDeletingId(null);
     }
@@ -339,7 +339,7 @@ export default function TransaccionesPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
-                        onClick={() => handleDeleteTransaction(tx.id)}
+                        onClick={() => setDeleteConfirm(tx)}
                         disabled={deletingId === tx.id}
                         className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
                         title="Eliminar"
@@ -382,6 +382,19 @@ export default function TransaccionesPage() {
           }}
           onSuccess={handleTransactionCreated}
           defaultType={transactionType}
+        />
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDeleteTransaction}
+          title="Eliminar Transacción"
+          message={`¿Estás seguro de eliminar "${deleteConfirm?.description}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          isLoading={deletingId !== null}
         />
       </div>
     </Sidebar>

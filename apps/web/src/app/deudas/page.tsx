@@ -13,6 +13,7 @@ import {
   type DebtStatus,
 } from '@/lib/api';
 import { Sidebar } from '@/components/layout';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const DEBT_TYPE_LABELS: Record<DebtType, { label: string; emoji: string }> = {
   credit_card: { label: 'Tarjeta de Crédito', emoji: '💳' },
@@ -58,12 +59,50 @@ function getDangerLabel(score: number | null): string {
 
 type PaymentStrategy = 'avalanche' | 'snowball';
 
+// Calculate monthly payment needed to pay off debt in X months
+function calculateMonthlyPayment(
+  balanceCents: number,
+  aprPercent: number,
+  months: number
+): number {
+  if (months <= 0) return 0;
+  const principal = balanceCents / 100;
+  const monthlyRate = aprPercent / 100 / 12;
+
+  if (monthlyRate === 0) {
+    return principal / months;
+  }
+
+  // M = P * [r(1+r)^n] / [(1+r)^n - 1]
+  const payment =
+    (principal * (monthlyRate * Math.pow(1 + monthlyRate, months))) /
+    (Math.pow(1 + monthlyRate, months) - 1);
+
+  return payment;
+}
+
+// Calculate total interest paid over the loan period
+function calculateTotalInterest(
+  balanceCents: number,
+  aprPercent: number,
+  monthlyPayment: number,
+  months: number
+): number {
+  const principal = balanceCents / 100;
+  const totalPaid = monthlyPayment * months;
+  return totalPaid - principal;
+}
+
 export default function DeudasPage() {
   const { debts, summary, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<Debt | null>(null);
+  const [showCalculator, setShowCalculator] = useState<Debt | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Debt | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [calculatorYears, setCalculatorYears] = useState(1);
   const [selectedStrategy, setSelectedStrategy] = useState<PaymentStrategy>(
     () => {
       if (typeof window !== 'undefined') {
@@ -152,13 +191,17 @@ export default function DeudasPage() {
     }
   };
 
-  const handleDeleteDebt = async (debt: Debt) => {
-    if (!confirm(`¿Estás seguro de eliminar "${debt.name}"?`)) return;
+  const handleDeleteDebt = async () => {
+    if (!deleteConfirm) return;
+    setIsDeleting(true);
     try {
-      await deleteDebt(debt.id);
+      await deleteDebt(deleteConfirm.id);
+      setDeleteConfirm(null);
       refresh();
     } catch (err) {
       console.error('Failed to delete debt:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -465,7 +508,7 @@ export default function DeudasPage() {
                           {STATUS_LABELS[debt.status]?.label}
                         </span>
                         <button
-                          onClick={() => handleDeleteDebt(debt)}
+                          onClick={() => setDeleteConfirm(debt)}
                           className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                           title="Eliminar"
                         >
@@ -566,10 +609,20 @@ export default function DeudasPage() {
                           Registrar Pago
                         </button>
                         <button
+                          onClick={() => {
+                            setCalculatorYears(1);
+                            setShowCalculator(debt);
+                          }}
+                          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm transition-colors"
+                          title="Calculadora de pagos"
+                        >
+                          🧮 Calculadora
+                        </button>
+                        <button
                           onClick={() => handleMarkAsPaid(debt)}
                           className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
                         >
-                          Marcar como Pagada
+                          Pagada
                         </button>
                       </div>
                     )}
@@ -813,6 +866,316 @@ export default function DeudasPage() {
             </div>
           </div>
         )}
+
+        {/* Debt Payoff Calculator Modal */}
+        {showCalculator && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                      <span>🧮</span> Calculadora de Pagos
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {showCalculator.name}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowCalculator(null)}
+                    className="p-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Debt Info Summary */}
+                <div className="bg-gray-800/50 rounded-xl p-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-400">Saldo Actual</p>
+                      <p className="text-xl font-bold text-red-400">
+                        {formatCurrency(showCalculator.currentBalanceCents)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Tasa APR</p>
+                      <p className="text-xl font-bold text-orange-400">
+                        {showCalculator.aprPercent}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Pago Mínimo</p>
+                      <p className="text-lg font-semibold">
+                        {showCalculator.minimumPaymentCents
+                          ? formatCurrency(showCalculator.minimumPaymentCents)
+                          : 'No definido'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Interés Mensual</p>
+                      <p className="text-lg font-semibold text-yellow-400">
+                        {formatCurrency(
+                          Math.round(
+                            (showCalculator.currentBalanceCents *
+                              (showCalculator.aprPercent / 100)) /
+                              12
+                          )
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Selection */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-3">
+                    ¿En cuánto tiempo quieres pagar esta deuda?
+                  </label>
+                  <div className="grid grid-cols-5 gap-2 mb-3">
+                    {[0.5, 1, 2, 3, 5].map((years) => (
+                      <button
+                        key={years}
+                        onClick={() => setCalculatorYears(years)}
+                        className={`py-3 rounded-lg text-sm font-medium transition-all ${
+                          calculatorYears === years
+                            ? 'bg-cyan-600 text-white'
+                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                        }`}
+                      >
+                        {years < 1 ? '6m' : `${years}a`}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-400">Personalizado:</span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="30"
+                        step="0.5"
+                        value={calculatorYears}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val) && val >= 0.5 && val <= 30) {
+                            setCalculatorYears(val);
+                          }
+                        }}
+                        className="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-center text-white focus:outline-none focus:border-cyan-500"
+                      />
+                      <span className="text-gray-400">años</span>
+                      <span className="text-gray-500 text-sm">
+                        ({Math.round(calculatorYears * 12)} meses)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Results */}
+                {(() => {
+                  const months = Math.round(calculatorYears * 12);
+                  const monthlyPayment = calculateMonthlyPayment(
+                    showCalculator.currentBalanceCents,
+                    showCalculator.aprPercent,
+                    months
+                  );
+                  const totalInterest = calculateTotalInterest(
+                    showCalculator.currentBalanceCents,
+                    showCalculator.aprPercent,
+                    monthlyPayment,
+                    months
+                  );
+                  const minimumPayment = showCalculator.minimumPaymentCents
+                    ? showCalculator.minimumPaymentCents / 100
+                    : 0;
+                  const extraPayment = Math.max(
+                    0,
+                    monthlyPayment - minimumPayment
+                  );
+
+                  // Calculate if paying only minimum
+                  const minPaymentMonths =
+                    minimumPayment > 0
+                      ? (() => {
+                          let balance =
+                            showCalculator.currentBalanceCents / 100;
+                          const monthlyRate =
+                            showCalculator.aprPercent / 100 / 12;
+                          let monthCount = 0;
+                          while (balance > 0 && monthCount < 600) {
+                            balance =
+                              balance * (1 + monthlyRate) - minimumPayment;
+                            monthCount++;
+                          }
+                          return monthCount;
+                        })()
+                      : 0;
+
+                  const minPaymentTotalInterest =
+                    minimumPayment > 0 && minPaymentMonths < 600
+                      ? minimumPayment * minPaymentMonths -
+                        showCalculator.currentBalanceCents / 100
+                      : 0;
+
+                  const interestSavings = minPaymentTotalInterest - totalInterest;
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Main Result */}
+                      <div className="bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-xl p-6 border border-cyan-500/30">
+                        <p className="text-gray-400 text-sm mb-1">
+                          Pago mensual necesario
+                        </p>
+                        <p className="text-4xl font-bold text-cyan-400">
+                          {formatCurrency(Math.round(monthlyPayment * 100))}
+                        </p>
+                        <p className="text-sm text-gray-400 mt-2">
+                          Para liquidar en {months} meses (
+                          {calculatorYears < 1
+                            ? '6 meses'
+                            : `${calculatorYears} año${calculatorYears > 1 ? 's' : ''}`}
+                          )
+                        </p>
+                      </div>
+
+                      {/* Extra Payment Info */}
+                      {minimumPayment > 0 && extraPayment > 0 && (
+                        <div className="bg-gray-800/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-lg">💪</span>
+                            <p className="font-semibold">Pago adicional</p>
+                          </div>
+                          <p className="text-2xl font-bold text-green-400">
+                            +{formatCurrency(Math.round(extraPayment * 100))}
+                          </p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            Adicional al pago mínimo de{' '}
+                            {formatCurrency(
+                              showCalculator.minimumPaymentCents || 0
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Comparison Stats */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-800/50 rounded-xl p-4">
+                          <p className="text-gray-400 text-xs mb-1">
+                            Interés total a pagar
+                          </p>
+                          <p className="text-xl font-bold text-orange-400">
+                            {formatCurrency(Math.round(totalInterest * 100))}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800/50 rounded-xl p-4">
+                          <p className="text-gray-400 text-xs mb-1">
+                            Total a pagar
+                          </p>
+                          <p className="text-xl font-bold">
+                            {formatCurrency(
+                              Math.round(monthlyPayment * months * 100)
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Savings vs Minimum Payment */}
+                      {minimumPayment > 0 &&
+                        minPaymentMonths < 600 &&
+                        interestSavings > 0 && (
+                          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-lg">🎉</span>
+                              <p className="font-semibold text-green-400">
+                                ¡Ahorro en intereses!
+                              </p>
+                            </div>
+                            <p className="text-sm text-gray-300">
+                              Pagando{' '}
+                              {formatCurrency(Math.round(monthlyPayment * 100))}{' '}
+                              al mes en vez del mínimo:
+                            </p>
+                            <ul className="mt-2 space-y-1 text-sm">
+                              <li className="flex justify-between">
+                                <span className="text-gray-400">
+                                  Ahorras en intereses:
+                                </span>
+                                <span className="font-semibold text-green-400">
+                                  {formatCurrency(
+                                    Math.round(interestSavings * 100)
+                                  )}
+                                </span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span className="text-gray-400">
+                                  Terminas antes:
+                                </span>
+                                <span className="font-semibold text-cyan-400">
+                                  {minPaymentMonths - months} meses (
+                                  {Math.round((minPaymentMonths - months) / 12)}{' '}
+                                  años)
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Warning if minimum payment is too low */}
+                      {minimumPayment > 0 && minPaymentMonths >= 600 && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚠️</span>
+                            <p className="text-sm text-red-400">
+                              Con el pago mínimo, esta deuda tardaría más de 50
+                              años en pagarse (interés compuesto)
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="p-6 border-t border-gray-800">
+                <button
+                  onClick={() => setShowCalculator(null)}
+                  className="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDeleteDebt}
+          title="Eliminar Deuda"
+          message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          isLoading={isDeleting}
+        />
       </div>
     </Sidebar>
   );

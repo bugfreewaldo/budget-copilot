@@ -301,6 +301,14 @@ export async function deleteCategory(id: string): Promise<void> {
   });
 }
 
+/**
+ * Get all categories (convenience wrapper around listCategories)
+ */
+export async function getCategories(): Promise<Category[]> {
+  const result = await listCategories({ limit: 100 });
+  return result.data;
+}
+
 // ============================================================================
 // Transactions
 // ============================================================================

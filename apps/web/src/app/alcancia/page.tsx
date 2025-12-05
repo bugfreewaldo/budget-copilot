@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface PiggyBank {
   id: string;
@@ -276,6 +277,7 @@ export default function AlcanciaPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<PiggyBank | null>(null);
   const [isShaking, setIsShaking] = useState(false);
 
   // Form states
@@ -380,16 +382,17 @@ export default function AlcanciaPage() {
   };
 
   // Delete piggy
-  const handleDeletePiggy = (id: string) => {
-    if (!confirm('¿Seguro que quieres romper esta alcancía? 💔')) return;
+  const handleDeletePiggy = () => {
+    if (!deleteConfirm) return;
 
-    const updated = piggies.filter((p) => p.id !== id);
+    const updated = piggies.filter((p) => p.id !== deleteConfirm.id);
     savePiggies(updated);
-    saveDeposits(deposits.filter((d) => d.piggyId !== id));
+    saveDeposits(deposits.filter((d) => d.piggyId !== deleteConfirm.id));
 
-    if (selectedPiggy?.id === id) {
+    if (selectedPiggy?.id === deleteConfirm.id) {
       setSelectedPiggy(updated[0] || null);
     }
+    setDeleteConfirm(null);
   };
 
   const selectedPiggyDeposits = deposits.filter(
@@ -529,7 +532,7 @@ export default function AlcanciaPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleDeletePiggy(selectedPiggy.id)}
+                        onClick={() => setDeleteConfirm(selectedPiggy)}
                         className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                         title="Romper alcancía"
                       >
@@ -806,6 +809,18 @@ export default function AlcanciaPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDeletePiggy}
+          title="Romper Alcancía"
+          message={`¿Seguro que quieres romper la alcancía "${deleteConfirm?.name}"? Esto eliminará todo el historial de depósitos.`}
+          confirmText="Romper"
+          cancelText="Cancelar"
+          variant="danger"
+        />
       </div>
     </Sidebar>
   );

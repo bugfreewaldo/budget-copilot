@@ -13,6 +13,7 @@ import {
   type GoalStatus,
 } from '@/lib/api';
 import { Sidebar } from '@/components/layout';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const GOAL_TYPE_LABELS: Record<GoalType, { label: string; emoji: string }> = {
   savings: { label: 'Ahorro', emoji: '💰' },
@@ -69,6 +70,8 @@ export default function MetasPage() {
     null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<Goal | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [filter, setFilter] = useState<GoalStatus | 'all'>('all');
 
   // Form state for new goal
@@ -138,13 +141,17 @@ export default function MetasPage() {
     }
   };
 
-  const handleDeleteGoal = async (goal: Goal) => {
-    if (!confirm(`¿Estás seguro de eliminar "${goal.name}"?`)) return;
+  const handleDeleteGoal = async () => {
+    if (!deleteConfirm) return;
+    setIsDeleting(true);
     try {
-      await deleteGoal(goal.id);
+      await deleteGoal(deleteConfirm.id);
+      setDeleteConfirm(null);
       refresh();
     } catch (err) {
       console.error('Failed to delete goal:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -485,7 +492,7 @@ export default function MetasPage() {
                                 </button>
                               )}
                               <button
-                                onClick={() => handleDeleteGoal(goal)}
+                                onClick={() => setDeleteConfirm(goal)}
                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-700 text-red-400"
                               >
                                 Eliminar
@@ -659,6 +666,19 @@ export default function MetasPage() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmModal
+          isOpen={deleteConfirm !== null}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={handleDeleteGoal}
+          title="Eliminar Meta"
+          message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="danger"
+          isLoading={isDeleting}
+        />
 
         {/* Contribute Modal */}
         {showContributeModal && (
