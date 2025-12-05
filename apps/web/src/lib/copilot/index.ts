@@ -555,7 +555,7 @@ async function executeCreateScheduledBill(
 
   // Calculate next due date
   const today = new Date();
-  let nextDueDate = new Date(today.getFullYear(), today.getMonth(), params.due_day);
+  const nextDueDate = new Date(today.getFullYear(), today.getMonth(), params.due_day);
   if (nextDueDate <= today) {
     nextDueDate.setMonth(nextDueDate.getMonth() + 1);
   }
@@ -754,7 +754,7 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
         let toolResult: any;
 
         switch (toolName) {
-          case 'create_transaction':
+          case 'create_transaction': {
             const txResult = await executeCreateTransaction(userId, toolInput);
             transactionCreated = true;
             transactionId = txResult.transactionId;
@@ -770,13 +770,15 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
             };
             toolResult = { success: true, transactionId: txResult.transactionId };
             break;
+          }
 
-          case 'create_debt':
+          case 'create_debt': {
             const debtResult = await executeCreateDebt(userId, toolInput);
             debtCreated = true;
             debtId = debtResult.debtId;
             toolResult = { success: true, debtId: debtResult.debtId };
             break;
+          }
 
           case 'update_profile':
             await executeUpdateProfile(userId, toolInput);
@@ -787,10 +789,11 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
             toolResult = await executeGetFinancialSummary(userId, toolInput);
             break;
 
-          case 'create_scheduled_bill':
+          case 'create_scheduled_bill': {
             const billResult = await executeCreateScheduledBill(userId, toolInput);
             toolResult = { success: true, billId: billResult.billId };
             break;
+          }
 
           case 'get_debt_strategy':
             toolResult = await executeGetDebtStrategy(userId, toolInput);
