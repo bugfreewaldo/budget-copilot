@@ -117,12 +117,14 @@ const TOOLS: Anthropic.Tool[] = [
         },
         description: {
           type: 'string',
-          description: 'Descripción de la transacción (ej: "Café en Starbucks")',
+          description:
+            'Descripción de la transacción (ej: "Café en Starbucks")',
         },
         type: {
           type: 'string',
           enum: ['expense', 'income'],
-          description: 'Tipo de transacción: expense (gasto) o income (ingreso)',
+          description:
+            'Tipo de transacción: expense (gasto) o income (ingreso)',
         },
         category: {
           type: 'string',
@@ -147,7 +149,8 @@ const TOOLS: Anthropic.Tool[] = [
       properties: {
         name: {
           type: 'string',
-          description: 'Nombre de la deuda (ej: "Tarjeta BBVA", "Préstamo personal")',
+          description:
+            'Nombre de la deuda (ej: "Tarjeta BBVA", "Préstamo personal")',
         },
         amount: {
           type: 'number',
@@ -155,7 +158,8 @@ const TOOLS: Anthropic.Tool[] = [
         },
         apr: {
           type: 'number',
-          description: 'Tasa de interés anual (APR) en porcentaje (ej: 45 para 45%)',
+          description:
+            'Tasa de interés anual (APR) en porcentaje (ej: 45 para 45%)',
         },
         type: {
           type: 'string',
@@ -187,7 +191,8 @@ const TOOLS: Anthropic.Tool[] = [
       properties: {
         monthly_salary: {
           type: 'number',
-          description: 'Salario mensual en pesos. Si dicen quincena, multiplica por 2.',
+          description:
+            'Salario mensual en pesos. Si dicen quincena, multiplica por 2.',
         },
         pay_frequency: {
           type: 'string',
@@ -289,12 +294,19 @@ async function executeCreateTransaction(
     category?: string;
     date?: string;
   }
-): Promise<{ transactionId: string; categoryId: string | null; categoryName: string | null }> {
+): Promise<{
+  transactionId: string;
+  categoryId: string | null;
+  categoryName: string | null;
+}> {
   const db = getDb();
   const amountCents = Math.round(params.amount * 100);
 
   // Get or create default account
-  const userAccounts = await db.select().from(accounts).where(eq(accounts.userId, userId));
+  const userAccounts = await db
+    .select()
+    .from(accounts)
+    .where(eq(accounts.userId, userId));
   let defaultAccount = userAccounts[0];
 
   if (!defaultAccount) {
@@ -306,7 +318,10 @@ async function executeCreateTransaction(
       type: 'cash',
       createdAt: Date.now(),
     });
-    const [newAccount] = await db.select().from(accounts).where(eq(accounts.id, id));
+    const [newAccount] = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.id, id));
     defaultAccount = newAccount!;
   }
 
@@ -352,7 +367,10 @@ async function executeCreateTransaction(
     userId,
     date,
     description: params.description,
-    amountCents: params.type === 'expense' ? -Math.abs(amountCents) : Math.abs(amountCents),
+    amountCents:
+      params.type === 'expense'
+        ? -Math.abs(amountCents)
+        : Math.abs(amountCents),
     type: params.type,
     categoryId,
     accountId: defaultAccount.id,
@@ -400,7 +418,9 @@ async function executeCreateDebt(
     originalBalanceCents: amountCents,
     currentBalanceCents: amountCents,
     aprPercent: params.apr ?? 0,
-    minimumPaymentCents: params.minimum_payment ? Math.round(params.minimum_payment * 100) : null,
+    minimumPaymentCents: params.minimum_payment
+      ? Math.round(params.minimum_payment * 100)
+      : null,
     status: 'active',
     dangerScore: Math.min(100, dangerScore),
     createdAt: now,
@@ -463,13 +483,20 @@ async function executeGetFinancialSummary(
   balance: number;
   transactionCount: number;
   debts?: Array<{ name: string; balance: number; apr: number; type: string }>;
-  recentTransactions?: Array<{ description: string; amount: number; type: string; date: string }>;
+  recentTransactions?: Array<{
+    description: string;
+    amount: number;
+    type: string;
+    date: string;
+  }>;
 }> {
   const db = getDb();
 
   // Get this month's transactions
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]!;
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split('T')[0]!;
 
   const monthTx = await db
     .select({
@@ -479,7 +506,9 @@ async function executeGetFinancialSummary(
       date: transactions.date,
     })
     .from(transactions)
-    .where(and(eq(transactions.userId, userId), gte(transactions.date, startOfMonth)));
+    .where(
+      and(eq(transactions.userId, userId), gte(transactions.date, startOfMonth))
+    );
 
   const totalIncome = monthTx
     .filter((t) => t.type === 'income')
@@ -555,7 +584,11 @@ async function executeCreateScheduledBill(
 
   // Calculate next due date
   const today = new Date();
-  const nextDueDate = new Date(today.getFullYear(), today.getMonth(), params.due_day);
+  const nextDueDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    params.due_day
+  );
   if (nextDueDate <= today) {
     nextDueDate.setMonth(nextDueDate.getMonth() + 1);
   }
@@ -768,7 +801,10 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
               type: toolInput.type,
               notes: null,
             };
-            toolResult = { success: true, transactionId: txResult.transactionId };
+            toolResult = {
+              success: true,
+              transactionId: txResult.transactionId,
+            };
             break;
           }
 
@@ -790,7 +826,10 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
             break;
 
           case 'create_scheduled_bill': {
-            const billResult = await executeCreateScheduledBill(userId, toolInput);
+            const billResult = await executeCreateScheduledBill(
+              userId,
+              toolInput
+            );
             toolResult = { success: true, billId: billResult.billId };
             break;
           }
@@ -839,22 +878,40 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
     if (transactionCreated) {
       followUpActions.push(
         { label: 'Otro gasto', type: 'quick_reply', value: 'Gasté $' },
-        { label: 'Ver resumen', type: 'quick_reply', value: '¿Cuánto llevo gastado?' }
+        {
+          label: 'Ver resumen',
+          type: 'quick_reply',
+          value: '¿Cuánto llevo gastado?',
+        }
       );
     } else if (debtCreated) {
       followUpActions.push(
         { label: 'Ver deudas', type: 'quick_reply', value: '¿Cuánto debo?' },
-        { label: 'Plan de pago', type: 'quick_reply', value: '¿Cómo pago mis deudas?' }
+        {
+          label: 'Plan de pago',
+          type: 'quick_reply',
+          value: '¿Cómo pago mis deudas?',
+        }
       );
     } else {
       followUpActions.push(
-        { label: 'Registrar gasto', type: 'quick_reply', value: 'Gasté $50 en' },
-        { label: 'Ver resumen', type: 'quick_reply', value: '¿Cuánto he gastado?' }
+        {
+          label: 'Registrar gasto',
+          type: 'quick_reply',
+          value: 'Gasté $50 en',
+        },
+        {
+          label: 'Ver resumen',
+          type: 'quick_reply',
+          value: '¿Cuánto he gastado?',
+        }
       );
     }
 
     return {
-      message: finalMessage || 'Hmm, no estoy seguro de qué hacer con eso. ¿Puedes darme más detalles?',
+      message:
+        finalMessage ||
+        'Hmm, no estoy seguro de qué hacer con eso. ¿Puedes darme más detalles?',
       transactionCreated,
       transactionId,
       transaction,
@@ -891,7 +948,9 @@ export async function updateTransactionCategory(
   const [tx] = await db
     .select()
     .from(transactions)
-    .where(and(eq(transactions.id, transactionId), eq(transactions.userId, userId)));
+    .where(
+      and(eq(transactions.id, transactionId), eq(transactions.userId, userId))
+    );
 
   if (!tx) return false;
 
