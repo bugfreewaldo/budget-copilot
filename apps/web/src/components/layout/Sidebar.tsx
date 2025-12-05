@@ -25,6 +25,12 @@ const NAV_ITEMS: NavItem[] = [
     description: 'Gestiona tus movimientos',
   },
   {
+    href: '/recurrentes',
+    label: 'Recurrentes',
+    emoji: '🔄',
+    description: 'Pagos e ingresos fijos',
+  },
+  {
     href: '/deudas',
     label: 'Copiloto de Deudas',
     emoji: '💀',
