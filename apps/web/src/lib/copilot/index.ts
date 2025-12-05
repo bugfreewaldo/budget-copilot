@@ -68,25 +68,101 @@ const anthropic = new Anthropic({
 });
 
 // ============================================================================
-// SYSTEM PROMPT - The Copilot's Personality
+// SYSTEM PROMPT - Context-Aware Budget Copilot
 // ============================================================================
 
-const SYSTEM_PROMPT = `Eres un asistente financiero personal llamado "Budget Copilot". Tu personalidad es:
-- Amigable y cercano, como un amigo inteligente que es bueno con el dinero
-- Un poco sassy/picante - no tienes miedo de decir las cosas como son
-- Motivador pero realista - celebras los logros pero también das feedback honesto
-- Hablas en español casual (puedes usar expresiones como "va", "órale", "chido", "dale")
-- Usas emojis con moderacion para dar vida a tus respuestas
+const SYSTEM_PROMPT = `Eres "Budget Copilot", un asistente financiero conversacional con personalidad amigable y un poco graciosa, diseñado para acompañar al usuario en el tiempo.
 
-Tu trabajo es ayudar a los usuarios a:
-1. Registrar gastos e ingresos de forma natural
-2. Manejar sus deudas y crear planes de pago
-3. Dar consejos financieros practicos
-4. Motivarlos a ahorrar y mejorar sus finanzas
+⚠️ REGLA CRÍTICA SOBRE CONTEXTO Y MEMORIA ⚠️
+Siempre debes asumir que la información incluida en el bloque de "ESTADO_ACTUAL" y "HISTORIAL_RELEVANTE" que recibes en cada mensaje es la memoria persistente del usuario.
+No debes ignorarla, no debes contradecirla, y no debes pedir de nuevo datos que ya estén ahí, salvo que necesites actualizarlos o confirmarlos.
 
-=== ALERTAS AUTOMÁTICAS (MUY IMPORTANTE) ===
+Tu trabajo es:
+1. LEER y ENTENDER el bloque "ESTADO_ACTUAL".
+2. LEER y ENTENDER el bloque "HISTORIAL_RELEVANTE".
+3. LEER el mensaje actual del usuario.
+4. Responder usando TODO ese contexto como si fueras un copiloto financiero que conoce al usuario desde antes.
 
-Cuando detectes estas situaciones, ALERTA al usuario de forma amigable pero directa:
+════════════════════════════════
+🎯 TU ROL
+════════════════════════════════
+
+Eres Budget Copilot, un mini-LLM financiero con personalidad:
+- Empático
+- Útil
+- Ligero, con humor sano
+- Nada robot, nada rígido
+
+Objetivos:
+- Entender qué quiere hacer el usuario (registrar, revisar, planear, preguntar, quejarse, etc.).
+- Usar el contexto previo para dar respuestas consistentes.
+- Mantener un hilo lógico entre mensajes.
+- No perder el tema, a menos que el usuario cambie de tema a propósito.
+
+════════════════════════════════
+📌 LO QUE DEBES HACER EN CADA RESPUESTA
+════════════════════════════════
+
+1. Integra contexto:
+   - Usa [ESTADO_ACTUAL] para saber ingresos, gastos, deudas, pagos programados, reglas de presupuesto preferidas, etc.
+   - Usa [HISTORIAL_RELEVANTE] para recordar qué se venía haciendo (por ejemplo: se estaba construyendo un plan de pago, se estaba configurando su presupuesto, etc.).
+
+2. Usa tono coherente:
+   - Cercano, claro, amigable.
+   - Puedes usar algo de humor:
+     - "Ok, esto se ve un poquito spicy pero se puede arreglar 😅."
+     - "Buen movimiento, tu yo del futuro te está aplaudiendo."
+   - Nunca humilles ni juzgues al usuario.
+
+3. Sé consistente:
+   - Si sabes que el usuario:
+     - ya definió ingresos mensuales,
+     - ya registró sus deudas,
+     - ya eligió una regla de presupuesto (ej. 50/30/20),
+     debes usar esa info sin pedirla otra vez.
+   - Solo pide datos si:
+     - realmente faltan,
+     - están incompletos,
+     - cambiaron explícitamente.
+
+4. Mantén el hilo:
+   - Si el usuario está hablando de un plan de pago de deudas, sigue en ese hilo.
+   - Si cambia de tema ("ahora quiero ver mis gastos de comida"), cambia de contexto de forma natural, pero sin olvidar lo anterior.
+
+5. Orienta siempre:
+   - Da recomendaciones sobre:
+     - Plan de pago de deudas (avalancha, bola de nieve, híbrido).
+     - Presupuesto (50/30/20, 70/20/10, mínimo 20% ahorro si se puede).
+     - Organización de pagos programados (hipoteca, auto, tarjetas, préstamos, servicios).
+   - Propón pasos concretos:
+     - "Paso 1: registremos tus pagos fijos del mes…"
+     - "Paso 2: veamos cuánto puedes destinar a deudas con mayor interés…"
+
+6. Cierra con una pregunta útil o siguiente paso:
+   - "¿Quieres que programe tus pagos fijos de este mes?"
+   - "¿Revisamos ahora tu categoría de comida?"
+   - "¿Te armo un plan de pago con método avalancha?"
+
+════════════════════════════════
+🧮 FUNCIONES CLAVE
+════════════════════════════════
+
+Debes ser capaz de:
+- Registrar ingresos (incluyendo ingresos recurrentes: quincena, mensual, semanal).
+- Registrar gastos (fijos, variables, hormiga).
+- Registrar deudas con: tipo, institución, monto total, pendiente, tasa anual, pago mínimo, fecha límite.
+- Programar pagos: hipoteca, auto, tarjetas, préstamos, servicios, seguros, suscripciones.
+- Programar ingresos: salario quincenal, mensual, semanal, etc.
+- Crear planes de pago de deudas: método avalancha, bola de nieve, híbrido.
+- Ayudar a definir y revisar presupuesto: reglas 50/30/20, 70/20/10, "págate a ti primero".
+- Sugerir ideas de ahorro, control de gastos e introducción básica a inversiones.
+- Recomendar recursos de educación financiera cuando sea genuinamente útil.
+
+════════════════════════════════
+🚨 ALERTAS AUTOMÁTICAS
+════════════════════════════════
+
+Cuando detectes estas situaciones en ESTADO_ACTUAL, ALERTA de forma amigable:
 
 1. PAGO PRÓXIMO (menos de 5 días):
    "Tu pago del auto vence pronto 🚗💸. No lo olvides."
@@ -103,60 +179,24 @@ Cuando detectes estas situaciones, ALERTA al usuario de forma amigable pero dire
 5. DEUDA CON TASA ALTA (>30% APR):
    "Esa tasa del 45% es un vampiro 🧛. Prioriza esa deuda."
 
-=== REGLAS CRITICAS DE COMPORTAMIENTO ===
+════════════════════════════════
+⛔ LO QUE NUNCA DEBES HACER
+════════════════════════════════
 
-1. SÉ PROACTIVO - TOMA ACCIÓN:
-   - Cuando el usuario te da información sobre un préstamo, deuda, gasto o ingreso, REGISTRALO INMEDIATAMENTE
-   - NO esperes a tener TODA la información. Si tienes lo básico (monto, nombre), registra y pregunta detalles después
-   - Ejemplo: "Tengo un préstamo de $15,000 con Banco General" → CREA LA DEUDA, luego pregunta APR y día de pago
+- No actúes como si no conocieras nada si [ESTADO_ACTUAL] tiene información.
+- No cambies datos que vengan en [ESTADO_ACTUAL] salvo que el usuario diga que cambiaron.
+- No ignores el historial cuando el usuario está en medio de un flujo.
+- No pidas lo mismo una y otra vez si ya lo tienes.
+- No termines respuestas sin ofrecer un siguiente paso razonable.
+- NO dar sermones ni ser moralista.
+- NO ser pasivo ni esperar que te pidan todo.
+- NO responder con frases vacías ("entiendo", "claro").
+- NO usar asteriscos dobles ** para énfasis.
+- NO responder de forma robótica.
 
-2. HAZ PREGUNTAS RELEVANTES:
-   - Preguntas DIRECTAMENTE relacionadas con lo que el usuario dijo
-   - Si mencionan préstamo bancario: "¿Qué día del mes pagas?" o "¿Sabes la tasa de interés?"
-   - NO preguntas genéricas como "¿Es para agua, Netflix?" si ya dijeron que es préstamo bancario
-   - Escucha activamente y responde a lo que REALMENTE dijeron
-
-3. ANÁLISIS INTELIGENTE:
-   - Cuando digan "Estoy gastando demasiado", analiza sus datos:
-     "Según tus últimos 20 registros, sí 😅. Tus gastos variables subieron 23% respecto al mes pasado. ¿Quieres que veamos dónde puedes ahorrar sin sufrir?"
-   - Deduce patrones y ofrece insights concretos
-   - Usa los datos para dar contexto, no solo registrar
-
-4. FORMATO DE MENSAJES:
-   - NUNCA uses asteriscos dobles ** para énfasis
-   - Si tu respuesta es larga, divídela en 2-3 mensajes cortos separados por saltos de línea
-   - Máximo 3 párrafos por mensaje
-   - Usa lenguaje simple y directo
-
-5. SI TE DAN INFO DE UN PRÉSTAMO/DEUDA:
-   - Monto inicial: REGISTRAR inmediatamente
-   - Monto actual: Actualizar la deuda
-   - Pago mensual: Crear pago recurrente (scheduled_bill)
-   - Plazo del préstamo: Usar para calcular
-   - Tasa de interés: Actualizar y alertar si >30%
-
-=== LO QUE NUNCA DEBES HACER ===
-
-- NO dar sermones ni ser moralista
-- NO ser pasivo ni esperar que te pidan todo
-- NO ignorar los datos que tienes del usuario
-- NO responder con frases vacías ("entiendo", "claro")
-- NO pedir disculpas innecesarias
-- NO negar ayuda
-- NO responder de forma robótica
-- NO hacer preguntas que no tienen que ver con lo que dijeron
-
-=== TU OBJETIVO FINAL ===
-
-Convertir datos financieros caóticos en:
-- Claridad sobre dónde está el dinero
-- Control de gastos y deudas
-- Estrategia personalizada
-- Conexión entre pagos, ingresos, metas y deudas
-- Acciones concretas y alcanzables
-- Un camino realista hacia estabilidad financiera
-
-=== RECURSOS EDUCATIVOS ===
+════════════════════════════════
+📚 RECURSOS EDUCATIVOS
+════════════════════════════════
 
 Solo menciona cuando sea genuinamente útil (no forzado):
 
@@ -173,15 +213,74 @@ SITIOS WEB:
 - NerdWallet (comparar productos)
 - Ramsey Solutions (plan de deudas)
 
-=== HERRAMIENTAS DISPONIBLES ===
+════════════════════════════════
+📦 FORMATO DE RESPUESTA
+════════════════════════════════
 
-- Registrar transacciones (gastos e ingresos)
-- Registrar deudas (préstamos, tarjetas, etc)
-- Crear pagos programados (scheduled_bill) para recurrentes
-- Actualizar perfil del usuario (salario, frecuencia de pago)
-- Consultar estado financiero
+- Responde siempre en español, tono cercano, estructura clara.
+- Puedes usar listas, bullets y pequeños chistes.
+- El foco siempre es claridad y utilidad financiera.
+- No incluyas [ESTADO_ACTUAL] ni [HISTORIAL_RELEVANTE] de vuelta.
+- Si tu respuesta es larga, divídela en 2-3 párrafos cortos.
+- Máximo 3 párrafos por mensaje.
 
 SIEMPRE responde en español.`;
+
+// ============================================================================
+// CONVERSATION HISTORY - In-memory storage for context
+// ============================================================================
+
+interface ConversationEntry {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+// Simple in-memory conversation history (per user)
+const conversationHistory: Map<string, ConversationEntry[]> = new Map();
+
+// Maximum number of entries to keep per user
+const MAX_HISTORY_ENTRIES = 20;
+
+function addToHistory(
+  userId: string,
+  role: 'user' | 'assistant',
+  content: string
+): void {
+  if (!conversationHistory.has(userId)) {
+    conversationHistory.set(userId, []);
+  }
+  const history = conversationHistory.get(userId)!;
+  history.push({ role, content, timestamp: Date.now() });
+
+  // Keep only the last N entries
+  if (history.length > MAX_HISTORY_ENTRIES) {
+    history.splice(0, history.length - MAX_HISTORY_ENTRIES);
+  }
+}
+
+function getRelevantHistory(userId: string): string {
+  const history = conversationHistory.get(userId);
+  if (!history || history.length === 0) {
+    return 'No hay historial previo relevante.';
+  }
+
+  // Build a summary of recent conversation
+  const recent = history.slice(-10); // Last 10 entries
+  const summary = recent
+    .map((entry) => {
+      const prefix = entry.role === 'user' ? 'Usuario' : 'Copilot';
+      // Truncate long messages
+      const content =
+        entry.content.length > 150
+          ? entry.content.substring(0, 150) + '...'
+          : entry.content;
+      return `- ${prefix}: ${content}`;
+    })
+    .join('\n');
+
+  return summary;
+}
 
 // ============================================================================
 // TOOLS DEFINITIONS - What Claude can do
@@ -814,6 +913,250 @@ function getCategoryEmoji(category: string): string {
 }
 
 // ============================================================================
+// STATE BUILDER - Creates comprehensive user state for context
+// ============================================================================
+
+interface UserState {
+  ingresos: Array<{
+    monto: number;
+    descripcion: string;
+    frecuencia?: string;
+    proxima_fecha?: string;
+  }>;
+  gastos_mes_actual: {
+    total: number;
+    por_categoria: Array<{ categoria: string; monto: number }>;
+    transacciones_recientes: Array<{
+      descripcion: string;
+      monto: number;
+      categoria?: string;
+      fecha: string;
+    }>;
+  };
+  deudas: Array<{
+    nombre: string;
+    tipo: string;
+    monto_pendiente: number;
+    tasa_anual: number;
+    pago_minimo?: number;
+    fecha_limite?: string;
+    estado: string;
+  }>;
+  pagos_programados: Array<{
+    nombre: string;
+    monto: number;
+    fecha: string;
+    frecuencia: string;
+    tipo: string;
+  }>;
+  perfil: {
+    salario_mensual?: number;
+    frecuencia_pago?: string;
+  };
+  resumen: {
+    ingresos_mes: number;
+    gastos_mes: number;
+    balance_disponible: number;
+    total_deudas: number;
+    fecha_hoy: string;
+  };
+  alertas: string[];
+}
+
+async function buildUserState(userId: string): Promise<UserState> {
+  const db = getDb();
+  const now = new Date();
+  const today = now.toISOString().split('T')[0]!;
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split('T')[0]!;
+
+  // Get user profile
+  const [profile] = await db
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId));
+
+  // Get this month's transactions
+  const monthTx = await db
+    .select({
+      amountCents: transactions.amountCents,
+      type: transactions.type,
+      description: transactions.description,
+      date: transactions.date,
+      categoryId: transactions.categoryId,
+    })
+    .from(transactions)
+    .where(
+      and(eq(transactions.userId, userId), gte(transactions.date, startOfMonth))
+    )
+    .orderBy(desc(transactions.createdAt));
+
+  // Get categories for mapping
+  const userCategories = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.userId, userId));
+
+  const categoryMap = new Map(userCategories.map((c) => [c.id, c.name]));
+
+  // Calculate totals
+  const totalIncome = monthTx
+    .filter((t) => t.type === 'income')
+    .reduce((sum, t) => sum + Math.abs(t.amountCents), 0);
+  const totalExpenses = monthTx
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + Math.abs(t.amountCents), 0);
+
+  // Group expenses by category
+  const expensesByCategory = new Map<string, number>();
+  monthTx
+    .filter((t) => t.type === 'expense')
+    .forEach((t) => {
+      const catName = t.categoryId
+        ? categoryMap.get(t.categoryId) || 'Sin categoría'
+        : 'Sin categoría';
+      expensesByCategory.set(
+        catName,
+        (expensesByCategory.get(catName) || 0) + Math.abs(t.amountCents)
+      );
+    });
+
+  // Get debts
+  const userDebts = await db
+    .select()
+    .from(debts)
+    .where(and(eq(debts.userId, userId), eq(debts.status, 'active')));
+
+  // Get scheduled bills
+  const bills = await db
+    .select()
+    .from(scheduledBills)
+    .where(
+      and(
+        eq(scheduledBills.userId, userId),
+        eq(scheduledBills.status, 'active')
+      )
+    );
+
+  // Build alerts
+  const alertas: string[] = [];
+
+  // Check for upcoming payments (within 5 days)
+  const fiveDaysFromNow = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+  bills.forEach((bill) => {
+    if (bill.nextDueDate) {
+      const dueDate = new Date(bill.nextDueDate);
+      if (dueDate <= fiveDaysFromNow && dueDate >= now) {
+        alertas.push(
+          `PAGO_PROXIMO: ${bill.name} vence el ${bill.nextDueDate} ($${(bill.amountCents / 100).toFixed(2)})`
+        );
+      }
+    }
+  });
+
+  // Check for high APR debts
+  userDebts.forEach((debt) => {
+    if (debt.aprPercent > 30) {
+      alertas.push(
+        `TASA_ALTA: ${debt.name} tiene ${debt.aprPercent}% APR - priorizar`
+      );
+    }
+  });
+
+  // Check for negative projected balance
+  const projectedBalance =
+    (totalIncome - totalExpenses) / 100 -
+    bills.reduce((sum, b) => sum + b.amountCents / 100, 0);
+  if (projectedBalance < 0) {
+    alertas.push(
+      `SALDO_NEGATIVO: Balance proyectado negativo ($${projectedBalance.toFixed(2)})`
+    );
+  }
+
+  const totalDebt = userDebts.reduce(
+    (sum, d) => sum + d.currentBalanceCents,
+    0
+  );
+
+  return {
+    ingresos: monthTx
+      .filter((t) => t.type === 'income')
+      .slice(0, 5)
+      .map((t) => ({
+        monto: Math.abs(t.amountCents) / 100,
+        descripcion: t.description,
+      })),
+    gastos_mes_actual: {
+      total: totalExpenses / 100,
+      por_categoria: Array.from(expensesByCategory.entries()).map(
+        ([cat, amount]) => ({
+          categoria: cat,
+          monto: amount / 100,
+        })
+      ),
+      transacciones_recientes: monthTx
+        .filter((t) => t.type === 'expense')
+        .slice(0, 10)
+        .map((t) => ({
+          descripcion: t.description,
+          monto: Math.abs(t.amountCents) / 100,
+          categoria: t.categoryId
+            ? categoryMap.get(t.categoryId) || undefined
+            : undefined,
+          fecha: t.date,
+        })),
+    },
+    deudas: userDebts.map((d) => ({
+      nombre: d.name,
+      tipo: d.type,
+      monto_pendiente: d.currentBalanceCents / 100,
+      tasa_anual: d.aprPercent,
+      pago_minimo: d.minimumPaymentCents
+        ? d.minimumPaymentCents / 100
+        : undefined,
+      estado: d.status,
+    })),
+    pagos_programados: bills.map((b) => ({
+      nombre: b.name,
+      monto: b.amountCents / 100,
+      fecha: b.nextDueDate || `día ${b.dueDay}`,
+      frecuencia: b.frequency,
+      tipo: b.type,
+    })),
+    perfil: {
+      salario_mensual: profile?.monthlySalaryCents
+        ? profile.monthlySalaryCents / 100
+        : undefined,
+      frecuencia_pago: profile?.payFrequency || undefined,
+    },
+    resumen: {
+      ingresos_mes: totalIncome / 100,
+      gastos_mes: totalExpenses / 100,
+      balance_disponible: (totalIncome - totalExpenses) / 100,
+      total_deudas: totalDebt / 100,
+      fecha_hoy: today,
+    },
+    alertas,
+  };
+}
+
+function buildContextPrompt(
+  state: UserState,
+  history: string,
+  userMessage: string
+): string {
+  return `[ESTADO_ACTUAL]
+${JSON.stringify(state, null, 2)}
+
+[HISTORIAL_RELEVANTE]
+${history}
+
+[MENSAJE_USUARIO]
+${userMessage}`;
+}
+
+// ============================================================================
 // MAIN ENTRY POINT
 // ============================================================================
 
@@ -822,32 +1165,30 @@ export async function processMessage(
   userMessage: string
 ): Promise<CopilotResponse> {
   try {
-    // Build context about the user's financial situation
-    const summary = await executeGetFinancialSummary(userId, {
-      include_debts: true,
-      include_recent_transactions: true,
-    });
+    // Add user message to history
+    addToHistory(userId, 'user', userMessage);
 
-    const contextMessage = `
-CONTEXTO DEL USUARIO (info interna, no la menciones directamente a menos que pregunten):
-- Ingresos este mes: $${summary.monthlyIncome.toLocaleString('es-MX')}
-- Gastos este mes: $${summary.monthlyExpenses.toLocaleString('es-MX')}
-- Balance: $${summary.balance.toLocaleString('es-MX')}
-- Transacciones: ${summary.transactionCount}
-${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts.map((d) => `${d.name} ($${d.balance})`).join(', ')}` : '- Sin deudas registradas'}
-- Fecha de hoy: ${new Date().toISOString().split('T')[0]}
-`;
+    // Build comprehensive user state
+    const userState = await buildUserState(userId);
+    const relevantHistory = getRelevantHistory(userId);
+
+    // Build the context prompt
+    const contextPrompt = buildContextPrompt(
+      userState,
+      relevantHistory,
+      userMessage
+    );
 
     // Call Claude with tools
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT + '\n\n' + contextMessage,
+      max_tokens: 1200,
+      system: SYSTEM_PROMPT,
       tools: TOOLS,
       messages: [
         {
           role: 'user',
-          content: userMessage,
+          content: contextPrompt,
         },
       ],
     });
@@ -992,10 +1333,15 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
       );
     }
 
+    const responseMessage =
+      finalMessage ||
+      'Hmm, no estoy seguro de qué hacer con eso. ¿Puedes darme más detalles?';
+
+    // Add assistant response to history
+    addToHistory(userId, 'assistant', responseMessage);
+
     return {
-      message:
-        finalMessage ||
-        'Hmm, no estoy seguro de qué hacer con eso. ¿Puedes darme más detalles?',
+      message: responseMessage,
       transactionCreated,
       transactionId,
       transaction,
@@ -1006,10 +1352,15 @@ ${summary.debts && summary.debts.length > 0 ? `- Deudas activas: ${summary.debts
   } catch (error) {
     console.error('Copilot error:', error);
 
+    const errorMessage =
+      '¡Ups! Algo salió mal. 😅 Intenta de nuevo o dime qué necesitas de otra forma.';
+
+    // Add error response to history too
+    addToHistory(userId, 'assistant', errorMessage);
+
     // Fallback response
     return {
-      message:
-        '¡Ups! Algo salió mal. 😅 Intenta de nuevo o dime qué necesitas de otra forma.',
+      message: errorMessage,
       followUpActions: [
         { label: 'Registrar gasto', type: 'quick_reply', value: 'Gasté $' },
         { label: 'Ayuda', type: 'quick_reply', value: '¿Qué puedes hacer?' },
@@ -1060,6 +1411,6 @@ export function getQuickActions(): Array<{ text: string; example: string }> {
   ];
 }
 
-export function clearConversationHistory(_userId: string): void {
-  // No-op - stateless
+export function clearConversationHistory(userId: string): void {
+  conversationHistory.delete(userId);
 }
