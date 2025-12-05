@@ -22,7 +22,7 @@ interface Deposit {
 }
 
 // Fun piggy messages based on savings progress
-function getPiggyMessage(percent: number, name: string): string {
+function getPiggyMessage(percent: number, _name: string): string {
   if (percent === 0) return `¡Oink! Estoy vacío... ¡Aliméntame con ahorros!`;
   if (percent < 25) return `¡Oink oink! Apenas empezando... ¡Sigue así!`;
   if (percent < 50) return `¡Oink! Me estoy llenando... ¡Qué rico!`;

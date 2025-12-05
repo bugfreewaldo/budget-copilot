@@ -11,11 +11,6 @@ import {
   type Envelope,
 } from '@/lib/api';
 
-interface EnvelopeFormData {
-  categoryId: string;
-  budgetCents: number;
-}
-
 // Format month for display
 function formatMonth(month: string): string {
   const [year, monthNum] = month.split('-');
