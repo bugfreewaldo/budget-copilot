@@ -27,7 +27,8 @@ function getPiggyMessage(percent: number, _name: string): string {
   if (percent < 25) return `¡Oink oink! Apenas empezando... ¡Sigue así!`;
   if (percent < 50) return `¡Oink! Me estoy llenando... ¡Qué rico!`;
   if (percent < 75) return `¡OINK! ¡Ya casi llegamos a la meta!`;
-  if (percent < 100) return `¡OINK OINK! ¡Estoy a punto de reventar de felicidad!`;
+  if (percent < 100)
+    return `¡OINK OINK! ¡Estoy a punto de reventar de felicidad!`;
   return `🎉 ¡META ALCANZADA! ¡Soy el cerdito más feliz del mundo!`;
 }
 
@@ -188,10 +189,38 @@ function AnimatedPiggy({
         />
 
         {/* Hooves */}
-        <rect x="50" y="150" width="18" height="5" rx="2" className="fill-gray-700" />
-        <rect x="75" y="150" width="18" height="5" rx="2" className="fill-gray-700" />
-        <rect x="110" y="150" width="18" height="5" rx="2" className="fill-gray-700" />
-        <rect x="135" y="150" width="18" height="5" rx="2" className="fill-gray-700" />
+        <rect
+          x="50"
+          y="150"
+          width="18"
+          height="5"
+          rx="2"
+          className="fill-gray-700"
+        />
+        <rect
+          x="75"
+          y="150"
+          width="18"
+          height="5"
+          rx="2"
+          className="fill-gray-700"
+        />
+        <rect
+          x="110"
+          y="150"
+          width="18"
+          height="5"
+          rx="2"
+          className="fill-gray-700"
+        />
+        <rect
+          x="135"
+          y="150"
+          width="18"
+          height="5"
+          rx="2"
+          className="fill-gray-700"
+        />
 
         {/* Curly Tail */}
         <path
@@ -210,7 +239,9 @@ function AnimatedPiggy({
       {/* Sparkles when goal reached */}
       {percent >= 100 && (
         <div className="absolute inset-0 pointer-events-none">
-          <span className="absolute top-0 left-1/4 text-2xl animate-ping">✨</span>
+          <span className="absolute top-0 left-1/4 text-2xl animate-ping">
+            ✨
+          </span>
           <span className="absolute top-1/4 right-0 text-2xl animate-ping animation-delay-300">
             ✨
           </span>
@@ -264,7 +295,9 @@ export default function AlcanciaPage() {
         setSelectedPiggy(parsed[0]!);
       }
     }
-    const storedDeposits = localStorage.getItem('budget-copilot-piggy-deposits');
+    const storedDeposits = localStorage.getItem(
+      'budget-copilot-piggy-deposits'
+    );
     if (storedDeposits) {
       setDeposits(JSON.parse(storedDeposits));
     }
@@ -279,7 +312,10 @@ export default function AlcanciaPage() {
 
   // Save deposits to localStorage
   const saveDeposits = (newDeposits: Deposit[]) => {
-    localStorage.setItem('budget-copilot-piggy-deposits', JSON.stringify(newDeposits));
+    localStorage.setItem(
+      'budget-copilot-piggy-deposits',
+      JSON.stringify(newDeposits)
+    );
     setDeposits(newDeposits);
   };
 
@@ -356,7 +392,9 @@ export default function AlcanciaPage() {
     }
   };
 
-  const selectedPiggyDeposits = deposits.filter((d) => d.piggyId === selectedPiggy?.id);
+  const selectedPiggyDeposits = deposits.filter(
+    (d) => d.piggyId === selectedPiggy?.id
+  );
   const progressPercent = selectedPiggy
     ? (selectedPiggy.currentAmountCents / selectedPiggy.targetAmountCents) * 100
     : 0;
@@ -405,8 +443,8 @@ export default function AlcanciaPage() {
                 ¡Crea tu primera alcancía!
               </h2>
               <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                Las alcancías te ayudan a ahorrar para metas específicas. ¡Es como
-                tener un cerdito guardando tus monedas!
+                Las alcancías te ayudan a ahorrar para metas específicas. ¡Es
+                como tener un cerdito guardando tus monedas!
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -585,9 +623,9 @@ export default function AlcanciaPage() {
                                   +{formatCents(deposit.amountCents)}
                                 </span>
                                 <span className="text-xs text-gray-600">
-                                  {new Date(deposit.createdAt).toLocaleDateString(
-                                    'es-MX'
-                                  )}
+                                  {new Date(
+                                    deposit.createdAt
+                                  ).toLocaleDateString('es-MX')}
                                 </span>
                               </div>
                             </div>

@@ -58,7 +58,9 @@ function calculateWeather(
     budgetUsagePercent = (totalSpent / totalBudget) * 100;
     const remainingBudget = totalBudget - totalSpent;
     safeToSpendDaily =
-      remainingBudget > 0 ? Math.floor(remainingBudget / daysRemaining / 100) : 0;
+      remainingBudget > 0
+        ? Math.floor(remainingBudget / daysRemaining / 100)
+        : 0;
   } else {
     // Use income-based calculation when no budgets exist
     // Calculate spending rate as percentage of income
@@ -159,10 +161,16 @@ export function FinancialWeather({
   // Use remaining budget if budgets exist, otherwise use remaining income
   const hasBudgets = totalBudget > 0;
   const netPosition = income - expenses;
-  const availableFunds = hasBudgets ? remainingBudget : Math.max(0, netPosition);
+  const availableFunds = hasBudgets
+    ? remainingBudget
+    : Math.max(0, netPosition);
 
   const daysOfRunway =
-    avgDailySpend > 0 ? Math.floor(availableFunds / avgDailySpend) : income > 0 ? 999 : 0;
+    avgDailySpend > 0
+      ? Math.floor(availableFunds / avgDailySpend)
+      : income > 0
+        ? 999
+        : 0;
 
   return (
     <div

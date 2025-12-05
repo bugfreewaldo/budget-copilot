@@ -204,11 +204,23 @@ export default function PresupuestoPage() {
           {/* Month Navigation */}
           <div className="flex items-center justify-center gap-4 mb-6 lg:mb-8">
             <button
-              onClick={() => setSelectedMonth(getAdjacentMonth(selectedMonth, 'prev'))}
+              onClick={() =>
+                setSelectedMonth(getAdjacentMonth(selectedMonth, 'prev'))
+              }
               className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <div className="px-6 py-2 bg-gray-900/50 rounded-xl border border-gray-800">
@@ -217,11 +229,23 @@ export default function PresupuestoPage() {
               </span>
             </div>
             <button
-              onClick={() => setSelectedMonth(getAdjacentMonth(selectedMonth, 'next'))}
+              onClick={() =>
+                setSelectedMonth(getAdjacentMonth(selectedMonth, 'next'))
+              }
               className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -247,7 +271,9 @@ export default function PresupuestoPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 lg:mb-8">
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Presupuesto Total</span>
+                    <span className="text-gray-400 text-sm">
+                      Presupuesto Total
+                    </span>
                     <span className="text-2xl">💰</span>
                   </div>
                   <div className="text-2xl font-bold text-white">
@@ -280,7 +306,9 @@ export default function PresupuestoPage() {
               {totalBudget > 0 && (
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5 mb-6 lg:mb-8">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-white font-medium">Progreso General</span>
+                    <span className="text-white font-medium">
+                      Progreso General
+                    </span>
                     <span
                       className={`font-bold ${overallPercent >= 100 ? 'text-red-400' : overallPercent >= 80 ? 'text-yellow-400' : 'text-emerald-400'}`}
                     >
@@ -304,8 +332,8 @@ export default function PresupuestoPage() {
                     No hay sobres para este mes
                   </h2>
                   <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                    Crea sobres de presupuesto para cada categoría y controla tus
-                    gastos mes a mes.
+                    Crea sobres de presupuesto para cada categoría y controla
+                    tus gastos mes a mes.
                   </p>
                   {categoriesWithoutEnvelopes.length > 0 ? (
                     <button
@@ -326,12 +354,15 @@ export default function PresupuestoPage() {
                     Sobres del Mes
                   </h3>
                   {envelopes.map((envelope) => {
-                    const category = categories.find((c) => c.id === envelope.categoryId);
+                    const category = categories.find(
+                      (c) => c.id === envelope.categoryId
+                    );
                     const percent =
                       envelope.budgetCents > 0
                         ? (envelope.spentCents / envelope.budgetCents) * 100
                         : 0;
-                    const remaining = envelope.budgetCents - envelope.spentCents;
+                    const remaining =
+                      envelope.budgetCents - envelope.spentCents;
 
                     return (
                       <div
@@ -340,7 +371,9 @@ export default function PresupuestoPage() {
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <span className="text-3xl">{category?.emoji || '📁'}</span>
+                            <span className="text-3xl">
+                              {category?.emoji || '📁'}
+                            </span>
                             <div>
                               <h4 className="text-lg font-semibold text-white">
                                 {category?.name || 'Sin categoría'}
@@ -437,7 +470,9 @@ export default function PresupuestoPage() {
             <div className="relative bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <span>📊</span>{' '}
-                {editingEnvelope ? 'Editar Sobre' : 'Nuevo Sobre de Presupuesto'}
+                {editingEnvelope
+                  ? 'Editar Sobre'
+                  : 'Nuevo Sobre de Presupuesto'}
               </h3>
 
               <div className="space-y-4">
@@ -464,12 +499,14 @@ export default function PresupuestoPage() {
                 {editingEnvelope && (
                   <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-xl">
                     <span className="text-2xl">
-                      {categories.find((c) => c.id === editingEnvelope.categoryId)
-                        ?.emoji || '📁'}
+                      {categories.find(
+                        (c) => c.id === editingEnvelope.categoryId
+                      )?.emoji || '📁'}
                     </span>
                     <span className="text-white font-medium">
-                      {categories.find((c) => c.id === editingEnvelope.categoryId)
-                        ?.name || 'Sin categoría'}
+                      {categories.find(
+                        (c) => c.id === editingEnvelope.categoryId
+                      )?.name || 'Sin categoría'}
                     </span>
                   </div>
                 )}
