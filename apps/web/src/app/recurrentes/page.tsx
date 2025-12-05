@@ -850,7 +850,9 @@ export default function RecurrentesPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => setDeleteConfirm({ item: bill, type: 'bill' })}
+                              onClick={() =>
+                                setDeleteConfirm({ item: bill, type: 'bill' })
+                              }
                               className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                             >
                               <svg
@@ -939,7 +941,9 @@ export default function RecurrentesPage() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => setDeleteConfirm({ item: income, type: 'income' })}
+                            onClick={() =>
+                              setDeleteConfirm({ item: income, type: 'income' })
+                            }
                             className="p-2 text-gray-400 hover:text-red-400 transition-colors"
                           >
                             <svg
@@ -971,7 +975,11 @@ export default function RecurrentesPage() {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDelete}
-          title={deleteConfirm?.type === 'bill' ? 'Eliminar Gasto Recurrente' : 'Eliminar Ingreso Recurrente'}
+          title={
+            deleteConfirm?.type === 'bill'
+              ? 'Eliminar Gasto Recurrente'
+              : 'Eliminar Ingreso Recurrente'
+          }
           message={`¿Estás seguro de eliminar "${deleteConfirm?.item.name}"? Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"

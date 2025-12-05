@@ -593,7 +593,7 @@ export default function PresupuestoPage() {
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeleteEnvelope}
           title="Eliminar Sobre"
-          message={`¿Estás seguro de eliminar el sobre de "${categories.find(c => c.id === deleteConfirm?.categoryId)?.name || 'esta categoría'}"? Esta acción no se puede deshacer.`}
+          message={`¿Estás seguro de eliminar el sobre de "${categories.find((c) => c.id === deleteConfirm?.categoryId)?.name || 'esta categoría'}"? Esta acción no se puede deshacer.`}
           confirmText="Eliminar"
           cancelText="Cancelar"
           variant="danger"

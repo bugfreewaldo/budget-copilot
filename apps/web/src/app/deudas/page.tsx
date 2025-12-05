@@ -962,7 +962,9 @@ export default function DeudasPage() {
                     ))}
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400">Personalizado:</span>
+                    <span className="text-sm text-gray-400">
+                      Personalizado:
+                    </span>
                     <div className="flex items-center gap-2 flex-1">
                       <input
                         type="number"
@@ -1032,7 +1034,8 @@ export default function DeudasPage() {
                         showCalculator.currentBalanceCents / 100
                       : 0;
 
-                  const interestSavings = minPaymentTotalInterest - totalInterest;
+                  const interestSavings =
+                    minPaymentTotalInterest - totalInterest;
 
                   return (
                     <div className="space-y-4">
