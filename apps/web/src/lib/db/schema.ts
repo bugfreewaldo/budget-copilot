@@ -329,6 +329,116 @@ export const goals = sqliteTable(
 );
 
 // ============================================================================
+// SCHEDULED PAYMENTS (BILLS)
+// ============================================================================
+
+export const scheduledBills = sqliteTable(
+  'scheduled_bills',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    type: text('type', {
+      enum: [
+        'mortgage',
+        'rent',
+        'auto_loan',
+        'credit_card',
+        'personal_loan',
+        'student_loan',
+        'utility',
+        'insurance',
+        'subscription',
+        'other',
+      ],
+    }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    dueDay: integer('due_day').notNull(),
+    frequency: text('frequency', {
+      enum: ['weekly', 'biweekly', 'monthly', 'quarterly', 'annually'],
+    })
+      .notNull()
+      .default('monthly'),
+    categoryId: text('category_id'),
+    linkedDebtId: text('linked_debt_id'),
+    autoPay: integer('auto_pay', { mode: 'boolean' }).default(false),
+    reminderDaysBefore: integer('reminder_days_before').default(3),
+    status: text('status', {
+      enum: ['active', 'paused', 'completed'],
+    })
+      .notNull()
+      .default('active'),
+    nextDueDate: text('next_due_date'),
+    lastPaidDate: text('last_paid_date'),
+    notes: text('notes'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('scheduled_bill_user_idx').on(table.userId),
+    dueDayIdx: index('scheduled_bill_due_idx').on(table.dueDay),
+    statusIdx: index('scheduled_bill_status_idx').on(table.status),
+  })
+);
+
+// ============================================================================
+// SCHEDULED INCOME (PAYCHECKS)
+// ============================================================================
+
+export const scheduledIncome = sqliteTable(
+  'scheduled_income',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    source: text('source', {
+      enum: [
+        'salary',
+        'freelance',
+        'business',
+        'investment',
+        'rental',
+        'side_hustle',
+        'bonus',
+        'other',
+      ],
+    }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    payDay: integer('pay_day').notNull(),
+    frequency: text('frequency', {
+      enum: ['weekly', 'biweekly', 'semimonthly', 'monthly'],
+    })
+      .notNull()
+      .default('monthly'),
+    accountId: text('account_id'),
+    isVariable: integer('is_variable', { mode: 'boolean' }).default(false),
+    status: text('status', {
+      enum: ['active', 'paused', 'ended'],
+    })
+      .notNull()
+      .default('active'),
+    nextPayDate: text('next_pay_date'),
+    lastReceivedDate: text('last_received_date'),
+    notes: text('notes'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('scheduled_income_user_idx').on(table.userId),
+    payDayIdx: index('scheduled_income_payday_idx').on(table.payDay),
+    statusIdx: index('scheduled_income_status_idx').on(table.status),
+  })
+);
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -346,3 +456,9 @@ export type Debt = typeof debts.$inferSelect;
 export type NewDebt = typeof debts.$inferInsert;
 export type Goal = typeof goals.$inferSelect;
 export type NewGoal = typeof goals.$inferInsert;
+export type ScheduledBill = typeof scheduledBills.$inferSelect;
+export type NewScheduledBill = typeof scheduledBills.$inferInsert;
+export type ScheduledIncome = typeof scheduledIncome.$inferSelect;
+export type NewScheduledIncome = typeof scheduledIncome.$inferInsert;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;

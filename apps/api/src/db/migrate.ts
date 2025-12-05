@@ -130,6 +130,31 @@ async function runMigrations() {
       sql`CREATE UNIQUE INDEX IF NOT EXISTS oauth_provider_idx ON oauth_connections(provider, provider_user_id)`
     );
 
+    // User profiles table (financial profile & preferences)
+    await db.run(sql`
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
+        onboarding_completed INTEGER NOT NULL DEFAULT 0,
+        onboarding_step INTEGER NOT NULL DEFAULT 0,
+        monthly_salary_cents INTEGER,
+        pay_frequency TEXT CHECK(pay_frequency IN ('weekly', 'biweekly', 'semimonthly', 'monthly')),
+        next_payday TEXT,
+        monthly_savings_goal_cents INTEGER,
+        emergency_fund_goal_cents INTEGER,
+        daily_spending_limit_cents INTEGER,
+        weekly_spending_limit_cents INTEGER,
+        copilot_tone TEXT DEFAULT 'sassy' CHECK(copilot_tone IN ('friendly', 'sassy', 'strict', 'gentle')),
+        receive_proactive_tips INTEGER DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `);
+
+    await db.run(
+      sql`CREATE UNIQUE INDEX IF NOT EXISTS user_profile_user_idx ON user_profiles(user_id)`
+    );
+
     // ========================================================================
     // CORE FINANCIAL ENTITIES
     // ========================================================================
