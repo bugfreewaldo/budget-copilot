@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { eq, desc } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { getDb } from '@/lib/db/client';
 import { categories } from '@/lib/db/schema';
@@ -33,22 +33,22 @@ export async function GET(request: NextRequest) {
     const flat = searchParams.get('flat') === 'true';
 
     if (flat) {
-      // Return all categories flat
+      // Return all categories flat, ordered A-Z
       const userCategories = await db
         .select()
         .from(categories)
         .where(eq(categories.userId, auth.user.id))
-        .orderBy(desc(categories.createdAt));
+        .orderBy(asc(categories.name));
 
       return NextResponse.json({ data: userCategories });
     }
 
-    // Return only top-level categories (no parentId)
+    // Return categories in hierarchical structure, ordered A-Z
     const userCategories = await db
       .select()
       .from(categories)
       .where(eq(categories.userId, auth.user.id))
-      .orderBy(desc(categories.createdAt));
+      .orderBy(asc(categories.name));
 
     // Build hierarchical structure
     const categoryMap = new Map<
