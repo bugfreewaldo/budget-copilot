@@ -5,8 +5,7 @@ import { cookies } from 'next/headers';
  * Validates session by calling the Fastify backend
  */
 
-const API_BACKEND_URL =
-  process.env.API_BACKEND_URL || 'http://localhost:4000';
+const API_BACKEND_URL = process.env.API_BACKEND_URL || 'http://localhost:4000';
 
 export interface SessionUser {
   id: string;

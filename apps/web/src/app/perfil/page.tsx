@@ -129,9 +129,7 @@ export default function PerfilPage() {
             <span className="mr-2">&#128100;</span>
             Mi Perfil
           </h1>
-          <p className="text-gray-400">
-            Administra tu cuenta y configuracion
-          </p>
+          <p className="text-gray-400">Administra tu cuenta y configuracion</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -145,7 +143,9 @@ export default function PerfilPage() {
               {/* Avatar & Name */}
               <div className="flex items-center gap-4 pb-4 border-b border-gray-800">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-2xl text-white font-bold">
-                  {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                  {user.name
+                    ? user.name.charAt(0).toUpperCase()
+                    : user.email.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-white">
@@ -193,7 +193,9 @@ export default function PerfilPage() {
           </div>
 
           {/* Subscription Card */}
-          <div className={`${planInfo.bgColor} rounded-2xl border ${planInfo.borderColor} p-6`}>
+          <div
+            className={`${planInfo.bgColor} rounded-2xl border ${planInfo.borderColor} p-6`}
+          >
             <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
               <span>&#11088;</span> Tu Suscripcion
             </h2>
@@ -215,7 +217,10 @@ export default function PerfilPage() {
               <p className="text-gray-400 text-sm mb-3">Incluye:</p>
               <ul className="space-y-2">
                 {planInfo.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-white text-sm">
+                  <li
+                    key={idx}
+                    className="flex items-center gap-2 text-white text-sm"
+                  >
                     <span className={planInfo.color}>&#10003;</span>
                     {feature}
                   </li>
@@ -296,7 +301,9 @@ export default function PerfilPage() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">&#128273;</span>
-                  <p className="text-white font-medium">Politica de Privacidad</p>
+                  <p className="text-white font-medium">
+                    Politica de Privacidad
+                  </p>
                 </div>
                 <span className="text-gray-400 group-hover:text-white transition-colors">
                   &#8594;

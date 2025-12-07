@@ -45,9 +45,8 @@ describe.skip('Database Persistence', () => {
 
   it('should persist data to disk and reload it', async () => {
     // Import fresh client module
-    const { initializeDatabase, flushSave, closeDatabase } = await import(
-      './client.js'
-    );
+    const { initializeDatabase, flushSave, closeDatabase } =
+      await import('./client.js');
     const { runMigrations } = await import('./migrate.js');
 
     // Phase 1: Create database and insert data
@@ -113,9 +112,8 @@ describe.skip('Database Persistence', () => {
     // Set to memory mode
     process.env.DATABASE_URL = ':memory:';
 
-    const { initializeDatabase, flushSave, closeDatabase } = await import(
-      './client.js'
-    );
+    const { initializeDatabase, flushSave, closeDatabase } =
+      await import('./client.js');
     const { runMigrations } = await import('./migrate.js');
 
     const db = await initializeDatabase();
@@ -140,9 +138,8 @@ describe.skip('Database Persistence', () => {
   });
 
   it('should handle concurrent writes with debounced save', async () => {
-    const { initializeDatabase, flushSave, closeDatabase } = await import(
-      './client.js'
-    );
+    const { initializeDatabase, flushSave, closeDatabase } =
+      await import('./client.js');
     const { runMigrations } = await import('./migrate.js');
 
     const db = await initializeDatabase();

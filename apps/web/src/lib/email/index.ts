@@ -357,7 +357,12 @@ export async function sendHouseholdInviteEmail(
   return sendEmail({
     to,
     subject: `${inviterName} te invito a "${householdName}" - ${APP_NAME}`,
-    html: getHouseholdInviteEmailHtml(inviterName, householdName, role, inviteUrl),
+    html: getHouseholdInviteEmailHtml(
+      inviterName,
+      householdName,
+      role,
+      inviteUrl
+    ),
     text: `Te han invitado\n\n${inviterName} te ha invitado a unirte a la familia "${householdName}" en ${APP_NAME}.\n\nTu rol: ${translatedRole}\nFamilia: ${householdName}\n\nAl unirte podrás colaborar en el manejo de las finanzas familiares. Esta invitación expirará en 7 días.\n\nAceptar invitación: ${inviteUrl}\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
   });
 }

@@ -134,7 +134,9 @@ export default function PresupuestoPage() {
           errorData?.error?.message ||
           errorData?.error?.details?.budgetCents ||
           errorData?.message ||
-          (errorData?.error?.details ? JSON.stringify(errorData.error.details) : null) ||
+          (errorData?.error?.details
+            ? JSON.stringify(errorData.error.details)
+            : null) ||
           `Error ${response.status}`;
         throw new Error(errorMessage);
       }
@@ -146,7 +148,9 @@ export default function PresupuestoPage() {
       setBudgetAmount('');
     } catch (err) {
       console.error('Failed to save envelope:', err);
-      alert(`Error al guardar el sobre: ${err instanceof Error ? err.message : 'Intenta de nuevo'}`);
+      alert(
+        `Error al guardar el sobre: ${err instanceof Error ? err.message : 'Intenta de nuevo'}`
+      );
     } finally {
       setSaving(false);
     }

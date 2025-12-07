@@ -5,8 +5,7 @@ import { cookies } from 'next/headers';
  * Proxy helper for forwarding requests to the Fastify API backend
  */
 
-const API_BACKEND_URL =
-  process.env.API_BACKEND_URL || 'http://localhost:4000';
+const API_BACKEND_URL = process.env.API_BACKEND_URL || 'http://localhost:4000';
 
 /**
  * Proxy a request to the Fastify backend

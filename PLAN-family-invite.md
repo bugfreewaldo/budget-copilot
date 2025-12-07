@@ -11,6 +11,7 @@ After exploring the codebase, I found:
    - HTTP-only cookies
 
 2. **But it's NOT wired up** - All 47+ API routes use hardcoded `userId`:
+
    ```typescript
    // Every API route has this pattern:
    const userId = 'test-user-00000000000000000001';
@@ -23,6 +24,7 @@ After exploring the codebase, I found:
 ## Implementation Options
 
 ### Option A: Full Multi-User Implementation (Recommended)
+
 - Wire up existing auth system across all routes
 - Add `households` and `household_members` tables
 - Implement email/link-based invite flow
@@ -30,12 +32,14 @@ After exploring the codebase, I found:
 - **Scope: Large** - Requires refactoring all API routes
 
 ### Option B: Simple Share Link (Read-Only)
+
 - Generate a unique shareable link for dashboard
 - Viewers can see data but not modify
 - No login required for viewers
 - **Scope: Small** - Less invasive
 
 ### Option C: Household Code System
+
 - Users enter a "household code" on first visit
 - All users with same code share data
 - No email invites, just share the code
@@ -53,9 +57,12 @@ After exploring the codebase, I found:
    - Redirect unauthenticated users to login
 
 2. **Create auth helper for API routes**:
+
    ```typescript
    // apps/web/src/lib/auth/getUser.ts
-   export async function getUserFromRequest(request: NextRequest): Promise<User | null>
+   export async function getUserFromRequest(
+     request: NextRequest
+   ): Promise<User | null>;
    ```
 
 3. **Update all API routes** (47+ files) to use session-based auth:
@@ -70,6 +77,7 @@ After exploring the codebase, I found:
 ### Phase 2: Household System
 
 1. **Database changes** - Add to `schema.ts`:
+
    ```typescript
    // Households table
    export const households = sqliteTable('households', {
@@ -139,6 +147,7 @@ After exploring the codebase, I found:
 ## Files to Create/Modify
 
 ### New Files:
+
 - `apps/web/src/middleware.ts` - Auth middleware
 - `apps/web/src/lib/auth/getUser.ts` - Request user helper
 - `apps/web/src/app/login/page.tsx` - Login page
@@ -152,6 +161,7 @@ After exploring the codebase, I found:
 - Database migration for new tables
 
 ### Modified Files:
+
 - `apps/web/src/lib/db/schema.ts` - Add household tables
 - `apps/web/src/components/layout/Sidebar.tsx` - Add family section
 - `apps/web/src/components/providers.tsx` - Add auth provider

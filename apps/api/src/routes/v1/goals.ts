@@ -146,63 +146,67 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/goals
    * Create a new goal
    */
-  fastify.post('/goals', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      const validation = fastify.safeValidate(createGoalSchema, request.body);
+  fastify.post(
+    '/goals',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const validation = fastify.safeValidate(createGoalSchema, request.body);
 
-      if (!validation.success) {
-        return reply.badRequest('Invalid request body', validation.errors);
+        if (!validation.success) {
+          return reply.badRequest('Invalid request body', validation.errors);
+        }
+
+        const data = validation.data;
+        const db = await getDb();
+        const userId = request.user!.id;
+
+        const id = nanoid();
+        const now = Date.now();
+        const startDate = new Date().toISOString().split('T')[0];
+
+        // Calculate initial progress
+        const progress = calculateProgress(
+          data.current_amount_cents || 0,
+          data.target_amount_cents,
+          startDate,
+          data.target_date || null
+        );
+
+        await db.insert(goals).values({
+          id,
+          userId,
+          name: data.name,
+          description: data.description || null,
+          emoji: data.emoji || null,
+          targetAmountCents: data.target_amount_cents,
+          currentAmountCents: data.current_amount_cents || 0,
+          targetDate: data.target_date || null,
+          startDate,
+          goalType: data.goal_type,
+          linkedDebtId: data.linked_debt_id || null,
+          linkedAccountId: data.linked_account_id || null,
+          progressPercent: progress.progressPercent,
+          onTrack: progress.onTrack,
+          projectedCompletionDate: progress.projectedCompletionDate,
+          recommendedMonthlyCents: progress.recommendedMonthlyCents,
+          status: 'active',
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        const [goal] = await db.select().from(goals).where(eq(goals.id, id));
+
+        reply.code(201);
+        const responseBody = { data: goal };
+        fastify.cacheIdempotentResponse(request, reply, responseBody);
+        return reply.send(responseBody);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to create goal');
+        return reply.internalError();
       }
-
-      const data = validation.data;
-      const db = await getDb();
-      const userId = request.user!.id;
-
-      const id = nanoid();
-      const now = Date.now();
-      const startDate = new Date().toISOString().split('T')[0];
-
-      // Calculate initial progress
-      const progress = calculateProgress(
-        data.current_amount_cents || 0,
-        data.target_amount_cents,
-        startDate,
-        data.target_date || null
-      );
-
-      await db.insert(goals).values({
-        id,
-        userId,
-        name: data.name,
-        description: data.description || null,
-        emoji: data.emoji || null,
-        targetAmountCents: data.target_amount_cents,
-        currentAmountCents: data.current_amount_cents || 0,
-        targetDate: data.target_date || null,
-        startDate,
-        goalType: data.goal_type,
-        linkedDebtId: data.linked_debt_id || null,
-        linkedAccountId: data.linked_account_id || null,
-        progressPercent: progress.progressPercent,
-        onTrack: progress.onTrack,
-        projectedCompletionDate: progress.projectedCompletionDate,
-        recommendedMonthlyCents: progress.recommendedMonthlyCents,
-        status: 'active',
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      const [goal] = await db.select().from(goals).where(eq(goals.id, id));
-
-      reply.code(201);
-      const responseBody = { data: goal };
-      fastify.cacheIdempotentResponse(request, reply, responseBody);
-      return reply.send(responseBody);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to create goal');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * GET /v1/goals
@@ -334,7 +338,9 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         const [goal] = await db
           .select()
           .from(goals)
-          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
+          .where(
+            and(eq(goals.id, request.params.id), eq(goals.userId, userId))
+          );
 
         if (!goal) {
           return reply.notFound('Goal', request.params.id);
@@ -385,7 +391,9 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(goals)
-          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
+          .where(
+            and(eq(goals.id, request.params.id), eq(goals.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);
@@ -494,7 +502,9 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(goals)
-          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
+          .where(
+            and(eq(goals.id, request.params.id), eq(goals.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);
@@ -580,7 +590,9 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(goals)
-          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
+          .where(
+            and(eq(goals.id, request.params.id), eq(goals.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);

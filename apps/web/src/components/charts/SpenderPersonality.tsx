@@ -22,7 +22,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'saver',
     name: 'El Ahorrador',
     emoji: '🐿️',
-    description: 'Guardas más de lo que gastas. ¡Tu yo del futuro te lo agradece!',
+    description:
+      'Guardas más de lo que gastas. ¡Tu yo del futuro te lo agradece!',
     gradient: 'from-green-500/20 to-emerald-500/20',
     borderColor: 'border-green-500/30',
   },
@@ -30,7 +31,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'spender',
     name: 'El Gastador',
     emoji: '💸',
-    description: 'Vives el momento. Solo asegúrate de tener un colchón de emergencia.',
+    description:
+      'Vives el momento. Solo asegúrate de tener un colchón de emergencia.',
     gradient: 'from-red-500/20 to-orange-500/20',
     borderColor: 'border-red-500/30',
   },
@@ -38,7 +40,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'foodie',
     name: 'El Foodie',
     emoji: '🍕',
-    description: 'La buena comida es tu pasión. ¿Has probado cocinar más en casa?',
+    description:
+      'La buena comida es tu pasión. ¿Has probado cocinar más en casa?',
     gradient: 'from-orange-500/20 to-yellow-500/20',
     borderColor: 'border-orange-500/30',
   },
@@ -46,7 +49,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'fashionista',
     name: 'La Fashionista',
     emoji: '👗',
-    description: 'Tu estilo es impecable. ¡Pero ojo con las compras impulsivas!',
+    description:
+      'Tu estilo es impecable. ¡Pero ojo con las compras impulsivas!',
     gradient: 'from-pink-500/20 to-purple-500/20',
     borderColor: 'border-pink-500/30',
   },
@@ -54,7 +58,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'techie',
     name: 'El Techie',
     emoji: '📱',
-    description: 'Siempre a la vanguardia tecnológica. Gadgets son tu debilidad.',
+    description:
+      'Siempre a la vanguardia tecnológica. Gadgets son tu debilidad.',
     gradient: 'from-blue-500/20 to-cyan-500/20',
     borderColor: 'border-blue-500/30',
   },
@@ -62,7 +67,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'nomad',
     name: 'El Nómada',
     emoji: '✈️',
-    description: 'El mundo es tu oficina. Transporte y viajes dominan tu presupuesto.',
+    description:
+      'El mundo es tu oficina. Transporte y viajes dominan tu presupuesto.',
     gradient: 'from-sky-500/20 to-indigo-500/20',
     borderColor: 'border-sky-500/30',
   },
@@ -70,7 +76,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'subscriber',
     name: 'El Suscriptor',
     emoji: '📺',
-    description: 'Netflix, Spotify, Disney+... Tienes una suscripción para todo.',
+    description:
+      'Netflix, Spotify, Disney+... Tienes una suscripción para todo.',
     gradient: 'from-purple-500/20 to-pink-500/20',
     borderColor: 'border-purple-500/30',
   },
@@ -78,7 +85,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'homebody',
     name: 'El Hogareño',
     emoji: '🏠',
-    description: 'Tu casa es tu castillo. Inviertes en comodidad y servicios del hogar.',
+    description:
+      'Tu casa es tu castillo. Inviertes en comodidad y servicios del hogar.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     borderColor: 'border-amber-500/30',
   },
@@ -86,7 +94,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'entertainer',
     name: 'El Fiestero',
     emoji: '🎉',
-    description: 'La vida es para disfrutarla. Entretenimiento es tu categoría estrella.',
+    description:
+      'La vida es para disfrutarla. Entretenimiento es tu categoría estrella.',
     gradient: 'from-fuchsia-500/20 to-pink-500/20',
     borderColor: 'border-fuchsia-500/30',
   },
@@ -102,7 +111,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'balanced',
     name: 'El Equilibrado',
     emoji: '⚖️',
-    description: 'Ni mucho ni poco. Tienes un balance saludable en tus finanzas.',
+    description:
+      'Ni mucho ni poco. Tienes un balance saludable en tus finanzas.',
     gradient: 'from-cyan-500/20 to-teal-500/20',
     borderColor: 'border-cyan-500/30',
   },
@@ -110,7 +120,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'hustler',
     name: 'El Emprendedor',
     emoji: '💼',
-    description: 'Múltiples fuentes de ingreso. ¡Estás construyendo tu imperio!',
+    description:
+      'Múltiples fuentes de ingreso. ¡Estás construyendo tu imperio!',
     gradient: 'from-yellow-500/20 to-amber-500/20',
     borderColor: 'border-yellow-500/30',
   },
@@ -118,7 +129,8 @@ const ARCHETYPES: Record<string, Archetype> = {
     id: 'newbie',
     name: 'El Nuevo',
     emoji: '🌱',
-    description: 'Apenas empiezas tu viaje financiero. ¡Agrega más transacciones!',
+    description:
+      'Apenas empiezas tu viaje financiero. ¡Agrega más transacciones!',
     gradient: 'from-lime-500/20 to-green-500/20',
     borderColor: 'border-lime-500/30',
   },
@@ -126,18 +138,92 @@ const ARCHETYPES: Record<string, Archetype> = {
 
 // Keywords to detect category types
 const CATEGORY_KEYWORDS = {
-  food: ['comida', 'restaurante', 'delivery', 'uber eats', 'rappi', 'pedidos ya', 'food', 'almuerzo', 'cena', 'desayuno'],
-  fashion: ['ropa', 'zapatos', 'moda', 'shopping', 'tienda', 'zara', 'h&m', 'fashion', 'vestir', 'accesorios'],
-  tech: ['tecnología', 'tech', 'electrónica', 'gadget', 'apple', 'samsung', 'computadora', 'celular', 'gaming'],
-  transport: ['transporte', 'uber', 'taxi', 'gasolina', 'metro', 'bus', 'viaje', 'avión', 'vuelo', 'travel'],
-  subscriptions: ['suscripción', 'suscripciones', 'netflix', 'spotify', 'streaming', 'disney', 'hbo', 'prime'],
-  home: ['hogar', 'casa', 'alquiler', 'servicios', 'luz', 'agua', 'internet', 'gas', 'mantenimiento'],
-  entertainment: ['entretenimiento', 'ocio', 'cine', 'fiesta', 'bar', 'club', 'concierto', 'diversión'],
+  food: [
+    'comida',
+    'restaurante',
+    'delivery',
+    'uber eats',
+    'rappi',
+    'pedidos ya',
+    'food',
+    'almuerzo',
+    'cena',
+    'desayuno',
+  ],
+  fashion: [
+    'ropa',
+    'zapatos',
+    'moda',
+    'shopping',
+    'tienda',
+    'zara',
+    'h&m',
+    'fashion',
+    'vestir',
+    'accesorios',
+  ],
+  tech: [
+    'tecnología',
+    'tech',
+    'electrónica',
+    'gadget',
+    'apple',
+    'samsung',
+    'computadora',
+    'celular',
+    'gaming',
+  ],
+  transport: [
+    'transporte',
+    'uber',
+    'taxi',
+    'gasolina',
+    'metro',
+    'bus',
+    'viaje',
+    'avión',
+    'vuelo',
+    'travel',
+  ],
+  subscriptions: [
+    'suscripción',
+    'suscripciones',
+    'netflix',
+    'spotify',
+    'streaming',
+    'disney',
+    'hbo',
+    'prime',
+  ],
+  home: [
+    'hogar',
+    'casa',
+    'alquiler',
+    'servicios',
+    'luz',
+    'agua',
+    'internet',
+    'gas',
+    'mantenimiento',
+  ],
+  entertainment: [
+    'entretenimiento',
+    'ocio',
+    'cine',
+    'fiesta',
+    'bar',
+    'club',
+    'concierto',
+    'diversión',
+  ],
 };
 
-function matchesCategoryType(categoryName: string, keywords: string[]): boolean {
+function matchesCategoryType(
+  categoryName: string,
+  keywords: string[]
+): boolean {
   const lowerName = categoryName.toLowerCase();
-  return keywords.some(keyword => lowerName.includes(keyword));
+  return keywords.some((keyword) => lowerName.includes(keyword));
 }
 
 export function SpenderPersonality({
@@ -150,14 +236,21 @@ export function SpenderPersonality({
       return ARCHETYPES.newbie!;
     }
 
-    const expenses = transactions.filter(tx => tx.type === 'expense');
-    const incomes = transactions.filter(tx => tx.type === 'income');
+    const expenses = transactions.filter((tx) => tx.type === 'expense');
+    const incomes = transactions.filter((tx) => tx.type === 'income');
 
-    const totalExpenses = expenses.reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
-    const totalIncome = incomes.reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
+    const totalExpenses = expenses.reduce(
+      (sum, tx) => sum + Math.abs(tx.amountCents),
+      0
+    );
+    const totalIncome = incomes.reduce(
+      (sum, tx) => sum + Math.abs(tx.amountCents),
+      0
+    );
 
     // Calculate savings rate
-    const savingsRate = totalIncome > 0 ? (totalIncome - totalExpenses) / totalIncome : 0;
+    const savingsRate =
+      totalIncome > 0 ? (totalIncome - totalExpenses) / totalIncome : 0;
 
     // Calculate spending by category type
     const spendingByType: Record<string, number> = {
@@ -170,13 +263,14 @@ export function SpenderPersonality({
       entertainment: 0,
     };
 
-    expenses.forEach(tx => {
-      const category = categories.find(c => c.id === tx.categoryId);
+    expenses.forEach((tx) => {
+      const category = categories.find((c) => c.id === tx.categoryId);
       const categoryName = category?.name || '';
 
       Object.entries(CATEGORY_KEYWORDS).forEach(([type, keywords]) => {
         if (matchesCategoryType(categoryName, keywords)) {
-          spendingByType[type] = (spendingByType[type] || 0) + Math.abs(tx.amountCents);
+          spendingByType[type] =
+            (spendingByType[type] || 0) + Math.abs(tx.amountCents);
         }
       });
     });
@@ -186,13 +280,19 @@ export function SpenderPersonality({
       .filter(([, amount]) => amount > 0)
       .sort(([, a], [, b]) => b - a)[0];
 
-    const dominantPercentage = dominantType && totalExpenses > 0
-      ? (dominantType[1] / totalExpenses) * 100
-      : 0;
+    const dominantPercentage =
+      dominantType && totalExpenses > 0
+        ? (dominantType[1] / totalExpenses) * 100
+        : 0;
 
     // Check for multiple income sources (hustler)
-    const uniqueIncomeDescriptions = new Set(incomes.map(tx => tx.description.toLowerCase()));
-    if (uniqueIncomeDescriptions.size >= 3 && totalIncome > totalExpenses * 1.5) {
+    const uniqueIncomeDescriptions = new Set(
+      incomes.map((tx) => tx.description.toLowerCase())
+    );
+    if (
+      uniqueIncomeDescriptions.size >= 3 &&
+      totalIncome > totalExpenses * 1.5
+    ) {
       return ARCHETYPES.hustler!;
     }
 
@@ -207,7 +307,8 @@ export function SpenderPersonality({
     }
 
     // Check for minimalist (very few transactions, low spending)
-    if (transactions.length < 10 && totalExpenses < 50000) { // Less than $500
+    if (transactions.length < 10 && totalExpenses < 50000) {
+      // Less than $500
       return ARCHETYPES.minimalist!;
     }
 
@@ -245,7 +346,9 @@ export function SpenderPersonality({
   }, [transactions.length]);
 
   return (
-    <div className={`bg-gradient-to-br ${personality.gradient} rounded-2xl border ${personality.borderColor} p-4 lg:p-5 relative overflow-hidden`}>
+    <div
+      className={`bg-gradient-to-br ${personality.gradient} rounded-2xl border ${personality.borderColor} p-4 lg:p-5 relative overflow-hidden`}
+    >
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-24 h-24 opacity-10 text-6xl flex items-center justify-center">
         {personality.emoji}

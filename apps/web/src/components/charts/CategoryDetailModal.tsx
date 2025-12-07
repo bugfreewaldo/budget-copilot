@@ -42,7 +42,8 @@ export function CategoryDetailModal({
     );
     const average = total / categoryTransactions.length;
     const largest = categoryTransactions.reduce(
-      (max, tx) => (Math.abs(tx.amountCents) > Math.abs(max.amountCents) ? tx : max),
+      (max, tx) =>
+        Math.abs(tx.amountCents) > Math.abs(max.amountCents) ? tx : max,
       categoryTransactions[0]!
     );
 
@@ -269,13 +270,19 @@ export function CategoryDetailModal({
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                 <p className="text-xs text-gray-400 mb-1">Total Gastado</p>
                 <p className="text-xl font-bold text-white">
-                  ${insights.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  $
+                  {insights.total.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                  })}
                 </p>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                 <p className="text-xs text-gray-400 mb-1">Promedio</p>
                 <p className="text-xl font-bold text-cyan-400">
-                  ${insights.average.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  $
+                  {insights.average.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                  })}
                 </p>
               </div>
               {insights.largest && (
@@ -286,7 +293,10 @@ export function CategoryDetailModal({
                       {insights.largest.description}
                     </p>
                     <p className="text-lg font-bold text-purple-400 ml-2">
-                      ${insights.largest.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      $
+                      {insights.largest.amount.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -339,7 +349,11 @@ export function CategoryDetailModal({
                       </p>
                     </div>
                     <p className="text-sm font-medium text-red-400 ml-3">
-                      -${(Math.abs(tx.amountCents) / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      -$
+                      {(Math.abs(tx.amountCents) / 100).toLocaleString(
+                        'en-US',
+                        { minimumFractionDigits: 2 }
+                      )}
                     </p>
                   </div>
                 ))}

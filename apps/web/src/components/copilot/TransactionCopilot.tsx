@@ -65,15 +65,21 @@ export function TransactionCopilot({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   // Track selected category per transaction: { [fileId_txId]: categoryId }
-  const [selectedCategories, setSelectedCategories] = useState<Record<string, string>>({});
+  const [selectedCategories, setSelectedCategories] = useState<
+    Record<string, string>
+  >({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load accounts and categories on mount
   useEffect(() => {
-    getAccounts().then(setAccounts).catch(() => setAccounts([]));
-    getCategories().then(setCategories).catch(() => setCategories([]));
+    getAccounts()
+      .then(setAccounts)
+      .catch(() => setAccounts([]));
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
   }, []);
 
   // Auto-scroll to bottom when new messages appear
@@ -320,7 +326,9 @@ export function TransactionCopilot({
                   ...msg.parsedFile!,
                   status: 'error',
                   error:
-                    error instanceof Error ? error.message : 'Error desconocido',
+                    error instanceof Error
+                      ? error.message
+                      : 'Error desconocido',
                 },
               }
             : msg
@@ -441,7 +449,11 @@ export function TransactionCopilot({
   };
 
   // Handle category selection for a transaction
-  const handleCategorySelect = (fileId: string, txId: string, categoryId: string) => {
+  const handleCategorySelect = (
+    fileId: string,
+    txId: string,
+    categoryId: string
+  ) => {
     setSelectedCategories((prev) => ({
       ...prev,
       [`${fileId}_${txId}`]: categoryId,
@@ -567,120 +579,143 @@ export function TransactionCopilot({
                   )}
 
                 {/* Show parsed file data with import options */}
-                {msg.parsedFile && msg.parsedFile.status === 'ready' && msg.parsedFile.summary && (
-                  <div className="mt-2 pt-2 border-t border-gray-700/50">
-                    {isReceipt(msg.parsedFile.summary.summary) ? (
-                      // Receipt - single import button
-                      <button
-                        onClick={() =>
-                          handleImportFromFile(
-                            msg.id,
-                            msg.parsedFile!.fileId,
-                            ['main']
-                          )
-                        }
-                        className="w-full text-xs px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
-                      >
-                        ✓ Importar gasto
-                      </button>
-                    ) : isBankStatement(msg.parsedFile.summary.summary) ? (
-                      // Bank statement - list transactions with category selection
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-400 mb-2">
-                          Selecciona categoría e importa:
-                        </p>
-                        <div className="max-h-64 overflow-y-auto space-y-2">
-                          {msg.parsedFile.summary.summary.transactions.map((tx) => {
-                            const fileId = msg.parsedFile!.fileId;
-                            const selectedCatId = selectedCategories[`${fileId}_${tx.id}`];
-                            const selectedCat = categories.find(c => c.id === selectedCatId);
+                {msg.parsedFile &&
+                  msg.parsedFile.status === 'ready' &&
+                  msg.parsedFile.summary && (
+                    <div className="mt-2 pt-2 border-t border-gray-700/50">
+                      {isReceipt(msg.parsedFile.summary.summary) ? (
+                        // Receipt - single import button
+                        <button
+                          onClick={() =>
+                            handleImportFromFile(
+                              msg.id,
+                              msg.parsedFile!.fileId,
+                              ['main']
+                            )
+                          }
+                          className="w-full text-xs px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
+                        >
+                          ✓ Importar gasto
+                        </button>
+                      ) : isBankStatement(msg.parsedFile.summary.summary) ? (
+                        // Bank statement - list transactions with category selection
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-400 mb-2">
+                            Selecciona categoría e importa:
+                          </p>
+                          <div className="max-h-64 overflow-y-auto space-y-2">
+                            {msg.parsedFile.summary.summary.transactions.map(
+                              (tx) => {
+                                const fileId = msg.parsedFile!.fileId;
+                                const selectedCatId =
+                                  selectedCategories[`${fileId}_${tx.id}`];
+                                const selectedCat = categories.find(
+                                  (c) => c.id === selectedCatId
+                                );
 
-                            return (
-                              <div
-                                key={tx.id}
-                                className="bg-gray-700/50 rounded-lg p-2 space-y-1.5"
-                              >
-                                {/* Transaction info */}
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="truncate flex-1 text-left font-medium">
-                                    {tx.description}
-                                  </span>
-                                  <span
-                                    className={`ml-2 font-semibold ${
-                                      tx.isCredit
-                                        ? 'text-green-400'
-                                        : 'text-red-400'
-                                    }`}
+                                return (
+                                  <div
+                                    key={tx.id}
+                                    className="bg-gray-700/50 rounded-lg p-2 space-y-1.5"
                                   >
-                                    {tx.isCredit ? '+' : '-'}
-                                    {formatCents(Math.abs(tx.amount) * 100)}
-                                  </span>
-                                </div>
+                                    {/* Transaction info */}
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="truncate flex-1 text-left font-medium">
+                                        {tx.description}
+                                      </span>
+                                      <span
+                                        className={`ml-2 font-semibold ${
+                                          tx.isCredit
+                                            ? 'text-green-400'
+                                            : 'text-red-400'
+                                        }`}
+                                      >
+                                        {tx.isCredit ? '+' : '-'}
+                                        {formatCents(Math.abs(tx.amount) * 100)}
+                                      </span>
+                                    </div>
 
-                                {/* Category selector + Import button */}
-                                <div className="flex items-center gap-1.5">
-                                  <select
-                                    value={selectedCatId || ''}
-                                    onChange={(e) => handleCategorySelect(fileId, tx.id, e.target.value)}
-                                    className="flex-1 text-xs px-2 py-1 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-cyan-500"
-                                  >
-                                    <option value="">Sin categoría</option>
-                                    {categories.map((cat) => (
-                                      <option key={cat.id} value={cat.id}>
-                                        {cat.emoji} {cat.name}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <button
-                                    onClick={() =>
-                                      handleImportFromFile(
-                                        msg.id,
-                                        fileId,
-                                        [tx.id]
-                                      )
-                                    }
-                                    className="text-xs px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded transition-colors whitespace-nowrap"
-                                  >
-                                    {selectedCat ? `${selectedCat.emoji}` : '+'} Importar
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                    {/* Category selector + Import button */}
+                                    <div className="flex items-center gap-1.5">
+                                      <select
+                                        value={selectedCatId || ''}
+                                        onChange={(e) =>
+                                          handleCategorySelect(
+                                            fileId,
+                                            tx.id,
+                                            e.target.value
+                                          )
+                                        }
+                                        className="flex-1 text-xs px-2 py-1 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-cyan-500"
+                                      >
+                                        <option value="">Sin categoría</option>
+                                        {categories.map((cat) => (
+                                          <option key={cat.id} value={cat.id}>
+                                            {cat.emoji} {cat.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        onClick={() =>
+                                          handleImportFromFile(msg.id, fileId, [
+                                            tx.id,
+                                          ])
+                                        }
+                                        className="text-xs px-2 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded transition-colors whitespace-nowrap"
+                                      >
+                                        {selectedCat
+                                          ? `${selectedCat.emoji}`
+                                          : '+'}{' '}
+                                        Importar
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                          {msg.parsedFile.summary.summary.transactions.length >
+                            1 && (
+                            <button
+                              onClick={() => {
+                                const bankStmt = msg.parsedFile!.summary!
+                                  .summary as ParsedBankStatement;
+                                handleImportFromFile(
+                                  msg.id,
+                                  msg.parsedFile!.fileId,
+                                  bankStmt.transactions.map((t) => t.id)
+                                );
+                              }}
+                              className="w-full text-xs px-3 py-2 mt-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition-colors"
+                            >
+                              Importar todas (
+                              {
+                                msg.parsedFile.summary.summary.transactions
+                                  .length
+                              }
+                              )
+                            </button>
+                          )}
                         </div>
-                        {msg.parsedFile.summary.summary.transactions.length > 1 && (
-                          <button
-                            onClick={() => {
-                              const bankStmt = msg.parsedFile!.summary!.summary as ParsedBankStatement;
-                              handleImportFromFile(
-                                msg.id,
-                                msg.parsedFile!.fileId,
-                                bankStmt.transactions.map((t) => t.id)
-                              );
-                            }}
-                            className="w-full text-xs px-3 py-2 mt-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition-colors"
-                          >
-                            Importar todas ({msg.parsedFile.summary.summary.transactions.length})
-                          </button>
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                      ) : null}
+                    </div>
+                  )}
 
                 {/* Show loading state for file processing */}
-                {msg.parsedFile && (msg.parsedFile.status === 'uploading' || msg.parsedFile.status === 'processing') && (
-                  <div className="mt-2 pt-2 border-t border-gray-700/50">
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                      <span>
-                        {msg.parsedFile.status === 'uploading'
-                          ? 'Subiendo...'
-                          : 'Analizando...'}
-                      </span>
+                {msg.parsedFile &&
+                  (msg.parsedFile.status === 'uploading' ||
+                    msg.parsedFile.status === 'processing') && (
+                    <div className="mt-2 pt-2 border-t border-gray-700/50">
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                        <span>
+                          {msg.parsedFile.status === 'uploading'
+                            ? 'Subiendo...'
+                            : 'Analizando...'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
           ))}

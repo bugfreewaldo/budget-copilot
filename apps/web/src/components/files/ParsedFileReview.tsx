@@ -170,9 +170,7 @@ export function ParsedFileReview({
             ))}
           </div>
         </div>
-        <p className="text-gray-400 text-center mt-4">
-          Procesando archivo...
-        </p>
+        <p className="text-gray-400 text-center mt-4">Procesando archivo...</p>
       </div>
     );
   }
@@ -213,7 +211,11 @@ export function ParsedFileReview({
           {filename}
         </h3>
         <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
-          {summary.documentType === 'receipt' ? 'Recibo' : summary.documentType === 'invoice' ? 'Factura' : 'Estado de cuenta'}
+          {summary.documentType === 'receipt'
+            ? 'Recibo'
+            : summary.documentType === 'invoice'
+              ? 'Factura'
+              : 'Estado de cuenta'}
         </span>
       </div>
 
@@ -239,7 +241,8 @@ export function ParsedFileReview({
           )}
           {summary.summary.period && (
             <p className="text-gray-400 text-sm">
-              Período: {summary.summary.period.from} - {summary.summary.period.to}
+              Período: {summary.summary.period.from} -{' '}
+              {summary.summary.period.to}
             </p>
           )}
           <p className="text-gray-400 text-sm mt-1">
@@ -249,63 +252,65 @@ export function ParsedFileReview({
       ) : null}
 
       {/* Transactions list */}
-      {summaryIsBankStatement && isBankStatement(summary.summary) && summary.summary.transactions.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <button
-              onClick={toggleAll}
-              disabled={allImported}
-              className="text-sm text-cyan-400 hover:text-cyan-300 disabled:text-gray-600"
-            >
-              {selectedItems.size === allItemIds.length
-                ? 'Deseleccionar todo'
-                : 'Seleccionar todo'}
-            </button>
-          </div>
-          <div className="max-h-64 overflow-y-auto space-y-1">
-            {summary.summary.transactions.map((tx) => {
-              const isImported = summary.importedItemIds.includes(tx.id);
-              return (
-                <label
-                  key={tx.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                    isImported
-                      ? 'bg-gray-800/50 opacity-50'
-                      : selectedItems.has(tx.id)
-                      ? 'bg-cyan-500/10 border border-cyan-500/30'
-                      : 'bg-gray-800 hover:bg-gray-700'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.has(tx.id)}
-                    onChange={() => toggleItem(tx.id)}
-                    disabled={isImported}
-                    className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm truncate">
-                      {tx.description}
-                    </p>
-                    <p className="text-gray-500 text-xs">{tx.date || '-'}</p>
-                  </div>
-                  <span
-                    className={`font-medium ${
-                      tx.isCredit ? 'text-green-400' : 'text-red-400'
+      {summaryIsBankStatement &&
+        isBankStatement(summary.summary) &&
+        summary.summary.transactions.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={toggleAll}
+                disabled={allImported}
+                className="text-sm text-cyan-400 hover:text-cyan-300 disabled:text-gray-600"
+              >
+                {selectedItems.size === allItemIds.length
+                  ? 'Deseleccionar todo'
+                  : 'Seleccionar todo'}
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {summary.summary.transactions.map((tx) => {
+                const isImported = summary.importedItemIds.includes(tx.id);
+                return (
+                  <label
+                    key={tx.id}
+                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                      isImported
+                        ? 'bg-gray-800/50 opacity-50'
+                        : selectedItems.has(tx.id)
+                          ? 'bg-cyan-500/10 border border-cyan-500/30'
+                          : 'bg-gray-800 hover:bg-gray-700'
                     }`}
                   >
-                    {tx.isCredit ? '+' : '-'}
-                    {formatCents(Math.abs(tx.amount) * 100)}
-                  </span>
-                  {isImported && (
-                    <span className="text-xs text-gray-500">Importado</span>
-                  )}
-                </label>
-              );
-            })}
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.has(tx.id)}
+                      onChange={() => toggleItem(tx.id)}
+                      disabled={isImported}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm truncate">
+                        {tx.description}
+                      </p>
+                      <p className="text-gray-500 text-xs">{tx.date || '-'}</p>
+                    </div>
+                    <span
+                      className={`font-medium ${
+                        tx.isCredit ? 'text-green-400' : 'text-red-400'
+                      }`}
+                    >
+                      {tx.isCredit ? '+' : '-'}
+                      {formatCents(Math.abs(tx.amount) * 100)}
+                    </span>
+                    {isImported && (
+                      <span className="text-xs text-gray-500">Importado</span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Receipt single item */}
       {summaryIsReceipt && isReceipt(summary.summary) && !allImported && (
@@ -370,7 +375,9 @@ export function ParsedFileReview({
         {!allImported && (
           <button
             onClick={handleImport}
-            disabled={selectedItems.size === 0 || importing || !selectedAccountId}
+            disabled={
+              selectedItems.size === 0 || importing || !selectedAccountId
+            }
             className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {importing

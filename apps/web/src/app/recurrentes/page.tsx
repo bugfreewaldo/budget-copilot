@@ -434,7 +434,9 @@ export default function RecurrentesPage() {
               const emergencyFund3Months = monthlyExpenses * 3;
               const emergencyFund6Months = monthlyExpenses * 6;
               const hasDebt = debtSummary && debtSummary.count > 0;
-              const totalDebt = hasDebt ? debtSummary.totalBalanceCents / 100 : 0;
+              const totalDebt = hasDebt
+                ? debtSummary.totalBalanceCents / 100
+                : 0;
               const minPayment = hasDebt
                 ? debtSummary.totalMinPaymentCents / 100
                 : 0;
@@ -533,13 +535,17 @@ export default function RecurrentesPage() {
                       </p>
                       <div className="grid grid-cols-2 gap-3 mt-2">
                         <div className="p-3 bg-gray-900/50 rounded-lg">
-                          <p className="text-xs text-gray-400">Minimo (3 meses)</p>
+                          <p className="text-xs text-gray-400">
+                            Minimo (3 meses)
+                          </p>
                           <p className="text-lg font-bold text-blue-400">
                             {formatCurrency(emergencyFund3Months * 100)}
                           </p>
                         </div>
                         <div className="p-3 bg-gray-900/50 rounded-lg">
-                          <p className="text-xs text-gray-400">Ideal (6 meses)</p>
+                          <p className="text-xs text-gray-400">
+                            Ideal (6 meses)
+                          </p>
                           <p className="text-lg font-bold text-cyan-400">
                             {formatCurrency(emergencyFund6Months * 100)}
                           </p>
@@ -556,14 +562,18 @@ export default function RecurrentesPage() {
                         <li>
                           Alcanzas el minimo en{' '}
                           <span className="text-white">
-                            {Math.ceil(emergencyFund3Months / allocatedEmergency)}{' '}
+                            {Math.ceil(
+                              emergencyFund3Months / allocatedEmergency
+                            )}{' '}
                             meses
                           </span>
                         </li>
                         <li>
                           Alcanzas el ideal en{' '}
                           <span className="text-white">
-                            {Math.ceil(emergencyFund6Months / allocatedEmergency)}{' '}
+                            {Math.ceil(
+                              emergencyFund6Months / allocatedEmergency
+                            )}{' '}
                             meses
                           </span>
                         </li>
@@ -588,9 +598,12 @@ export default function RecurrentesPage() {
                         <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
                           <span className="text-xl">🏦</span>
                           <div>
-                            <p className="text-white font-medium">CETES / Bonos</p>
+                            <p className="text-white font-medium">
+                              CETES / Bonos
+                            </p>
                             <p className="text-xs text-gray-400">
-                              Bajo riesgo, rendimiento fijo, ideal para principiantes
+                              Bajo riesgo, rendimiento fijo, ideal para
+                              principiantes
                             </p>
                           </div>
                         </div>

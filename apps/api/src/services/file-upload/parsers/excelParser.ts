@@ -182,7 +182,10 @@ export async function parseExcelDocument(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error parsing Excel/CSV',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unknown error parsing Excel/CSV',
     };
   }
 }
@@ -206,7 +209,10 @@ function detectColumnMapping(headers: string[]): ColumnMapping {
     const normalized = header.toLowerCase().trim();
 
     // Check for date column
-    if (!mapping.date && DATE_COLUMN_NAMES.some((n) => normalized.includes(n))) {
+    if (
+      !mapping.date &&
+      DATE_COLUMN_NAMES.some((n) => normalized.includes(n))
+    ) {
       mapping.date = header;
       continue;
     }
@@ -221,19 +227,28 @@ function detectColumnMapping(headers: string[]): ColumnMapping {
     }
 
     // Check for combined amount column
-    if (!mapping.amount && AMOUNT_COLUMN_NAMES.some((n) => normalized.includes(n))) {
+    if (
+      !mapping.amount &&
+      AMOUNT_COLUMN_NAMES.some((n) => normalized.includes(n))
+    ) {
       mapping.amount = header;
       continue;
     }
 
     // Check for debit column
-    if (!mapping.debit && DEBIT_COLUMN_NAMES.some((n) => normalized.includes(n))) {
+    if (
+      !mapping.debit &&
+      DEBIT_COLUMN_NAMES.some((n) => normalized.includes(n))
+    ) {
       mapping.debit = header;
       continue;
     }
 
     // Check for credit column
-    if (!mapping.credit && CREDIT_COLUMN_NAMES.some((n) => normalized.includes(n))) {
+    if (
+      !mapping.credit &&
+      CREDIT_COLUMN_NAMES.some((n) => normalized.includes(n))
+    ) {
       mapping.credit = header;
       continue;
     }

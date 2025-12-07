@@ -164,82 +164,86 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/debts
    * Create a new debt
    */
-  fastify.post('/debts', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      const validation = fastify.safeValidate(createDebtSchema, request.body);
+  fastify.post(
+    '/debts',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const validation = fastify.safeValidate(createDebtSchema, request.body);
 
-      if (!validation.success) {
-        return reply.badRequest('Invalid request body', validation.errors);
-      }
-
-      const data = validation.data;
-      const db = await getDb();
-      const userId = request.user!.id;
-
-      const id = nanoid();
-      const now = Date.now();
-
-      // Calculate projections
-      const monthlyPayment = data.minimum_payment_cents || 0;
-      const projections = calculateDebtProjections(
-        data.current_balance_cents,
-        data.apr_percent,
-        monthlyPayment
-      );
-
-      const dangerScore = calculateDangerScore(
-        data.current_balance_cents,
-        data.apr_percent,
-        monthlyPayment,
-        data.due_day || null
-      );
-
-      // Calculate next due date
-      let nextDueDate: string | null = null;
-      if (data.due_day) {
-        const today = new Date();
-        const dueThisMonth = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          data.due_day
-        );
-        if (dueThisMonth <= today) {
-          dueThisMonth.setMonth(dueThisMonth.getMonth() + 1);
+        if (!validation.success) {
+          return reply.badRequest('Invalid request body', validation.errors);
         }
-        nextDueDate = dueThisMonth.toISOString().split('T')[0];
+
+        const data = validation.data;
+        const db = await getDb();
+        const userId = request.user!.id;
+
+        const id = nanoid();
+        const now = Date.now();
+
+        // Calculate projections
+        const monthlyPayment = data.minimum_payment_cents || 0;
+        const projections = calculateDebtProjections(
+          data.current_balance_cents,
+          data.apr_percent,
+          monthlyPayment
+        );
+
+        const dangerScore = calculateDangerScore(
+          data.current_balance_cents,
+          data.apr_percent,
+          monthlyPayment,
+          data.due_day || null
+        );
+
+        // Calculate next due date
+        let nextDueDate: string | null = null;
+        if (data.due_day) {
+          const today = new Date();
+          const dueThisMonth = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            data.due_day
+          );
+          if (dueThisMonth <= today) {
+            dueThisMonth.setMonth(dueThisMonth.getMonth() + 1);
+          }
+          nextDueDate = dueThisMonth.toISOString().split('T')[0];
+        }
+
+        await db.insert(debts).values({
+          id,
+          userId,
+          name: data.name,
+          type: data.type,
+          accountId: data.account_id || null,
+          originalBalanceCents: data.original_balance_cents,
+          currentBalanceCents: data.current_balance_cents,
+          aprPercent: data.apr_percent,
+          minimumPaymentCents: data.minimum_payment_cents || null,
+          dueDay: data.due_day || null,
+          nextDueDate,
+          status: 'active',
+          deathDate: projections.deathDate,
+          totalInterestProjectedCents: projections.totalInterestCents,
+          dangerScore,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        const [debt] = await db.select().from(debts).where(eq(debts.id, id));
+
+        reply.code(201);
+        const responseBody = { data: debt };
+        fastify.cacheIdempotentResponse(request, reply, responseBody);
+        return reply.send(responseBody);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to create debt');
+        return reply.internalError();
       }
-
-      await db.insert(debts).values({
-        id,
-        userId,
-        name: data.name,
-        type: data.type,
-        accountId: data.account_id || null,
-        originalBalanceCents: data.original_balance_cents,
-        currentBalanceCents: data.current_balance_cents,
-        aprPercent: data.apr_percent,
-        minimumPaymentCents: data.minimum_payment_cents || null,
-        dueDay: data.due_day || null,
-        nextDueDate,
-        status: 'active',
-        deathDate: projections.deathDate,
-        totalInterestProjectedCents: projections.totalInterestCents,
-        dangerScore,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      const [debt] = await db.select().from(debts).where(eq(debts.id, id));
-
-      reply.code(201);
-      const responseBody = { data: debt };
-      fastify.cacheIdempotentResponse(request, reply, responseBody);
-      return reply.send(responseBody);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to create debt');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * GET /v1/debts
@@ -359,7 +363,9 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         const [debt] = await db
           .select()
           .from(debts)
-          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
+          .where(
+            and(eq(debts.id, request.params.id), eq(debts.userId, userId))
+          );
 
         if (!debt) {
           return reply.notFound('Debt', request.params.id);
@@ -417,7 +423,9 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(debts)
-          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
+          .where(
+            and(eq(debts.id, request.params.id), eq(debts.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -511,7 +519,9 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(debts)
-          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
+          .where(
+            and(eq(debts.id, request.params.id), eq(debts.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -614,7 +624,9 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(debts)
-          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
+          .where(
+            and(eq(debts.id, request.params.id), eq(debts.userId, userId))
+          );
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -641,86 +653,97 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/debts/strategies
    * Compare payoff strategies (avalanche vs snowball)
    */
-  fastify.get('/debts/strategies', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      const db = await getDb();
-      const userId = request.user!.id;
-      const activeDebts = await db
-        .select()
-        .from(debts)
-        .where(and(eq(debts.userId, userId), eq(debts.status, 'active')));
+  fastify.get(
+    '/debts/strategies',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const db = await getDb();
+        const userId = request.user!.id;
+        const activeDebts = await db
+          .select()
+          .from(debts)
+          .where(and(eq(debts.userId, userId), eq(debts.status, 'active')));
 
-      if (activeDebts.length === 0) {
+        if (activeDebts.length === 0) {
+          return reply.send({
+            data: {
+              avalanche: {
+                totalInterestCents: 0,
+                monthsToPayoff: 0,
+                order: [],
+              },
+              snowball: { totalInterestCents: 0, monthsToPayoff: 0, order: [] },
+            },
+          });
+        }
+
+        // Calculate total minimum payment (reserved for future use)
+        const _totalMinPayment = activeDebts.reduce(
+          (sum, d) => sum + (d.minimumPaymentCents || 0),
+          0
+        );
+
+        // Avalanche: Pay highest APR first
+        const avalancheOrder = [...activeDebts].sort(
+          (a, b) => b.aprPercent - a.aprPercent
+        );
+
+        // Snowball: Pay smallest balance first
+        const snowballOrder = [...activeDebts].sort(
+          (a, b) => a.currentBalanceCents - b.currentBalanceCents
+        );
+
+        // Simplified calculation (real implementation would simulate month by month)
+        const avalancheStats = {
+          totalInterestCents: activeDebts.reduce(
+            (sum, d) => sum + (d.totalInterestProjectedCents || 0),
+            0
+          ),
+          monthsToPayoff: Math.max(
+            ...activeDebts.map((d) => {
+              if (!d.minimumPaymentCents || d.minimumPaymentCents === 0)
+                return 0;
+              return Math.ceil(d.currentBalanceCents / d.minimumPaymentCents);
+            })
+          ),
+          order: avalancheOrder.map((d) => ({
+            id: d.id,
+            name: d.name,
+            balance: d.currentBalanceCents,
+            apr: d.aprPercent,
+          })),
+        };
+
+        const snowballStats = {
+          totalInterestCents: Math.floor(
+            avalancheStats.totalInterestCents * 1.1
+          ), // Snowball typically pays ~10% more interest
+          monthsToPayoff: avalancheStats.monthsToPayoff + 2, // Usually takes a bit longer
+          order: snowballOrder.map((d) => ({
+            id: d.id,
+            name: d.name,
+            balance: d.currentBalanceCents,
+            apr: d.aprPercent,
+          })),
+        };
+
         return reply.send({
           data: {
-            avalanche: { totalInterestCents: 0, monthsToPayoff: 0, order: [] },
-            snowball: { totalInterestCents: 0, monthsToPayoff: 0, order: [] },
+            avalanche: avalancheStats,
+            snowball: snowballStats,
+            recommendation: 'avalanche', // Mathematically optimal
+            savingsWithAvalanche:
+              snowballStats.totalInterestCents -
+              avalancheStats.totalInterestCents,
           },
         });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to calculate strategies');
+        return reply.internalError();
       }
-
-      // Calculate total minimum payment (reserved for future use)
-      const _totalMinPayment = activeDebts.reduce(
-        (sum, d) => sum + (d.minimumPaymentCents || 0),
-        0
-      );
-
-      // Avalanche: Pay highest APR first
-      const avalancheOrder = [...activeDebts].sort(
-        (a, b) => b.aprPercent - a.aprPercent
-      );
-
-      // Snowball: Pay smallest balance first
-      const snowballOrder = [...activeDebts].sort(
-        (a, b) => a.currentBalanceCents - b.currentBalanceCents
-      );
-
-      // Simplified calculation (real implementation would simulate month by month)
-      const avalancheStats = {
-        totalInterestCents: activeDebts.reduce(
-          (sum, d) => sum + (d.totalInterestProjectedCents || 0),
-          0
-        ),
-        monthsToPayoff: Math.max(
-          ...activeDebts.map((d) => {
-            if (!d.minimumPaymentCents || d.minimumPaymentCents === 0) return 0;
-            return Math.ceil(d.currentBalanceCents / d.minimumPaymentCents);
-          })
-        ),
-        order: avalancheOrder.map((d) => ({
-          id: d.id,
-          name: d.name,
-          balance: d.currentBalanceCents,
-          apr: d.aprPercent,
-        })),
-      };
-
-      const snowballStats = {
-        totalInterestCents: Math.floor(avalancheStats.totalInterestCents * 1.1), // Snowball typically pays ~10% more interest
-        monthsToPayoff: avalancheStats.monthsToPayoff + 2, // Usually takes a bit longer
-        order: snowballOrder.map((d) => ({
-          id: d.id,
-          name: d.name,
-          balance: d.currentBalanceCents,
-          apr: d.aprPercent,
-        })),
-      };
-
-      return reply.send({
-        data: {
-          avalanche: avalancheStats,
-          snowball: snowballStats,
-          recommendation: 'avalanche', // Mathematically optimal
-          savingsWithAvalanche:
-            snowballStats.totalInterestCents -
-            avalancheStats.totalInterestCents,
-        },
-      });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to calculate strategies');
-      return reply.internalError();
     }
-  });
+  );
 };
 
 export default debtsRoutes;

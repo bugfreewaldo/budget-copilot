@@ -9,7 +9,11 @@
 // Document Types
 // ============================================================================
 
-export type DocumentType = 'receipt' | 'invoice' | 'bank_statement' | 'excel_table';
+export type DocumentType =
+  | 'receipt'
+  | 'invoice'
+  | 'bank_statement'
+  | 'excel_table';
 
 // ============================================================================
 // Parsed Transaction Row
@@ -88,13 +92,17 @@ export type ParsedSummary = ParsedReceipt | ParsedBankStatement;
  * Type guard to check if a parsed summary is a receipt/invoice
  */
 export function isReceipt(summary: ParsedSummary): summary is ParsedReceipt {
-  return summary.documentType === 'receipt' || summary.documentType === 'invoice';
+  return (
+    summary.documentType === 'receipt' || summary.documentType === 'invoice'
+  );
 }
 
 /**
  * Type guard to check if a parsed summary is a bank statement
  */
-export function isBankStatement(summary: ParsedSummary): summary is ParsedBankStatement {
+export function isBankStatement(
+  summary: ParsedSummary
+): summary is ParsedBankStatement {
   return summary.documentType === 'bank_statement';
 }
 
@@ -110,9 +118,11 @@ export function validateParsedSummary(data: unknown): data is ParsedSummary {
   if (!obj.currency || typeof obj.currency !== 'string') return false;
 
   if (obj.documentType === 'receipt' || obj.documentType === 'invoice') {
-    if (!obj.mainTransaction || typeof obj.mainTransaction !== 'object') return false;
+    if (!obj.mainTransaction || typeof obj.mainTransaction !== 'object')
+      return false;
     const mt = obj.mainTransaction as Record<string, unknown>;
-    if (typeof mt.amount !== 'number' || !Number.isFinite(mt.amount)) return false;
+    if (typeof mt.amount !== 'number' || !Number.isFinite(mt.amount))
+      return false;
     if (typeof mt.merchant !== 'string') return false;
     if (typeof mt.date !== 'string') return false;
     return true;
@@ -124,7 +134,8 @@ export function validateParsedSummary(data: unknown): data is ParsedSummary {
       if (typeof tx !== 'object' || tx === null) return false;
       const row = tx as Record<string, unknown>;
       if (typeof row.id !== 'string') return false;
-      if (typeof row.amount !== 'number' || !Number.isFinite(row.amount)) return false;
+      if (typeof row.amount !== 'number' || !Number.isFinite(row.amount))
+        return false;
       if (typeof row.description !== 'string') return false;
     }
     return true;
@@ -159,7 +170,12 @@ export const FILE_UPLOAD_CONFIG = {
   ] as const,
 
   /** MIME types that are images */
-  imageMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'] as const,
+  imageMimeTypes: [
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+  ] as const,
 
   /** MIME types that are PDFs */
   pdfMimeTypes: ['application/pdf'] as const,

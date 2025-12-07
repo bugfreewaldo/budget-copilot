@@ -46,9 +46,9 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       request.log.error({ error }, 'Failed to list files');
-      return reply.status(500).send(
-        createErrorResponse('DB_ERROR', 'Failed to retrieve files')
-      );
+      return reply
+        .status(500)
+        .send(createErrorResponse('DB_ERROR', 'Failed to retrieve files'));
     }
   });
 
@@ -80,46 +80,54 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!file) {
-          return reply.status(404).send(
-            createErrorResponse('NOT_FOUND', 'File not found')
-          );
+          return reply
+            .status(404)
+            .send(createErrorResponse('NOT_FOUND', 'File not found'));
         }
 
         // Check file status
         if (file.status === 'processing') {
-          return reply.status(404).send(
-            createErrorResponse(
-              'PROCESSING',
-              'File is still being processed. Please try again later.'
-            )
-          );
+          return reply
+            .status(404)
+            .send(
+              createErrorResponse(
+                'PROCESSING',
+                'File is still being processed. Please try again later.'
+              )
+            );
         }
 
         if (file.status === 'failed') {
-          return reply.status(404).send(
-            createErrorResponse(
-              'PROCESSING_FAILED',
-              'File processing failed. Please try uploading again.'
-            )
-          );
+          return reply
+            .status(404)
+            .send(
+              createErrorResponse(
+                'PROCESSING_FAILED',
+                'File processing failed. Please try uploading again.'
+              )
+            );
         }
 
         if (file.status === 'stored') {
-          return reply.status(404).send(
-            createErrorResponse(
-              'NOT_PROCESSED',
-              'File has not been processed yet.'
-            )
-          );
+          return reply
+            .status(404)
+            .send(
+              createErrorResponse(
+                'NOT_PROCESSED',
+                'File has not been processed yet.'
+              )
+            );
         }
 
         // Get the latest summary
         const summary = await filesRepo.getLatestSummaryForFile(db, fileId);
 
         if (!summary) {
-          return reply.status(404).send(
-            createErrorResponse('NOT_FOUND', 'No parsed summary available')
-          );
+          return reply
+            .status(404)
+            .send(
+              createErrorResponse('NOT_FOUND', 'No parsed summary available')
+            );
         }
 
         // Parse the JSON safely
@@ -128,9 +136,11 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
           parsedSummary = JSON.parse(summary.summaryJson);
         } catch {
           request.log.error({ fileId }, 'Corrupted summary JSON');
-          return reply.status(500).send(
-            createErrorResponse('DATA_ERROR', 'Summary data is corrupted')
-          );
+          return reply
+            .status(500)
+            .send(
+              createErrorResponse('DATA_ERROR', 'Summary data is corrupted')
+            );
         }
 
         // Get already imported items
@@ -138,7 +148,9 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
           db,
           fileId
         );
-        const importedItemIds = new Set(importedItems.map((i) => i.parsedItemId));
+        const importedItemIds = new Set(
+          importedItems.map((i) => i.parsedItemId)
+        );
 
         return reply.status(200).send({
           documentType: summary.documentType,
@@ -148,9 +160,11 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
         });
       } catch (error) {
         request.log.error({ error }, 'Failed to get file summary');
-        return reply.status(500).send(
-          createErrorResponse('DB_ERROR', 'Failed to retrieve file summary')
-        );
+        return reply
+          .status(500)
+          .send(
+            createErrorResponse('DB_ERROR', 'Failed to retrieve file summary')
+          );
       }
     }
   );
@@ -189,26 +203,30 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
         );
 
         if (!file) {
-          return reply.status(404).send(
-            createErrorResponse('NOT_FOUND', 'File not found')
-          );
+          return reply
+            .status(404)
+            .send(createErrorResponse('NOT_FOUND', 'File not found'));
         }
 
         if (file.status !== 'processed') {
-          return reply.status(400).send(
-            createErrorResponse(
-              'NOT_PROCESSED',
-              'File must be successfully processed before importing'
-            )
-          );
+          return reply
+            .status(400)
+            .send(
+              createErrorResponse(
+                'NOT_PROCESSED',
+                'File must be successfully processed before importing'
+              )
+            );
         }
 
         // Get the summary
         const summary = await filesRepo.getLatestSummaryForFile(db, fileId);
         if (!summary) {
-          return reply.status(404).send(
-            createErrorResponse('NOT_FOUND', 'No parsed summary available')
-          );
+          return reply
+            .status(404)
+            .send(
+              createErrorResponse('NOT_FOUND', 'No parsed summary available')
+            );
         }
 
         // Parse the summary
@@ -216,9 +234,11 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
         try {
           parsedSummary = JSON.parse(summary.summaryJson);
         } catch {
-          return reply.status(500).send(
-            createErrorResponse('DATA_ERROR', 'Summary data is corrupted')
-          );
+          return reply
+            .status(500)
+            .send(
+              createErrorResponse('DATA_ERROR', 'Summary data is corrupted')
+            );
         }
 
         // Import the requested items
@@ -267,11 +287,15 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
           const amountCents = Math.round(Math.abs(item.amount) * 100);
 
           // For expenses, amount should be negative in our system
-          const finalAmountCents = txType === 'expense' ? -amountCents : amountCents;
+          const finalAmountCents =
+            txType === 'expense' ? -amountCents : amountCents;
 
           // Use the parsed date from the document, fall back to period start or today
-          const periodFrom = isBankStatement(parsedSummary) ? parsedSummary.period?.from : null;
-          const date = item.date || periodFrom || new Date().toISOString().split('T')[0];
+          const periodFrom = isBankStatement(parsedSummary)
+            ? parsedSummary.period?.from
+            : null;
+          const date =
+            item.date || periodFrom || new Date().toISOString().split('T')[0];
 
           try {
             const result = await filesRepo.importParsedItemAsTransaction(db, {
@@ -316,9 +340,9 @@ export const filesRoutes: FastifyPluginAsync = async (fastify) => {
         });
       } catch (error) {
         request.log.error({ error }, 'Failed to import items');
-        return reply.status(500).send(
-          createErrorResponse('IMPORT_ERROR', 'Failed to import items')
-        );
+        return reply
+          .status(500)
+          .send(createErrorResponse('IMPORT_ERROR', 'Failed to import items'));
       }
     }
   );

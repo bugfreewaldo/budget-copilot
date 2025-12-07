@@ -920,7 +920,11 @@ export async function deleteGoal(id: string): Promise<void> {
 // ============================================================================
 
 export type FileStatus = 'stored' | 'processing' | 'processed' | 'failed';
-export type DocumentType = 'receipt' | 'invoice' | 'bank_statement' | 'excel_table';
+export type DocumentType =
+  | 'receipt'
+  | 'invoice'
+  | 'bank_statement'
+  | 'excel_table';
 
 export interface UploadedFile {
   id: string;
@@ -975,13 +979,17 @@ export type ParsedSummary = ParsedReceipt | ParsedBankStatement;
  * Type guard to check if a parsed summary is a receipt/invoice
  */
 export function isReceipt(summary: ParsedSummary): summary is ParsedReceipt {
-  return summary.documentType === 'receipt' || summary.documentType === 'invoice';
+  return (
+    summary.documentType === 'receipt' || summary.documentType === 'invoice'
+  );
 }
 
 /**
  * Type guard to check if a parsed summary is a bank statement
  */
-export function isBankStatement(summary: ParsedSummary): summary is ParsedBankStatement {
+export function isBankStatement(
+  summary: ParsedSummary
+): summary is ParsedBankStatement {
   return summary.documentType === 'bank_statement';
 }
 

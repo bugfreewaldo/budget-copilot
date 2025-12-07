@@ -7,7 +7,9 @@ import { proxyToApi } from '@/lib/api/proxy';
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams.toString();
-  const path = searchParams ? `/v1/categories?${searchParams}` : '/v1/categories';
+  const path = searchParams
+    ? `/v1/categories?${searchParams}`
+    : '/v1/categories';
   return proxyToApi(request, path);
 }
 

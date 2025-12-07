@@ -38,12 +38,14 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         // Check if storage is configured
         if (!isStorageConfigured()) {
-          return reply.status(503).send(
-            createErrorResponse(
-              'STORAGE_NOT_CONFIGURED',
-              'File storage is not configured. Please set S3_BUCKET and related environment variables.'
-            )
-          );
+          return reply
+            .status(503)
+            .send(
+              createErrorResponse(
+                'STORAGE_NOT_CONFIGURED',
+                'File storage is not configured. Please set S3_BUCKET and related environment variables.'
+              )
+            );
         }
 
         // Validate request body
@@ -73,18 +75,28 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
       } catch (error) {
         request.log.error({ error }, 'Failed to generate upload URLs');
 
-        if (error instanceof Error && error.message.includes('environment variable')) {
-          return reply.status(503).send(
-            createErrorResponse(
-              'STORAGE_NOT_CONFIGURED',
-              'File storage is not properly configured'
-            )
-          );
+        if (
+          error instanceof Error &&
+          error.message.includes('environment variable')
+        ) {
+          return reply
+            .status(503)
+            .send(
+              createErrorResponse(
+                'STORAGE_NOT_CONFIGURED',
+                'File storage is not properly configured'
+              )
+            );
         }
 
-        return reply.status(500).send(
-          createErrorResponse('UPLOAD_URL_ERROR', 'Failed to generate upload URLs')
-        );
+        return reply
+          .status(500)
+          .send(
+            createErrorResponse(
+              'UPLOAD_URL_ERROR',
+              'Failed to generate upload URLs'
+            )
+          );
       }
     }
   );
@@ -110,12 +122,14 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
         // Validate all storage keys belong to this user
         for (const file of completedFiles) {
           if (!validateStorageKeyOwnership(file.storageKey, userId)) {
-            return reply.status(400).send(
-              createErrorResponse(
-                'INVALID_STORAGE_KEY',
-                `Storage key ${file.storageKey} does not belong to current user`
-              )
-            );
+            return reply
+              .status(400)
+              .send(
+                createErrorResponse(
+                  'INVALID_STORAGE_KEY',
+                  `Storage key ${file.storageKey} does not belong to current user`
+                )
+              );
           }
         }
 
@@ -154,15 +168,24 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
             try {
               await parseFile(record.id);
               parsedFileIds.push(record.id);
-              request.log.info({ fileId: record.id }, 'Image parsed synchronously');
+              request.log.info(
+                { fileId: record.id },
+                'Image parsed synchronously'
+              );
             } catch (error) {
-              request.log.error({ error, fileId: record.id }, 'Image parsing failed');
+              request.log.error(
+                { error, fileId: record.id },
+                'Image parsing failed'
+              );
               // File status will be set to 'failed' by parseFile
             }
           } else {
             // PDFs/Excel - leave with status 'stored' for cron to process
             queuedFileIds.push(record.id);
-            request.log.info({ fileId: record.id }, 'File queued for background processing');
+            request.log.info(
+              { fileId: record.id },
+              'File queued for background processing'
+            );
           }
         }
 
@@ -174,9 +197,14 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
         });
       } catch (error) {
         request.log.error({ error }, 'Failed to complete upload');
-        return reply.status(500).send(
-          createErrorResponse('UPLOAD_COMPLETE_ERROR', 'Failed to register uploaded files')
-        );
+        return reply
+          .status(500)
+          .send(
+            createErrorResponse(
+              'UPLOAD_COMPLETE_ERROR',
+              'Failed to register uploaded files'
+            )
+          );
       }
     }
   );

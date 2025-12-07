@@ -98,14 +98,18 @@ function calculateFreedomDate(
   debts: Debt[],
   strategy: PaymentStrategy
 ): { date: Date | null; months: number } {
-  const activeDebts = debts.filter((d) => d.status === 'active' && d.currentBalanceCents > 0);
+  const activeDebts = debts.filter(
+    (d) => d.status === 'active' && d.currentBalanceCents > 0
+  );
   if (activeDebts.length === 0) return { date: null, months: 0 };
 
   // Sort debts by strategy
   const sortedDebts =
     strategy === 'avalanche'
       ? [...activeDebts].sort((a, b) => b.aprPercent - a.aprPercent)
-      : [...activeDebts].sort((a, b) => a.currentBalanceCents - b.currentBalanceCents);
+      : [...activeDebts].sort(
+          (a, b) => a.currentBalanceCents - b.currentBalanceCents
+        );
 
   // Calculate total months - simplified simulation
   let totalMonths = 0;
@@ -116,7 +120,10 @@ function calculateFreedomDate(
   }));
 
   // Get total minimum payment budget
-  const totalMinPayment = remainingDebts.reduce((sum, d) => sum + d.minPayment, 0);
+  const totalMinPayment = remainingDebts.reduce(
+    (sum, d) => sum + d.minPayment,
+    0
+  );
   if (totalMinPayment <= 0) return { date: null, months: 0 };
 
   while (remainingDebts.some((d) => d.balance > 0) && totalMonths < 600) {
@@ -129,7 +136,8 @@ function calculateFreedomDate(
 
       const monthlyRate = debt.apr / 100 / 12;
       const interest = debt.balance * monthlyRate;
-      const payment = index === 0 ? debt.minPayment + extraPayment : debt.minPayment;
+      const payment =
+        index === 0 ? debt.minPayment + extraPayment : debt.minPayment;
       const newBalance = Math.max(0, debt.balance + interest - payment);
 
       if (newBalance === 0 && debt.balance > 0) {
@@ -426,7 +434,10 @@ export default function DeudasPage() {
                     Fecha de Libertad
                   </p>
                   {(() => {
-                    const freedom = calculateFreedomDate(debts, selectedStrategy);
+                    const freedom = calculateFreedomDate(
+                      debts,
+                      selectedStrategy
+                    );
                     if (!freedom.date) {
                       return (
                         <>
@@ -516,7 +527,9 @@ export default function DeudasPage() {
                         <p className="text-gray-400">Interés Total</p>
                         <p className="font-semibold text-orange-400">
                           {strategies
-                            ? formatCurrency(strategies.avalanche.totalInterestCents)
+                            ? formatCurrency(
+                                strategies.avalanche.totalInterestCents
+                              )
                             : '$0'}
                         </p>
                       </div>
@@ -524,8 +537,12 @@ export default function DeudasPage() {
                         <p className="text-gray-400">Tiempo</p>
                         <p className="font-semibold">
                           {(() => {
-                            const freedom = calculateFreedomDate(debts, 'avalanche');
-                            return freedom.months > 0 && freedom.months !== Infinity
+                            const freedom = calculateFreedomDate(
+                              debts,
+                              'avalanche'
+                            );
+                            return freedom.months > 0 &&
+                              freedom.months !== Infinity
                               ? `${freedom.months} meses`
                               : '-';
                           })()}
@@ -569,7 +586,9 @@ export default function DeudasPage() {
                         <p className="text-gray-400">Interés Total</p>
                         <p className="font-semibold text-orange-400">
                           {strategies
-                            ? formatCurrency(strategies.snowball.totalInterestCents)
+                            ? formatCurrency(
+                                strategies.snowball.totalInterestCents
+                              )
                             : '$0'}
                         </p>
                       </div>
@@ -577,8 +596,12 @@ export default function DeudasPage() {
                         <p className="text-gray-400">Tiempo</p>
                         <p className="font-semibold">
                           {(() => {
-                            const freedom = calculateFreedomDate(debts, 'snowball');
-                            return freedom.months > 0 && freedom.months !== Infinity
+                            const freedom = calculateFreedomDate(
+                              debts,
+                              'snowball'
+                            );
+                            return freedom.months > 0 &&
+                              freedom.months !== Infinity
                               ? `${freedom.months} meses`
                               : '-';
                           })()}
@@ -591,7 +614,8 @@ export default function DeudasPage() {
                 {strategies && strategies.savingsWithAvalanche > 0 && (
                   <p className="mt-4 text-sm text-center text-green-400">
                     💡 Con avalancha ahorras{' '}
-                    {formatCurrency(strategies.savingsWithAvalanche)} en intereses
+                    {formatCurrency(strategies.savingsWithAvalanche)} en
+                    intereses
                   </p>
                 )}
               </div>
@@ -602,7 +626,11 @@ export default function DeudasPage() {
                   <h2 className="text-lg font-semibold mb-2">
                     Orden de Ataque{' '}
                     <span className="text-sm font-normal text-gray-400">
-                      ({selectedStrategy === 'avalanche' ? 'Avalancha' : 'Bola de Nieve'})
+                      (
+                      {selectedStrategy === 'avalanche'
+                        ? 'Avalancha'
+                        : 'Bola de Nieve'}
+                      )
                     </span>
                   </h2>
                   <p className="text-sm text-gray-400 mb-4">
@@ -612,7 +640,10 @@ export default function DeudasPage() {
                   </p>
                   <div className="space-y-2">
                     {[...debts]
-                      .filter((d) => d.status === 'active' && d.currentBalanceCents > 0)
+                      .filter(
+                        (d) =>
+                          d.status === 'active' && d.currentBalanceCents > 0
+                      )
                       .sort((a, b) =>
                         selectedStrategy === 'avalanche'
                           ? b.aprPercent - a.aprPercent

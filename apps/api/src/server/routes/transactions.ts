@@ -22,71 +22,79 @@ import * as transactionRepo from '../lib/repo/transactions.js';
  */
 export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /v1/transactions - List transactions for current user
-  fastify.get('/transactions', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate query params
-      const validation = listTransactionsQuerySchema.safeParse(request.query);
+  fastify.get(
+    '/transactions',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate query params
+        const validation = listTransactionsQuerySchema.safeParse(request.query);
 
-      if (!validation.success) {
-        return reply.status(400).send(formatZodError(validation.error));
+        if (!validation.success) {
+          return reply.status(400).send(formatZodError(validation.error));
+        }
+
+        const db = await getDb();
+        const userId = request.user!.id;
+        const transactions = await transactionRepo.findAllTransactions(db, {
+          ...validation.data,
+          userId,
+        });
+
+        return reply.send({ data: transactions });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to list transactions');
+        return reply.status(500).send(
+          createErrorResponse('DB_ERROR', 'Failed to retrieve transactions', {
+            error: (error as Error).message,
+          })
+        );
       }
-
-      const db = await getDb();
-      const userId = request.user!.id;
-      const transactions = await transactionRepo.findAllTransactions(db, {
-        ...validation.data,
-        userId,
-      });
-
-      return reply.send({ data: transactions });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to list transactions');
-      return reply.status(500).send(
-        createErrorResponse('DB_ERROR', 'Failed to retrieve transactions', {
-          error: (error as Error).message,
-        })
-      );
     }
-  });
+  );
 
   // POST /v1/transactions - Create new transaction
-  fastify.post('/transactions', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate request body
-      const validation = createTransactionSchema.safeParse(request.body);
+  fastify.post(
+    '/transactions',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate request body
+        const validation = createTransactionSchema.safeParse(request.body);
 
-      if (!validation.success) {
-        return reply.status(400).send(formatZodError(validation.error));
+        if (!validation.success) {
+          return reply.status(400).send(formatZodError(validation.error));
+        }
+
+        const db = await getDb();
+        const userId = request.user!.id;
+        const transaction = await transactionRepo.createTransaction(db, {
+          ...validation.data,
+          userId,
+        });
+
+        // Save database after mutation
+        saveDatabase();
+
+        request.log.info(
+          {
+            transactionId: transaction?.id,
+            amountCents: transaction?.amountCents,
+          },
+          'Transaction created'
+        );
+
+        return reply.status(201).send({ data: transaction });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to create transaction');
+        return reply.status(500).send(
+          createErrorResponse('DB_ERROR', 'Failed to create transaction', {
+            error: (error as Error).message,
+          })
+        );
       }
-
-      const db = await getDb();
-      const userId = request.user!.id;
-      const transaction = await transactionRepo.createTransaction(db, {
-        ...validation.data,
-        userId,
-      });
-
-      // Save database after mutation
-      saveDatabase();
-
-      request.log.info(
-        {
-          transactionId: transaction?.id,
-          amountCents: transaction?.amountCents,
-        },
-        'Transaction created'
-      );
-
-      return reply.status(201).send({ data: transaction });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to create transaction');
-      return reply.status(500).send(
-        createErrorResponse('DB_ERROR', 'Failed to create transaction', {
-          error: (error as Error).message,
-        })
-      );
     }
-  });
+  );
 
   // PATCH /v1/transactions/:id - Update transaction
   fastify.patch<{ Params: { id: string } }>(

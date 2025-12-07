@@ -139,7 +139,9 @@ export async function parseImageDocument(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Unknown error during image parsing',
+        error instanceof Error
+          ? error.message
+          : 'Unknown error during image parsing',
     };
   }
 }

@@ -31,11 +31,14 @@ function VerifyEmailContent() {
 
         if (res.ok) {
           setStatus('success');
-          setMessage(data.message || '¡Tu correo electrónico ha sido verificado!');
+          setMessage(
+            data.message || '¡Tu correo electrónico ha sido verificado!'
+          );
         } else {
           setStatus('error');
           setMessage(
-            data.message || 'El enlace de verificación es inválido o ha expirado.'
+            data.message ||
+              'El enlace de verificación es inválido o ha expirado.'
           );
         }
       } catch {

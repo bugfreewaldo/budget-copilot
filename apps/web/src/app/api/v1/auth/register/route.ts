@@ -41,9 +41,11 @@ export async function POST(request: NextRequest) {
     // Send email verification (non-blocking)
     createEmailVerificationToken(result.user.id).then((token) => {
       if (token) {
-        sendEmailVerification(result.user.email, token, baseUrl).catch((err) => {
-          console.error('Failed to send verification email:', err);
-        });
+        sendEmailVerification(result.user.email, token, baseUrl).catch(
+          (err) => {
+            console.error('Failed to send verification email:', err);
+          }
+        );
       }
     });
 

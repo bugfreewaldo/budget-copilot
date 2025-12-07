@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import {
-  createUploadUrls,
-  completeUpload,
-  uploadFileToS3,
-} from '@/lib/api';
+import { createUploadUrls, completeUpload, uploadFileToS3 } from '@/lib/api';
 import { useToast } from '@/components/ui/toast';
 
 const ALLOWED_TYPES = [
@@ -51,25 +47,28 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
     return null;
   };
 
-  const addFiles = useCallback((newFiles: FileList | File[]) => {
-    const fileArray = Array.from(newFiles);
-    const validFiles: UploadProgress[] = [];
+  const addFiles = useCallback(
+    (newFiles: FileList | File[]) => {
+      const fileArray = Array.from(newFiles);
+      const validFiles: UploadProgress[] = [];
 
-    for (const file of fileArray) {
-      const error = validateFile(file);
-      if (error) {
-        showToast(`${file.name}: ${error}`, 'error');
-      } else {
-        validFiles.push({
-          file,
-          status: 'pending',
-          progress: 0,
-        });
+      for (const file of fileArray) {
+        const error = validateFile(file);
+        if (error) {
+          showToast(`${file.name}: ${error}`, 'error');
+        } else {
+          validFiles.push({
+            file,
+            status: 'pending',
+            progress: 0,
+          });
+        }
       }
-    }
 
-    setFiles((prev) => [...prev, ...validFiles]);
-  }, [showToast]);
+      setFiles((prev) => [...prev, ...validFiles]);
+    },
+    [showToast]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -169,9 +168,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
                     ...f,
                     status: 'error' as const,
                     error:
-                      error instanceof Error
-                        ? error.message
-                        : 'Error al subir',
+                      error instanceof Error ? error.message : 'Error al subir',
                   }
                 : f
             )

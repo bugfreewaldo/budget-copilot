@@ -135,149 +135,159 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/categories
    * Create a new category
    */
-  fastify.post('/categories', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate request body
-      const validation = fastify.safeValidate(
-        createCategorySchema,
-        request.body
-      );
-
-      if (!validation.success) {
-        return reply.badRequest(
-          'Invalid request body',
-          'errors' in validation ? validation.errors : []
+  fastify.post(
+    '/categories',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate request body
+        const validation = fastify.safeValidate(
+          createCategorySchema,
+          request.body
         );
-      }
 
-      const data = validation.data;
-      const db = await getDb();
-      const userId = request.user!.id;
-
-      // Validate parent_id if provided
-      if (data.parent_id) {
-        const parentExists = await categoryExists(db, data.parent_id);
-        if (!parentExists) {
-          return reply.badRequest('Invalid parent_id: category does not exist');
+        if (!validation.success) {
+          return reply.badRequest(
+            'Invalid request body',
+            'errors' in validation ? validation.errors : []
+          );
         }
+
+        const data = validation.data;
+        const db = await getDb();
+        const userId = request.user!.id;
+
+        // Validate parent_id if provided
+        if (data.parent_id) {
+          const parentExists = await categoryExists(db, data.parent_id);
+          if (!parentExists) {
+            return reply.badRequest(
+              'Invalid parent_id: category does not exist'
+            );
+          }
+        }
+
+        // Generate ID and timestamp
+        const id = nanoid();
+        const now = Date.now();
+
+        // Insert category
+        await db.insert(categories).values({
+          id,
+          userId,
+          name: data.name,
+          parentId: data.parent_id || null,
+          createdAt: now,
+        });
+
+        // Fetch the created category
+        const [category] = await db
+          .select()
+          .from(categories)
+          .where(eq(categories.id, id));
+
+        // Set status code before caching
+        reply.code(201);
+
+        // Cache response for idempotency
+        const responseBody = { data: category };
+        fastify.cacheIdempotentResponse(request, reply, responseBody);
+
+        return reply.send(responseBody);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to create category');
+        return reply.internalError();
       }
-
-      // Generate ID and timestamp
-      const id = nanoid();
-      const now = Date.now();
-
-      // Insert category
-      await db.insert(categories).values({
-        id,
-        userId,
-        name: data.name,
-        parentId: data.parent_id || null,
-        createdAt: now,
-      });
-
-      // Fetch the created category
-      const [category] = await db
-        .select()
-        .from(categories)
-        .where(eq(categories.id, id));
-
-      // Set status code before caching
-      reply.code(201);
-
-      // Cache response for idempotency
-      const responseBody = { data: category };
-      fastify.cacheIdempotentResponse(request, reply, responseBody);
-
-      return reply.send(responseBody);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to create category');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * GET /v1/categories
    * List categories with cursor-based pagination and optional search
    */
-  fastify.get('/categories', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate query params
-      const validation = fastify.safeValidate(
-        listCategoriesQuerySchema,
-        request.query
-      );
-
-      if (!validation.success) {
-        return reply.badRequest(
-          'Invalid query parameters',
-          'errors' in validation ? validation.errors : []
+  fastify.get(
+    '/categories',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate query params
+        const validation = fastify.safeValidate(
+          listCategoriesQuerySchema,
+          request.query
         );
-      }
 
-      const { cursor, limit, q } = validation.data;
-      const db = await getDb();
-      const userId = request.user!.id;
+        if (!validation.success) {
+          return reply.badRequest(
+            'Invalid query parameters',
+            'errors' in validation ? validation.errors : []
+          );
+        }
 
-      // Parse cursor
-      const cursorData = cursor ? fastify.decodeCursor(cursor) : null;
+        const { cursor, limit, q } = validation.data;
+        const db = await getDb();
+        const userId = request.user!.id;
 
-      if (cursor && !cursorData) {
-        return reply.badRequest('Invalid cursor');
-      }
+        // Parse cursor
+        const cursorData = cursor ? fastify.decodeCursor(cursor) : null;
 
-      // Build query - always filter by userId
-      const conditions: any[] = [eq(categories.userId, userId)];
+        if (cursor && !cursorData) {
+          return reply.badRequest('Invalid cursor');
+        }
 
-      // Apply cursor for pagination (alphabetical ASC order by name)
-      if (cursorData) {
-        // For name-based pagination, createdAt field holds the name value (string)
-        const cursorName = cursorData.createdAt as string;
-        conditions.push(
-          or(
-            gt(categories.name, cursorName),
-            and(
-              eq(categories.name, cursorName),
-              gt(categories.id, cursorData.id)
+        // Build query - always filter by userId
+        const conditions: any[] = [eq(categories.userId, userId)];
+
+        // Apply cursor for pagination (alphabetical ASC order by name)
+        if (cursorData) {
+          // For name-based pagination, createdAt field holds the name value (string)
+          const cursorName = cursorData.createdAt as string;
+          conditions.push(
+            or(
+              gt(categories.name, cursorName),
+              and(
+                eq(categories.name, cursorName),
+                gt(categories.id, cursorData.id)
+              )
             )
-          )
+          );
+        }
+
+        // Apply search filter
+        if (q) {
+          const searchTerm = `%${q.toLowerCase()}%`;
+          conditions.push(
+            drizzleSql`LOWER(${categories.name}) LIKE ${searchTerm}`
+          );
+        }
+
+        // Fetch limit + 1 to check for next page
+        const query = db
+          .select()
+          .from(categories)
+          .orderBy(asc(categories.name), asc(categories.id))
+          .limit(limit + 1);
+
+        if (conditions.length > 0) {
+          query.where(and(...conditions));
+        }
+
+        const results = await query;
+
+        // Create paginated response (use name for cursor)
+        const response = fastify.createPaginatedResponse(
+          results,
+          limit,
+          (item) => item.name,
+          (item) => item.id
         );
+
+        return reply.send(response);
+      } catch (error) {
+        request.log.error({ error }, 'Failed to list categories');
+        return reply.internalError();
       }
-
-      // Apply search filter
-      if (q) {
-        const searchTerm = `%${q.toLowerCase()}%`;
-        conditions.push(
-          drizzleSql`LOWER(${categories.name}) LIKE ${searchTerm}`
-        );
-      }
-
-      // Fetch limit + 1 to check for next page
-      const query = db
-        .select()
-        .from(categories)
-        .orderBy(asc(categories.name), asc(categories.id))
-        .limit(limit + 1);
-
-      if (conditions.length > 0) {
-        query.where(and(...conditions));
-      }
-
-      const results = await query;
-
-      // Create paginated response (use name for cursor)
-      const response = fastify.createPaginatedResponse(
-        results,
-        limit,
-        (item) => item.name,
-        (item) => item.id
-      );
-
-      return reply.send(response);
-    } catch (error) {
-      request.log.error({ error }, 'Failed to list categories');
-      return reply.internalError();
     }
-  });
+  );
 
   /**
    * GET /v1/categories/:id
@@ -306,7 +316,12 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         const [category] = await db
           .select()
           .from(categories)
-          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
+          .where(
+            and(
+              eq(categories.id, request.params.id),
+              eq(categories.userId, userId)
+            )
+          );
 
         if (!category) {
           return reply.notFound('Category', request.params.id);
@@ -363,7 +378,12 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(categories)
-          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
+          .where(
+            and(
+              eq(categories.id, request.params.id),
+              eq(categories.userId, userId)
+            )
+          );
 
         if (!existing) {
           return reply.notFound('Category', request.params.id);
@@ -450,7 +470,12 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         const [existing] = await db
           .select()
           .from(categories)
-          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
+          .where(
+            and(
+              eq(categories.id, request.params.id),
+              eq(categories.userId, userId)
+            )
+          );
 
         if (!existing) {
           return reply.notFound('Category', request.params.id);

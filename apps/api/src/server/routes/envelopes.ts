@@ -16,88 +16,96 @@ import * as envelopeRepo from '../lib/repo/envelopes.js';
  */
 export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /v1/envelopes - List envelopes with spending calculation for current user
-  fastify.get('/envelopes', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate query params
-      const validation = listEnvelopesQuerySchema.safeParse(request.query);
+  fastify.get(
+    '/envelopes',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate query params
+        const validation = listEnvelopesQuerySchema.safeParse(request.query);
 
-      if (!validation.success) {
-        return reply.status(400).send(formatZodError(validation.error));
+        if (!validation.success) {
+          return reply.status(400).send(formatZodError(validation.error));
+        }
+
+        const db = await getDb();
+        const userId = request.user!.id;
+        const envelopes = await envelopeRepo.findEnvelopesByMonth(
+          db,
+          validation.data.month,
+          userId
+        );
+
+        // Calculate spending for each envelope
+        const envelopesWithSpending: EnvelopeWithSpending[] = await Promise.all(
+          envelopes.map(async (envelope) => {
+            const spentCents = await envelopeRepo.calculateEnvelopeSpending(
+              db,
+              envelope.categoryId,
+              envelope.month
+            );
+
+            return {
+              ...envelope,
+              spentCents,
+              remainingCents: envelope.budgetCents - spentCents,
+            };
+          })
+        );
+
+        return reply.send({ data: envelopesWithSpending });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to list envelopes');
+        return reply.status(500).send(
+          createErrorResponse('DB_ERROR', 'Failed to retrieve envelopes', {
+            error: (error as Error).message,
+          })
+        );
       }
-
-      const db = await getDb();
-      const userId = request.user!.id;
-      const envelopes = await envelopeRepo.findEnvelopesByMonth(
-        db,
-        validation.data.month,
-        userId
-      );
-
-      // Calculate spending for each envelope
-      const envelopesWithSpending: EnvelopeWithSpending[] = await Promise.all(
-        envelopes.map(async (envelope) => {
-          const spentCents = await envelopeRepo.calculateEnvelopeSpending(
-            db,
-            envelope.categoryId,
-            envelope.month
-          );
-
-          return {
-            ...envelope,
-            spentCents,
-            remainingCents: envelope.budgetCents - spentCents,
-          };
-        })
-      );
-
-      return reply.send({ data: envelopesWithSpending });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to list envelopes');
-      return reply.status(500).send(
-        createErrorResponse('DB_ERROR', 'Failed to retrieve envelopes', {
-          error: (error as Error).message,
-        })
-      );
     }
-  });
+  );
 
   // POST /v1/envelopes - Create or update envelope
-  fastify.post('/envelopes', { preHandler: requireAuth }, async (request, reply) => {
-    try {
-      // Validate request body
-      const validation = createEnvelopeSchema.safeParse(request.body);
+  fastify.post(
+    '/envelopes',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        // Validate request body
+        const validation = createEnvelopeSchema.safeParse(request.body);
 
-      if (!validation.success) {
-        return reply.status(400).send(formatZodError(validation.error));
+        if (!validation.success) {
+          return reply.status(400).send(formatZodError(validation.error));
+        }
+
+        const db = await getDb();
+        const userId = request.user!.id;
+        const envelope = await envelopeRepo.upsertEnvelope(db, {
+          ...validation.data,
+          userId,
+        });
+
+        // Save database after mutation
+        saveDatabase();
+
+        request.log.info(
+          {
+            envelopeId: envelope?.id,
+            categoryId: validation.data.categoryId,
+            month: validation.data.month,
+          },
+          'Envelope upserted'
+        );
+
+        return reply.status(201).send({ data: envelope });
+      } catch (error) {
+        request.log.error({ error }, 'Failed to upsert envelope');
+        return reply.status(500).send(
+          createErrorResponse('DB_ERROR', 'Failed to create/update envelope', {
+            error: (error as Error).message,
+          })
+        );
       }
-
-      const db = await getDb();
-      const userId = request.user!.id;
-      const envelope = await envelopeRepo.upsertEnvelope(db, {
-        ...validation.data,
-        userId,
-      });
-
-      // Save database after mutation
-      saveDatabase();
-
-      request.log.info(
-        {
-          envelopeId: envelope?.id,
-          categoryId: validation.data.categoryId,
-          month: validation.data.month,
-        },
-        'Envelope upserted'
-      );
-
-      return reply.status(201).send({ data: envelope });
-    } catch (error) {
-      request.log.error({ error }, 'Failed to upsert envelope');
-      return reply.status(500).send(
-        createErrorResponse('DB_ERROR', 'Failed to create/update envelope', {
-          error: (error as Error).message,
-        })
-      );
     }
-  });
+  );
 };

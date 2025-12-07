@@ -128,7 +128,8 @@ async function callClaudeVision(
 
   // Extract text from response
   const textContent = response.content.find((c) => c.type === 'text');
-  const text = textContent && textContent.type === 'text' ? textContent.text : '';
+  const text =
+    textContent && textContent.type === 'text' ? textContent.text : '';
 
   return {
     text,
@@ -252,7 +253,8 @@ async function callClaudeText(input: TextModelInput): Promise<TextModelOutput> {
   });
 
   const textContent = response.content.find((c) => c.type === 'text');
-  const text = textContent && textContent.type === 'text' ? textContent.text : '';
+  const text =
+    textContent && textContent.type === 'text' ? textContent.text : '';
 
   return {
     text,

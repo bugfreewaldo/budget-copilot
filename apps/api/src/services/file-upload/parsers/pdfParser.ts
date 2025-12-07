@@ -12,7 +12,11 @@
 
 import pdfParse from 'pdf-parse';
 import { callTextModel, safeParseJson } from '../llm.js';
-import type { ParsedBankStatement, ParsedReceipt, ParsedSummary } from '../types.js';
+import type {
+  ParsedBankStatement,
+  ParsedReceipt,
+  ParsedSummary,
+} from '../types.js';
 import type { UploadedFile } from '../../../db/schema.js';
 
 // ============================================================================
@@ -121,7 +125,9 @@ export async function parsePdfDocument(
     // Truncate very long documents to avoid token limits
     const MAX_TEXT_LENGTH = 50000;
     if (text.length > MAX_TEXT_LENGTH) {
-      text = text.slice(0, MAX_TEXT_LENGTH) + '\n\n[... truncated due to length ...]';
+      text =
+        text.slice(0, MAX_TEXT_LENGTH) +
+        '\n\n[... truncated due to length ...]';
     }
 
     if (!text.trim()) {
@@ -149,7 +155,10 @@ export async function parsePdfDocument(
     }
 
     // Validate and normalize based on document type
-    if (parsed.documentType === 'receipt' || parsed.documentType === 'invoice') {
+    if (
+      parsed.documentType === 'receipt' ||
+      parsed.documentType === 'invoice'
+    ) {
       return validateReceipt(parsed);
     } else {
       return validateBankStatement(parsed);
@@ -157,7 +166,10 @@ export async function parsePdfDocument(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error during PDF parsing',
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Unknown error during PDF parsing',
     };
   }
 }
@@ -204,7 +216,8 @@ function validateReceipt(raw: RawPdfParseResult): PdfParserOutput {
     };
   }
 
-  let amount = typeof mt.amount === 'string' ? parseFloat(mt.amount) : mt.amount;
+  let amount =
+    typeof mt.amount === 'string' ? parseFloat(mt.amount) : mt.amount;
   if (typeof amount !== 'number' || !Number.isFinite(amount)) {
     return {
       success: false,
@@ -263,7 +276,8 @@ function validateBankStatement(raw: RawPdfParseResult): PdfParserOutput {
 
   for (const tx of transactions) {
     // Validate amount
-    const amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
+    const amount =
+      typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
     if (typeof amount !== 'number' || !Number.isFinite(amount)) {
       // Skip invalid transactions
       continue;

@@ -840,8 +840,18 @@ async function getSpendingSummary(
 ): Promise<{
   totalExpenses: number;
   totalIncome: number;
-  byCategory: Array<{ name: string; emoji: string | null; total: number; count: number }>;
-  recentTransactions: Array<{ description: string; amount: number; date: string; category: string | null }>;
+  byCategory: Array<{
+    name: string;
+    emoji: string | null;
+    total: number;
+    count: number;
+  }>;
+  recentTransactions: Array<{
+    description: string;
+    amount: number;
+    date: string;
+    category: string | null;
+  }>;
 }> {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysBack);
@@ -859,15 +869,24 @@ async function getSpendingSummary(
   // Calculate totals
   let totalExpenses = 0;
   let totalIncome = 0;
-  const categoryTotals: Record<string, { name: string; emoji: string | null; total: number; count: number }> = {};
+  const categoryTotals: Record<
+    string,
+    { name: string; emoji: string | null; total: number; count: number }
+  > = {};
 
   // Get user categories for lookup
   const userCats = await db
     .select()
     .from(categories)
     .where(eq(categories.userId, userId));
-  const catMap = new Map<string, { id: string; name: string; emoji: string | null }>(
-    userCats.map((c: (typeof userCats)[number]) => [c.id, { id: c.id, name: c.name, emoji: c.emoji ?? null }])
+  const catMap = new Map<
+    string,
+    { id: string; name: string; emoji: string | null }
+  >(
+    userCats.map((c: (typeof userCats)[number]) => [
+      c.id,
+      { id: c.id, name: c.name, emoji: c.emoji ?? null },
+    ])
   );
 
   for (const tx of recentTxs) {
@@ -880,7 +899,12 @@ async function getSpendingSummary(
       const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
       const catKey = cat?.name || 'Sin categoría';
       if (!categoryTotals[catKey]) {
-        categoryTotals[catKey] = { name: catKey, emoji: cat?.emoji || null, total: 0, count: 0 };
+        categoryTotals[catKey] = {
+          name: catKey,
+          emoji: cat?.emoji || null,
+          total: 0,
+          count: 0,
+        };
       }
       categoryTotals[catKey].total += Math.abs(amount);
       categoryTotals[catKey].count += 1;
@@ -888,11 +912,16 @@ async function getSpendingSummary(
   }
 
   // Sort categories by total (descending)
-  const byCategory = Object.values(categoryTotals).sort((a, b) => b.total - a.total);
+  const byCategory = Object.values(categoryTotals).sort(
+    (a, b) => b.total - a.total
+  );
 
   // Get last 10 transactions
   const recentTransactions = recentTxs
-    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort(
+      (a: any, b: any) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
     .slice(0, 10)
     .map((tx: any) => {
       const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
@@ -914,7 +943,14 @@ async function getSpendingSummary(
 async function detectRecurringExpenses(
   db: any,
   userId: string
-): Promise<Array<{ name: string; amount: number; count: number; monthlyEstimate: number }>> {
+): Promise<
+  Array<{
+    name: string;
+    amount: number;
+    count: number;
+    monthlyEstimate: number;
+  }>
+> {
   // Get last 90 days of transactions to detect patterns
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 90);
@@ -931,7 +967,10 @@ async function detectRecurringExpenses(
   );
 
   // Group by description (normalized) to find recurring patterns
-  const byDescription: Record<string, { amounts: number[]; dates: string[]; description: string }> = {};
+  const byDescription: Record<
+    string,
+    { amounts: number[]; dates: string[]; description: string }
+  > = {};
 
   for (const tx of expenses) {
     // Normalize description for grouping
@@ -952,12 +991,18 @@ async function detectRecurringExpenses(
   }
 
   // Find recurring patterns (same merchant, 2+ times, similar amounts)
-  const recurring: Array<{ name: string; amount: number; count: number; monthlyEstimate: number }> = [];
+  const recurring: Array<{
+    name: string;
+    amount: number;
+    count: number;
+    monthlyEstimate: number;
+  }> = [];
 
   for (const [, data] of Object.entries(byDescription)) {
     if (data.amounts.length >= 2) {
       // Check if amounts are similar (within 10% variance)
-      const avgAmount = data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
+      const avgAmount =
+        data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
       const allSimilar = data.amounts.every(
         (amt) => Math.abs(amt - avgAmount) / avgAmount < 0.1
       );
@@ -968,7 +1013,8 @@ async function detectRecurringExpenses(
           (new Date(data.dates[data.dates.length - 1]!).getTime() -
             new Date(data.dates[0]!).getTime()) /
           (1000 * 60 * 60 * 24);
-        const frequency = daySpan > 0 ? data.amounts.length / (daySpan / 30) : 1;
+        const frequency =
+          daySpan > 0 ? data.amounts.length / (daySpan / 30) : 1;
         const monthlyEstimate = (avgAmount / 100) * Math.max(1, frequency);
 
         recurring.push({
@@ -992,7 +1038,9 @@ async function getTopExpensesByCategory(
   db: any,
   userId: string,
   daysBack: number = 30
-): Promise<Record<string, Array<{ description: string; amount: number; date: string }>>> {
+): Promise<
+  Record<string, Array<{ description: string; amount: number; date: string }>>
+> {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysBack);
   const startDateStr = startDate.toISOString().split('T')[0];
@@ -1006,12 +1054,21 @@ async function getTopExpensesByCategory(
     .select()
     .from(categories)
     .where(eq(categories.userId, userId));
-  const catMap = new Map<string, { id: string; name: string; emoji: string | null }>(
-    userCats.map((c: (typeof userCats)[number]) => [c.id, { id: c.id, name: c.name, emoji: c.emoji ?? null }])
+  const catMap = new Map<
+    string,
+    { id: string; name: string; emoji: string | null }
+  >(
+    userCats.map((c: (typeof userCats)[number]) => [
+      c.id,
+      { id: c.id, name: c.name, emoji: c.emoji ?? null },
+    ])
   );
 
   // Filter and group expenses by category
-  const byCategory: Record<string, Array<{ description: string; amount: number; date: string }>> = {};
+  const byCategory: Record<
+    string,
+    Array<{ description: string; amount: number; date: string }>
+  > = {};
 
   for (const tx of userTxs) {
     if (tx.date >= startDateStr && tx.type === 'expense') {
@@ -1052,13 +1109,22 @@ async function processAnalyticalQuestion(
   const summary = await getSpendingSummary(db, userId);
   const recurringExpenses = await detectRecurringExpenses(db, userId);
   const topExpensesByCategory = await getTopExpensesByCategory(db, userId);
-  const totalRecurringCost = recurringExpenses.slice(0, 10).reduce((sum, r) => sum + r.monthlyEstimate, 0);
+  const totalRecurringCost = recurringExpenses
+    .slice(0, 10)
+    .reduce((sum, r) => sum + r.monthlyEstimate, 0);
 
   // Build recurring expenses section (subscription-like patterns from actual transactions)
-  const recurringSection = recurringExpenses.length > 0
-    ? `\nGASTOS RECURRENTES DETECTADOS (${recurringExpenses.length} patrones, ~$${totalRecurringCost.toFixed(2)}/mes estimado):
-${recurringExpenses.slice(0, 10).map((r, i) => `${i + 1}. ${r.name}: $${r.amount.toFixed(2)} x ${r.count} veces (~$${r.monthlyEstimate.toFixed(2)}/mes)`).join('\n')}`
-    : '\nGASTOS RECURRENTES: No se detectaron patrones de suscripciones';
+  const recurringSection =
+    recurringExpenses.length > 0
+      ? `\nGASTOS RECURRENTES DETECTADOS (${recurringExpenses.length} patrones, ~$${totalRecurringCost.toFixed(2)}/mes estimado):
+${recurringExpenses
+  .slice(0, 10)
+  .map(
+    (r, i) =>
+      `${i + 1}. ${r.name}: $${r.amount.toFixed(2)} x ${r.count} veces (~$${r.monthlyEstimate.toFixed(2)}/mes)`
+  )
+  .join('\n')}`
+      : '\nGASTOS RECURRENTES: No se detectaron patrones de suscripciones';
 
   // Build top expenses per category section
   const topExpensesSection = Object.entries(topExpensesByCategory)
@@ -1079,14 +1145,26 @@ DATOS DEL USUARIO (últimos 30 días):
 - Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
 
 GASTOS POR CATEGORÍA (ordenados de mayor a menor):
-${summary.byCategory.slice(0, 10).map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)} (${c.count} transacciones)`).join('\n')}
+${summary.byCategory
+  .slice(0, 10)
+  .map(
+    (c, i) =>
+      `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)} (${c.count} transacciones)`
+  )
+  .join('\n')}
 
 MAYORES GASTOS POR CATEGORÍA:
 ${topExpensesSection}
 ${recurringSection}
 
 ÚLTIMAS TRANSACCIONES:
-${summary.recentTransactions.slice(0, 5).map((t) => `- ${t.date}: ${t.description} $${t.amount.toFixed(2)}${t.category ? ` (${t.category})` : ''}`).join('\n')}
+${summary.recentTransactions
+  .slice(0, 5)
+  .map(
+    (t) =>
+      `- ${t.date}: ${t.description} $${t.amount.toFixed(2)}${t.category ? ` (${t.category})` : ''}`
+  )
+  .join('\n')}
 `;
 
   const analyticalPrompt = `${SYSTEM_PROMPT}
@@ -1105,7 +1183,9 @@ Responde con JSON:
   // Try AI first
   try {
     const provider = getProvider();
-    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
+    console.log(
+      `[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`
+    );
     if (provider.isConfigured()) {
       const messages: Message[] = [
         { role: 'system', content: analyticalPrompt },
@@ -1133,14 +1213,18 @@ Responde con JSON:
   // Fallback: Generate rule-based analytical response
   if (summary.byCategory.length === 0) {
     return {
-      message: 'Hmm, no tienes transacciones registradas todavía. ¡Cuéntame qué gastaste hoy y empecemos a trackear! 📊',
+      message:
+        'Hmm, no tienes transacciones registradas todavía. ¡Cuéntame qué gastaste hoy y empecemos a trackear! 📊',
       needsMoreInfo: false,
     };
   }
 
   const topCategory = summary.byCategory[0];
   const topThree = summary.byCategory.slice(0, 3);
-  const percentOfTotal = ((topCategory.total / summary.totalExpenses) * 100).toFixed(0);
+  const percentOfTotal = (
+    (topCategory.total / summary.totalExpenses) *
+    100
+  ).toFixed(0);
 
   let response = `📊 Bueno, veamos tus números...\n\n`;
   response += `En los últimos 30 días gastaste $${summary.totalExpenses.toFixed(2)}\n\n`;
@@ -1196,7 +1280,10 @@ RESUMEN ÚLTIMOS 30 DÍAS:
 - Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
 
 PRINCIPALES GASTOS:
-${summary.byCategory.slice(0, 5).map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}`).join('\n')}
+${summary.byCategory
+  .slice(0, 5)
+  .map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}`)
+  .join('\n')}
 `;
 
   const advicePrompt = `${SYSTEM_PROMPT}
@@ -1222,7 +1309,9 @@ Responde con JSON:
   // Try AI first
   try {
     const provider = getProvider();
-    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
+    console.log(
+      `[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`
+    );
     if (provider.isConfigured()) {
       const messages: Message[] = [
         { role: 'system', content: advicePrompt },
@@ -1279,12 +1368,16 @@ Responde con JSON:
       const topSpending = summary.byCategory[0];
       response += `Tu mayor gasto es ${topSpending.emoji || ''} ${topSpending.name} ($${topSpending.total.toFixed(2)}). `;
 
-      if (topSpending.name.toLowerCase().includes('restaurant') ||
-          topSpending.name.toLowerCase().includes('café') ||
-          topSpending.name.toLowerCase().includes('comida')) {
+      if (
+        topSpending.name.toLowerCase().includes('restaurant') ||
+        topSpending.name.toLowerCase().includes('café') ||
+        topSpending.name.toLowerCase().includes('comida')
+      ) {
         response += `¿Has pensado en cocinar más en casa? Podrías ahorrar hasta 50% 🍳\n\n`;
-      } else if (topSpending.name.toLowerCase().includes('streaming') ||
-                 topSpending.name.toLowerCase().includes('suscripc')) {
+      } else if (
+        topSpending.name.toLowerCase().includes('streaming') ||
+        topSpending.name.toLowerCase().includes('suscripc')
+      ) {
         response += `Revisa si usas todas esas suscripciones. ¡Cancela las que no uses! 📺\n\n`;
       } else {
         response += `Busca alternativas más económicas o reduce la frecuencia.\n\n`;
@@ -1300,7 +1393,10 @@ Responde con JSON:
       const salary = profile.monthlySalaryCents / 100;
       response += `Con tu salario, eso sería ~$${(salary * 0.2).toFixed(2)}/mes para ahorrar.`;
     }
-  } else if (lowerMessage.includes('invert') || lowerMessage.includes('inversión')) {
+  } else if (
+    lowerMessage.includes('invert') ||
+    lowerMessage.includes('inversión')
+  ) {
     // Investment advice
     response = `📈 Sobre Inversiones\n\n`;
     response += `Antes de invertir, asegúrate de tener:\n`;
@@ -1315,7 +1411,10 @@ Responde con JSON:
     // General financial advice
     response = `💰 Consejos Generales\n\n`;
 
-    if (summary.totalIncome > 0 && summary.totalExpenses > summary.totalIncome) {
+    if (
+      summary.totalIncome > 0 &&
+      summary.totalExpenses > summary.totalIncome
+    ) {
       response += `⚠️ Estás gastando más de lo que ganas. Prioridad #1: reducir gastos.\n\n`;
     }
 
@@ -1361,7 +1460,12 @@ export async function processMessage(
 
   // Check if this is an analytical question
   if (isAnalyticalQuestion(userMessage)) {
-    return processAnalyticalQuestion(db, userId, userMessage, conversationHistory);
+    return processAnalyticalQuestion(
+      db,
+      userId,
+      userMessage,
+      conversationHistory
+    );
   }
 
   // Get user's categories for context
@@ -1407,7 +1511,9 @@ export async function processMessage(
   let aiResponse: any = null;
   try {
     const provider = getProvider();
-    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
+    console.log(
+      `[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`
+    );
     if (provider.isConfigured()) {
       console.log('[Copilot] Calling AI for transaction extraction...');
       const result = await provider.chat(messages, {
@@ -1417,7 +1523,9 @@ export async function processMessage(
       console.log('[Copilot] AI response received');
       aiResponse = parseAIResponse(result.message.content) as any;
     } else {
-      console.log('[Copilot] AI provider not configured, using rule-based extraction');
+      console.log(
+        '[Copilot] AI provider not configured, using rule-based extraction'
+      );
     }
   } catch (error) {
     console.error('[Copilot] AI error for extraction:', error);
@@ -1425,7 +1533,12 @@ export async function processMessage(
 
   // Check if AI detected an analytical question
   if (aiResponse?.isAnalyticalQuestion) {
-    return processAnalyticalQuestion(db, userId, userMessage, conversationHistory);
+    return processAnalyticalQuestion(
+      db,
+      userId,
+      userMessage,
+      conversationHistory
+    );
   }
 
   // If AI is not available, use rule-based extraction

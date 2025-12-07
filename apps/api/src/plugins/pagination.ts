@@ -20,7 +20,10 @@ export interface PaginatedResponse<T> {
 /**
  * Encode cursor from timestamp/value and ID
  */
-export function encodeCursor(createdAt: number | Date | string, id: string): string {
+export function encodeCursor(
+  createdAt: number | Date | string,
+  id: string
+): string {
   const value = createdAt instanceof Date ? createdAt.getTime() : createdAt;
   const payload = JSON.stringify({ createdAt: value, id });
   return Buffer.from(payload).toString('base64url');
