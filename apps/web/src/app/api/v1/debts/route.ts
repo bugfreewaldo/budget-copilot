@@ -60,29 +60,18 @@ export async function GET(request: NextRequest) {
       ? userDebts.filter((d) => d.status === status)
       : userDebts;
 
-    // Calculate summary
+    // Calculate summary - field names must match frontend DebtSummary interface
     const activeDebts = filteredDebts.filter((d) => d.status === 'active');
     const summary = {
-      totalDebts: filteredDebts.length,
-      activeDebts: activeDebts.length,
-      paidOffDebts: filteredDebts.filter((d) => d.status === 'paid_off').length,
-      totalOriginalBalanceCents: activeDebts.reduce(
-        (sum, d) => sum + d.originalBalanceCents,
-        0
-      ),
-      totalCurrentBalanceCents: activeDebts.reduce(
+      totalDebtCents: activeDebts.reduce(
         (sum, d) => sum + d.currentBalanceCents,
         0
       ),
-      totalMinimumPaymentCents: activeDebts.reduce(
+      totalMinPaymentCents: activeDebts.reduce(
         (sum, d) => sum + (d.minimumPaymentCents || 0),
         0
       ),
-      averageApr:
-        activeDebts.length > 0
-          ? activeDebts.reduce((sum, d) => sum + d.aprPercent, 0) /
-            activeDebts.length
-          : 0,
+      activeCount: activeDebts.length,
     };
 
     return NextResponse.json({ data: filteredDebts, summary });
