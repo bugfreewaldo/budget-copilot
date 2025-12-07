@@ -139,11 +139,13 @@ const accountsRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Apply cursor for pagination
       if (cursorData) {
+        // For accounts, createdAt is always a number (timestamp)
+        const cursorCreatedAt = cursorData.createdAt as number;
         conditions.push(
           or(
-            lt(accounts.createdAt, cursorData.createdAt),
+            lt(accounts.createdAt, cursorCreatedAt),
             and(
-              eq(accounts.createdAt, cursorData.createdAt),
+              eq(accounts.createdAt, cursorCreatedAt),
               lt(accounts.id, cursorData.id)
             )
           )
