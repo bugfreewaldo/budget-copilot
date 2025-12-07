@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateSession } from '@/lib/auth';
 import { errorJson } from '@/lib/api/utils';
 
+// Force dynamic rendering since this route uses cookies
+export const dynamic = 'force-dynamic';
+
 const SESSION_COOKIE_NAME = 'session';
 
 export async function GET(request: NextRequest) {
