@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { transactions } from '@/lib/db/schema';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 import {
   isoDateSchema,
   idSchema,
@@ -12,9 +13,6 @@ import {
   errorJson,
 } from '@/lib/api/utils';
 
-/**
- * Transaction update schema
- */
 const transactionTypeSchema = z.enum(['income', 'expense']);
 
 const updateTransactionSchema = z
@@ -37,8 +35,11 @@ interface RouteParams {
 /**
  * GET /api/v1/transactions/:id - Get transaction by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -49,7 +50,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     const [transaction] = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.id, idValidation.data));
+      .where(
+        and(
+          eq(transactions.id, idValidation.data),
+          eq(transactions.userId, auth.user.id)
+        )
+      );
 
     if (!transaction) {
       return errorJson('NOT_FOUND', 'Transaction not found', 404);
@@ -58,9 +64,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return json({ data: transaction });
   } catch (error) {
     console.error('Failed to get transaction:', error);
-    return errorJson('DB_ERROR', 'Failed to retrieve transaction', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to retrieve transaction', 500);
   }
 }
 
@@ -69,6 +73,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -83,11 +90,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const db = getDb();
 
-    // Check if transaction exists
     const [existing] = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.id, idValidation.data));
+      .where(
+        and(
+          eq(transactions.id, idValidation.data),
+          eq(transactions.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Transaction not found', 404);
@@ -99,7 +110,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...validation.data,
         updatedAt: Date.now(),
       })
-      .where(eq(transactions.id, idValidation.data));
+      .where(
+        and(
+          eq(transactions.id, idValidation.data),
+          eq(transactions.userId, auth.user.id)
+        )
+      );
 
     const [updated] = await db
       .select()
@@ -109,17 +125,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return json({ data: updated });
   } catch (error) {
     console.error('Failed to update transaction:', error);
-    return errorJson('DB_ERROR', 'Failed to update transaction', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to update transaction', 500);
   }
 }
 
 /**
  * DELETE /api/v1/transactions/:id - Delete transaction
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -128,23 +145,32 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
 
     const db = getDb();
 
-    // Check if transaction exists
     const [existing] = await db
       .select()
       .from(transactions)
-      .where(eq(transactions.id, idValidation.data));
+      .where(
+        and(
+          eq(transactions.id, idValidation.data),
+          eq(transactions.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Transaction not found', 404);
     }
 
-    await db.delete(transactions).where(eq(transactions.id, idValidation.data));
+    await db
+      .delete(transactions)
+      .where(
+        and(
+          eq(transactions.id, idValidation.data),
+          eq(transactions.userId, auth.user.id)
+        )
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Failed to delete transaction:', error);
-    return errorJson('DB_ERROR', 'Failed to delete transaction', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to delete transaction', 500);
   }
 }

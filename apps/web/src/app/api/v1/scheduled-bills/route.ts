@@ -1,14 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { scheduledBills } from '@/lib/db/schema';
-import { formatZodError, json, errorJson, centsSchema } from '@/lib/api/utils';
+import { getAuthenticatedUser } from '@/lib/api/auth';
+import { formatZodError, json, errorJson, centsSchema, idSchema } from '@/lib/api/utils';
 
-/**
- * Scheduled Bills validation schemas
- */
+export const dynamic = 'force-dynamic';
+
 const createBillSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   type: z.enum([
@@ -36,24 +36,23 @@ const updateBillSchema = createBillSchema.partial();
 /**
  * GET /api/v1/scheduled-bills - List all scheduled bills
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
 
     const result = await db
       .select()
       .from(scheduledBills)
-      .where(eq(scheduledBills.userId, userId))
+      .where(eq(scheduledBills.userId, auth.user.id))
       .orderBy(desc(scheduledBills.createdAt));
 
-    return json({ data: result });
+    return NextResponse.json({ data: result });
   } catch (error) {
     console.error('Failed to list scheduled bills:', error);
-    return errorJson('DB_ERROR', 'Failed to retrieve scheduled bills', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to retrieve scheduled bills', 500);
   }
 }
 
@@ -62,6 +61,9 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const validation = createBillSchema.safeParse(body);
 
@@ -70,14 +72,12 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
     const now = Date.now();
     const id = nanoid();
 
     await db.insert(scheduledBills).values({
       id,
-      userId,
+      userId: auth.user.id,
       name: validation.data.name,
       type: validation.data.type,
       amountCents: validation.data.amountCents,
@@ -96,12 +96,10 @@ export async function POST(request: NextRequest) {
       .from(scheduledBills)
       .where(eq(scheduledBills.id, id));
 
-    return json({ data: bill }, 201);
+    return NextResponse.json({ data: bill }, { status: 201 });
   } catch (error) {
     console.error('Failed to create scheduled bill:', error);
-    return errorJson('DB_ERROR', 'Failed to create scheduled bill', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to create scheduled bill', 500);
   }
 }
 
@@ -110,11 +108,19 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const { id, ...updateData } = body;
 
     if (!id) {
       return errorJson('VALIDATION_ERROR', 'Bill ID is required', 400);
+    }
+
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return errorJson('VALIDATION_ERROR', 'Invalid bill ID format', 400);
     }
 
     const validation = updateBillSchema.safeParse(updateData);
@@ -124,17 +130,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
     const now = Date.now();
 
-    // Check if bill exists
+    // Check if bill exists and belongs to user
     const [existing] = await db
       .select()
       .from(scheduledBills)
-      .where(eq(scheduledBills.id, id));
+      .where(and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id)));
 
-    if (!existing || existing.userId !== userId) {
+    if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled bill not found', 404);
     }
 
@@ -151,11 +155,9 @@ export async function PUT(request: NextRequest) {
       .from(scheduledBills)
       .where(eq(scheduledBills.id, id));
 
-    return json({ data: updated });
+    return NextResponse.json({ data: updated });
   } catch (error) {
     console.error('Failed to update scheduled bill:', error);
-    return errorJson('DB_ERROR', 'Failed to update scheduled bill', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to update scheduled bill', 500);
   }
 }

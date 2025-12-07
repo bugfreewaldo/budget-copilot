@@ -1,13 +1,11 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { accounts } from '@/lib/db/schema';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 import { idSchema, formatZodError, json, errorJson } from '@/lib/api/utils';
 
-/**
- * Account update schema
- */
 const accountTypeSchema = z.enum(['checking', 'savings', 'credit', 'cash']);
 
 const updateAccountSchema = z
@@ -26,8 +24,11 @@ interface RouteParams {
 /**
  * GET /api/v1/accounts/:id - Get account by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -38,7 +39,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     const [account] = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.id, idValidation.data));
+      .where(
+        and(
+          eq(accounts.id, idValidation.data),
+          eq(accounts.userId, auth.user.id)
+        )
+      );
 
     if (!account) {
       return errorJson('NOT_FOUND', 'Account not found', 404);
@@ -47,9 +53,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return json({ data: account });
   } catch (error) {
     console.error('Failed to get account:', error);
-    return errorJson('DB_ERROR', 'Failed to retrieve account', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to retrieve account', 500);
   }
 }
 
@@ -58,6 +62,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -75,7 +82,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.id, idValidation.data));
+      .where(
+        and(
+          eq(accounts.id, idValidation.data),
+          eq(accounts.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Account not found', 404);
@@ -84,7 +96,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await db
       .update(accounts)
       .set(validation.data)
-      .where(eq(accounts.id, idValidation.data));
+      .where(
+        and(
+          eq(accounts.id, idValidation.data),
+          eq(accounts.userId, auth.user.id)
+        )
+      );
 
     const [updated] = await db
       .select()
@@ -94,17 +111,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return json({ data: updated });
   } catch (error) {
     console.error('Failed to update account:', error);
-    return errorJson('DB_ERROR', 'Failed to update account', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to update account', 500);
   }
 }
 
 /**
  * DELETE /api/v1/accounts/:id - Delete account
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -116,19 +134,29 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.id, idValidation.data));
+      .where(
+        and(
+          eq(accounts.id, idValidation.data),
+          eq(accounts.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Account not found', 404);
     }
 
-    await db.delete(accounts).where(eq(accounts.id, idValidation.data));
+    await db
+      .delete(accounts)
+      .where(
+        and(
+          eq(accounts.id, idValidation.data),
+          eq(accounts.userId, auth.user.id)
+        )
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Failed to delete account:', error);
-    return errorJson('DB_ERROR', 'Failed to delete account', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to delete account', 500);
   }
 }

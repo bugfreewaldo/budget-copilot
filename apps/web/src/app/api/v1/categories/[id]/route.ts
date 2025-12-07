@@ -1,13 +1,11 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { categories } from '@/lib/db/schema';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 import { idSchema, formatZodError, json, errorJson } from '@/lib/api/utils';
 
-/**
- * Category update schema
- */
 const updateCategorySchema = z
   .object({
     name: z.string().min(1).max(100),
@@ -27,8 +25,11 @@ interface RouteParams {
 /**
  * GET /api/v1/categories/:id - Get category by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -39,7 +40,12 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     const [category] = await db
       .select()
       .from(categories)
-      .where(eq(categories.id, idValidation.data));
+      .where(
+        and(
+          eq(categories.id, idValidation.data),
+          eq(categories.userId, auth.user.id)
+        )
+      );
 
     if (!category) {
       return errorJson('NOT_FOUND', 'Category not found', 404);
@@ -48,9 +54,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return json({ data: category });
   } catch (error) {
     console.error('Failed to get category:', error);
-    return errorJson('DB_ERROR', 'Failed to retrieve category', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to retrieve category', 500);
   }
 }
 
@@ -59,6 +63,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -76,7 +83,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(categories)
-      .where(eq(categories.id, idValidation.data));
+      .where(
+        and(
+          eq(categories.id, idValidation.data),
+          eq(categories.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Category not found', 404);
@@ -85,7 +97,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await db
       .update(categories)
       .set(validation.data)
-      .where(eq(categories.id, idValidation.data));
+      .where(
+        and(
+          eq(categories.id, idValidation.data),
+          eq(categories.userId, auth.user.id)
+        )
+      );
 
     const [updated] = await db
       .select()
@@ -95,17 +112,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return json({ data: updated });
   } catch (error) {
     console.error('Failed to update category:', error);
-    return errorJson('DB_ERROR', 'Failed to update category', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to update category', 500);
   }
 }
 
 /**
  * DELETE /api/v1/categories/:id - Delete category
  */
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const idValidation = idSchema.safeParse(id);
     if (!idValidation.success) {
@@ -117,19 +135,29 @@ export async function DELETE(_request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(categories)
-      .where(eq(categories.id, idValidation.data));
+      .where(
+        and(
+          eq(categories.id, idValidation.data),
+          eq(categories.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Category not found', 404);
     }
 
-    await db.delete(categories).where(eq(categories.id, idValidation.data));
+    await db
+      .delete(categories)
+      .where(
+        and(
+          eq(categories.id, idValidation.data),
+          eq(categories.userId, auth.user.id)
+        )
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Failed to delete category:', error);
-    return errorJson('DB_ERROR', 'Failed to delete category', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to delete category', 500);
   }
 }

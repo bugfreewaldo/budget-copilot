@@ -27,7 +27,8 @@ export interface ErrorResponse {
       | 'DB_ERROR'
       | 'INTERNAL_ERROR'
       | 'UNAUTHORIZED'
-      | 'INVALID_TOKEN';
+      | 'INVALID_TOKEN'
+      | 'INVALID_STATE';
     message: string;
     details?: Record<string, unknown>;
   };

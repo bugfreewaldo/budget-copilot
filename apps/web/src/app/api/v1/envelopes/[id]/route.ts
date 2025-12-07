@@ -1,7 +1,10 @@
 import { NextRequest } from 'next/server';
-import { proxyToApi } from '@/lib/api/proxy';
+import { eq, and } from 'drizzle-orm';
+import { getDb } from '@/lib/db/client';
+import { envelopes } from '@/lib/db/schema';
+import { getAuthenticatedUser } from '@/lib/api/auth';
+import { idSchema, errorJson } from '@/lib/api/utils';
 
-// Force dynamic rendering since proxyToApi uses cookies
 export const dynamic = 'force-dynamic';
 
 interface RouteParams {
@@ -10,9 +13,46 @@ interface RouteParams {
 
 /**
  * DELETE /api/v1/envelopes/:id - Delete an envelope
- * Proxies to Fastify backend which handles auth and database
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  return proxyToApi(request, `/v1/envelopes/${id}`);
+  try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
+    const { id } = await params;
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return errorJson('VALIDATION_ERROR', 'Invalid envelope ID', 400);
+    }
+
+    const db = getDb();
+
+    const [existing] = await db
+      .select()
+      .from(envelopes)
+      .where(
+        and(
+          eq(envelopes.id, idValidation.data),
+          eq(envelopes.userId, auth.user.id)
+        )
+      );
+
+    if (!existing) {
+      return errorJson('NOT_FOUND', 'Envelope not found', 404);
+    }
+
+    await db
+      .delete(envelopes)
+      .where(
+        and(
+          eq(envelopes.id, idValidation.data),
+          eq(envelopes.userId, auth.user.id)
+        )
+      );
+
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    console.error('Failed to delete envelope:', error);
+    return errorJson('DB_ERROR', 'Failed to delete envelope', 500);
+  }
 }

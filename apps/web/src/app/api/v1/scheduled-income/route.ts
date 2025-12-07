@@ -1,14 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { scheduledIncome } from '@/lib/db/schema';
-import { formatZodError, json, errorJson, centsSchema } from '@/lib/api/utils';
+import { getAuthenticatedUser } from '@/lib/api/auth';
+import { formatZodError, json, errorJson, centsSchema, idSchema } from '@/lib/api/utils';
 
-/**
- * Scheduled Income validation schemas
- */
+export const dynamic = 'force-dynamic';
+
 const createIncomeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   source: z.enum([
@@ -34,24 +34,23 @@ const updateIncomeSchema = createIncomeSchema.partial();
 /**
  * GET /api/v1/scheduled-income - List all scheduled income
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
 
     const result = await db
       .select()
       .from(scheduledIncome)
-      .where(eq(scheduledIncome.userId, userId))
+      .where(eq(scheduledIncome.userId, auth.user.id))
       .orderBy(desc(scheduledIncome.createdAt));
 
-    return json({ data: result });
+    return NextResponse.json({ data: result });
   } catch (error) {
     console.error('Failed to list scheduled income:', error);
-    return errorJson('DB_ERROR', 'Failed to retrieve scheduled income', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to retrieve scheduled income', 500);
   }
 }
 
@@ -60,6 +59,9 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const validation = createIncomeSchema.safeParse(body);
 
@@ -68,14 +70,12 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
     const now = Date.now();
     const id = nanoid();
 
     await db.insert(scheduledIncome).values({
       id,
-      userId,
+      userId: auth.user.id,
       name: validation.data.name,
       source: validation.data.source,
       amountCents: validation.data.amountCents,
@@ -94,12 +94,10 @@ export async function POST(request: NextRequest) {
       .from(scheduledIncome)
       .where(eq(scheduledIncome.id, id));
 
-    return json({ data: income }, 201);
+    return NextResponse.json({ data: income }, { status: 201 });
   } catch (error) {
     console.error('Failed to create scheduled income:', error);
-    return errorJson('DB_ERROR', 'Failed to create scheduled income', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to create scheduled income', 500);
   }
 }
 
@@ -108,11 +106,19 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const { id, ...updateData } = body;
 
     if (!id) {
       return errorJson('VALIDATION_ERROR', 'Income ID is required', 400);
+    }
+
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return errorJson('VALIDATION_ERROR', 'Invalid income ID format', 400);
     }
 
     const validation = updateIncomeSchema.safeParse(updateData);
@@ -122,17 +128,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const db = getDb();
-    // TODO: Get userId from session
-    const userId = 'demo-user';
     const now = Date.now();
 
-    // Check if income exists
+    // Check if income exists and belongs to user
     const [existing] = await db
       .select()
       .from(scheduledIncome)
-      .where(eq(scheduledIncome.id, id));
+      .where(and(eq(scheduledIncome.id, id), eq(scheduledIncome.userId, auth.user.id)));
 
-    if (!existing || existing.userId !== userId) {
+    if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled income not found', 404);
     }
 
@@ -149,11 +153,9 @@ export async function PUT(request: NextRequest) {
       .from(scheduledIncome)
       .where(eq(scheduledIncome.id, id));
 
-    return json({ data: updated });
+    return NextResponse.json({ data: updated });
   } catch (error) {
     console.error('Failed to update scheduled income:', error);
-    return errorJson('DB_ERROR', 'Failed to update scheduled income', 500, {
-      error: (error as Error).message,
-    });
+    return errorJson('DB_ERROR', 'Failed to update scheduled income', 500);
   }
 }
