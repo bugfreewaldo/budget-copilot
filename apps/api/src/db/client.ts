@@ -3,7 +3,7 @@ import { drizzle as drizzleLibSQL } from 'drizzle-orm/libsql';
 import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import type { LibSQLDatabase } from 'drizzle-orm/libsql';
-import * as schema from './schema';
+import * as schema from './schema.js';
 
 /**
  * Database client that supports both Turso (production) and SQL.js (local dev)

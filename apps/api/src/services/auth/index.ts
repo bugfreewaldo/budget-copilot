@@ -1,18 +1,18 @@
 import { eq } from 'drizzle-orm';
-import { getDb } from '../../db/client';
+import { getDb } from '../../db/client.js';
 import {
   users,
   sessions,
   passwordResetTokens,
   emailVerificationTokens,
-} from '../../db/schema';
+} from '../../db/schema.js';
 import {
   hashPassword,
   verifyPassword,
   generateToken,
   hashToken,
   generateId,
-} from './crypto';
+} from './crypto.js';
 import { seedDefaultCategoriesForUser } from '../categories/index.js';
 
 // Session duration: 30 days
