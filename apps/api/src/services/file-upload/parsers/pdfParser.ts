@@ -263,7 +263,7 @@ function validateBankStatement(raw: RawPdfParseResult): PdfParserOutput {
 
   for (const tx of transactions) {
     // Validate amount
-    let amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
+    const amount = typeof tx.amount === 'string' ? parseFloat(tx.amount) : tx.amount;
     if (typeof amount !== 'number' || !Number.isFinite(amount)) {
       // Skip invalid transactions
       continue;

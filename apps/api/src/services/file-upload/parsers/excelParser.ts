@@ -331,7 +331,7 @@ function parseAmount(value: unknown): number | null {
 
   // Remove currency symbols and thousands separators
   str = str
-    .replace(/[$€£¥B\/\.]/g, '') // Currency symbols
+    .replace(/[$€£¥B/.]/g, '') // Currency symbols
     .replace(/,(?=\d{3})/g, '') // Thousands separators (comma before 3 digits)
     .replace(/\s/g, ''); // Whitespace
 

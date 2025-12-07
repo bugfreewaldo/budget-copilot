@@ -15,8 +15,6 @@ import { fileIdSchema, importItemsSchema } from '../schemas/files.js';
 import * as filesRepo from '../lib/repo/files.js';
 import {
   type ParsedSummary,
-  type ParsedBankStatement,
-  type ParsedReceipt,
   isReceipt,
   isBankStatement,
 } from '../../services/file-upload/types.js';
