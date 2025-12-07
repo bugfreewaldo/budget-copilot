@@ -26,7 +26,8 @@ export interface ErrorResponse {
       | 'NOT_FOUND'
       | 'DB_ERROR'
       | 'INTERNAL_ERROR'
-      | 'UNAUTHORIZED';
+      | 'UNAUTHORIZED'
+      | 'INVALID_TOKEN';
     message: string;
     details?: Record<string, unknown>;
   };

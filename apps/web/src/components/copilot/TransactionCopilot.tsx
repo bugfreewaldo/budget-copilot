@@ -12,12 +12,15 @@ import {
   importFileItems,
   getAccounts,
   getCategories,
+  isReceipt,
+  isBankStatement,
   type ChatMessage,
   type CopilotResponse,
   type FileSummaryResponse,
   type Account,
   type Category,
   type ImportItem,
+  type ParsedBankStatement,
 } from '@/lib/api';
 
 interface ParsedFileData {
@@ -387,13 +390,14 @@ export function TransactionCopilot({
 
   // Generate message for file result
   const getFileResultMessage = (summary: FileSummaryResponse): string => {
-    if (summary.summary.documentType === 'receipt' || summary.summary.documentType === 'invoice') {
+    if (isReceipt(summary.summary)) {
       const { merchant, amount } = summary.summary.mainTransaction;
       return `Encontré un recibo de ${merchant} por ${formatCents(amount * 100)}. ¿Quieres importarlo?`;
-    } else {
+    } else if (isBankStatement(summary.summary)) {
       const count = summary.summary.transactions.length;
       return `Encontré ${count} transacción${count !== 1 ? 'es' : ''} en el documento. Selecciona las que quieras importar.`;
     }
+    return 'Documento procesado.';
   };
 
   // Import transactions from parsed file
@@ -565,7 +569,7 @@ export function TransactionCopilot({
                 {/* Show parsed file data with import options */}
                 {msg.parsedFile && msg.parsedFile.status === 'ready' && msg.parsedFile.summary && (
                   <div className="mt-2 pt-2 border-t border-gray-700/50">
-                    {msg.parsedFile.summary.summary.documentType === 'receipt' || msg.parsedFile.summary.summary.documentType === 'invoice' ? (
+                    {isReceipt(msg.parsedFile.summary.summary) ? (
                       // Receipt - single import button
                       <button
                         onClick={() =>
@@ -579,7 +583,7 @@ export function TransactionCopilot({
                       >
                         ✓ Importar gasto
                       </button>
-                    ) : (
+                    ) : isBankStatement(msg.parsedFile.summary.summary) ? (
                       // Bank statement - list transactions with category selection
                       <div className="space-y-2">
                         <p className="text-xs text-gray-400 mb-2">
@@ -646,24 +650,21 @@ export function TransactionCopilot({
                         </div>
                         {msg.parsedFile.summary.summary.transactions.length > 1 && (
                           <button
-                            onClick={() =>
+                            onClick={() => {
+                              const bankStmt = msg.parsedFile!.summary!.summary as ParsedBankStatement;
                               handleImportFromFile(
                                 msg.id,
                                 msg.parsedFile!.fileId,
-                                msg.parsedFile!.summary!.summary.documentType === 'bank_statement'
-                                  ? msg.parsedFile!.summary!.summary.transactions.map(
-                                      (t) => t.id
-                                    )
-                                  : ['main']
-                              )
-                            }
+                                bankStmt.transactions.map((t) => t.id)
+                              );
+                            }}
                             className="w-full text-xs px-3 py-2 mt-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition-colors"
                           >
                             Importar todas ({msg.parsedFile.summary.summary.transactions.length})
                           </button>
                         )}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
 

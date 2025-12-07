@@ -971,6 +971,20 @@ export interface ParsedBankStatement {
 
 export type ParsedSummary = ParsedReceipt | ParsedBankStatement;
 
+/**
+ * Type guard to check if a parsed summary is a receipt/invoice
+ */
+export function isReceipt(summary: ParsedSummary): summary is ParsedReceipt {
+  return summary.documentType === 'receipt' || summary.documentType === 'invoice';
+}
+
+/**
+ * Type guard to check if a parsed summary is a bank statement
+ */
+export function isBankStatement(summary: ParsedSummary): summary is ParsedBankStatement {
+  return summary.documentType === 'bank_statement';
+}
+
 export interface FileSummaryResponse {
   documentType: DocumentType;
   parserVersion: string;

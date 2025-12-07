@@ -34,6 +34,8 @@ export const errorResponseSchema = z.object({
       'NOT_FOUND',
       'DB_ERROR',
       'INTERNAL_ERROR',
+      'UNAUTHORIZED',
+      'INVALID_TOKEN',
       // File upload error codes
       'STORAGE_NOT_CONFIGURED',
       'UPLOAD_URL_ERROR',

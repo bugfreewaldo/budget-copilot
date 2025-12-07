@@ -6,6 +6,8 @@ import {
   importFileItems,
   formatCents,
   getAccounts,
+  isReceipt,
+  isBankStatement,
   type FileSummaryResponse,
   type ParsedSummary,
   type Account,
@@ -85,7 +87,7 @@ export function ParsedFileReview({
   }, [fileId]);
 
   const getItemIds = (s: ParsedSummary): string[] => {
-    if (s.type === 'receipt') {
+    if (isReceipt(s)) {
       return ['main'];
     }
     return s.transactions.map((t) => t.id);
@@ -120,9 +122,13 @@ export function ParsedFileReview({
 
     setImporting(true);
     try {
-      const result = await importFileItems(fileId, Array.from(selectedItems), {
-        accountId: selectedAccountId,
-      });
+      const result = await importFileItems(
+        fileId,
+        Array.from(selectedItems).map((id) => ({ id })),
+        {
+          accountId: selectedAccountId,
+        }
+      );
 
       if (result.imported.length > 0) {
         showToast(
@@ -192,7 +198,8 @@ export function ParsedFileReview({
 
   if (!summary) return null;
 
-  const isReceipt = summary.summary.type === 'receipt';
+  const summaryIsReceipt = isReceipt(summary.summary);
+  const summaryIsBankStatement = isBankStatement(summary.summary);
   const allItemIds = getItemIds(summary.summary).filter(
     (id) => !summary.importedItemIds.includes(id)
   );
@@ -202,24 +209,16 @@ export function ParsedFileReview({
     <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <span>{isReceipt ? '🧾' : '🏦'}</span>
+          <span>{summaryIsReceipt ? '🧾' : '🏦'}</span>
           {filename}
         </h3>
-        <span
-          className={`text-xs px-2 py-1 rounded-full ${
-            summary.summary.confidence >= 0.8
-              ? 'bg-green-500/20 text-green-400'
-              : summary.summary.confidence >= 0.5
-              ? 'bg-yellow-500/20 text-yellow-400'
-              : 'bg-red-500/20 text-red-400'
-          }`}
-        >
-          {Math.round(summary.summary.confidence * 100)}% confianza
+        <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
+          {summary.documentType === 'receipt' ? 'Recibo' : summary.documentType === 'invoice' ? 'Factura' : 'Estado de cuenta'}
         </span>
       </div>
 
       {/* Document info */}
-      {isReceipt ? (
+      {summaryIsReceipt && isReceipt(summary.summary) ? (
         <div className="bg-gray-800 rounded-xl p-4 mb-4">
           <p className="text-white font-medium">
             {summary.summary.mainTransaction.merchant}
@@ -231,11 +230,11 @@ export function ParsedFileReview({
             {formatCents(summary.summary.mainTransaction.amount * 100)}
           </p>
         </div>
-      ) : (
+      ) : isBankStatement(summary.summary) ? (
         <div className="bg-gray-800 rounded-xl p-4 mb-4">
-          {summary.summary.accountInfo?.bankName && (
+          {summary.summary.accountName && (
             <p className="text-white font-medium">
-              {summary.summary.accountInfo.bankName}
+              {summary.summary.accountName}
             </p>
           )}
           {summary.summary.period && (
@@ -247,10 +246,10 @@ export function ParsedFileReview({
             {summary.summary.transactions.length} transacciones encontradas
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Transactions list */}
-      {!isReceipt && summary.summary.transactions.length > 0 && (
+      {summaryIsBankStatement && isBankStatement(summary.summary) && summary.summary.transactions.length > 0 && (
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
             <button
@@ -309,7 +308,7 @@ export function ParsedFileReview({
       )}
 
       {/* Receipt single item */}
-      {isReceipt && !allImported && (
+      {summaryIsReceipt && isReceipt(summary.summary) && !allImported && (
         <label
           className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all mb-4 ${
             selectedItems.has('main')
