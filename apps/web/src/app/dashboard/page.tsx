@@ -15,7 +15,7 @@ import { Sidebar } from '@/components/layout';
 import { TransactionCopilot } from '@/components/copilot/TransactionCopilot';
 import {
   SpendingByCategory,
-  BudgetProgress,
+  // BudgetProgress, // TODO: Temporarily hidden - re-enable when presupuesto is ready
   IncomeVsExpenses,
   FinancialWeather,
   CategoryDetailModal,

@@ -5,7 +5,6 @@ import {
   createUploadUrls,
   completeUpload,
   uploadFileToS3,
-  type UploadTarget,
 } from '@/lib/api';
 import { useToast } from '@/components/ui/toast';
 
