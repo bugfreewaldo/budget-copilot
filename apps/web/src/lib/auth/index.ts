@@ -1,6 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { getDb } from '../db/client';
-import { users, sessions, passwordResetTokens } from '../db/schema';
+import {
+  users,
+  sessions,
+  passwordResetTokens,
+  emailVerificationTokens,
+} from '../db/schema';
 import {
   hashPassword,
   verifyPassword,
@@ -11,6 +16,7 @@ import {
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const PASSWORD_RESET_DURATION_MS = 60 * 60 * 1000; // 1 hour
+const EMAIL_VERIFICATION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface RegisterInput {
   email: string;
@@ -336,6 +342,71 @@ export async function changePassword(
     .update(users)
     .set({ passwordHash, updatedAt: now })
     .where(eq(users.id, userId));
+
+  return true;
+}
+
+export async function createEmailVerificationToken(
+  userId: string
+): Promise<string | null> {
+  const db = getDb();
+
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+
+  if (!user || user.status !== 'active' || user.emailVerified) {
+    return null;
+  }
+
+  // Delete any existing tokens for this user
+  await db
+    .delete(emailVerificationTokens)
+    .where(eq(emailVerificationTokens.userId, userId));
+
+  const token = generateToken();
+  const tokenHash = hashToken(token);
+  const now = Date.now();
+  const expiresAt = now + EMAIL_VERIFICATION_DURATION_MS;
+
+  await db.insert(emailVerificationTokens).values({
+    id: generateId(),
+    userId,
+    token: tokenHash,
+    expiresAt,
+    createdAt: now,
+  });
+
+  return token;
+}
+
+export async function verifyEmail(token: string): Promise<boolean> {
+  const db = getDb();
+  const tokenHash = hashToken(token);
+  const now = Date.now();
+
+  const [verificationToken] = await db
+    .select()
+    .from(emailVerificationTokens)
+    .where(eq(emailVerificationTokens.token, tokenHash));
+
+  if (
+    !verificationToken ||
+    verificationToken.expiresAt < now ||
+    verificationToken.usedAt
+  ) {
+    return false;
+  }
+
+  // Mark email as verified
+  await db
+    .update(users)
+    .set({ emailVerified: true, emailVerifiedAt: now, updatedAt: now })
+    .where(eq(users.id, verificationToken.userId));
+
+  // Mark token as used
+  await db
+    .update(emailVerificationTokens)
+    .set({ usedAt: now })
+    .where(eq(emailVerificationTokens.id, verificationToken.id));
 
   return true;
 }

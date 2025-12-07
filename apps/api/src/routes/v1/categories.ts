@@ -4,6 +4,7 @@ import { getDb } from '../../db/client.js';
 import { categories } from '../../db/schema.js';
 import { eq, and, or, gt, asc, sql as drizzleSql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { requireAuth } from '../../server/plugins/auth.js';
 
 /**
  * Categories V1 Routes
@@ -26,7 +27,7 @@ export const updateCategorySchema = z.object({
 
 export const listCategoriesQuerySchema = z.object({
   cursor: z.string().optional(),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  limit: z.coerce.number().int().min(1).max(500).optional().default(20),
   q: z.string().max(100).optional(),
 });
 
@@ -134,7 +135,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/categories
    * Create a new category
    */
-  fastify.post('/categories', async (request, reply) => {
+  fastify.post('/categories', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = fastify.safeValidate(
@@ -151,6 +152,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
       const data = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       // Validate parent_id if provided
       if (data.parent_id) {
@@ -163,10 +165,6 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
       // Generate ID and timestamp
       const id = nanoid();
       const now = Date.now();
-
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
 
       // Insert category
       await db.insert(categories).values({
@@ -201,7 +199,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/categories
    * List categories with cursor-based pagination and optional search
    */
-  fastify.get('/categories', async (request, reply) => {
+  fastify.get('/categories', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate query params
       const validation = fastify.safeValidate(
@@ -218,6 +216,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { cursor, limit, q } = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       // Parse cursor
       const cursorData = cursor ? fastify.decodeCursor(cursor) : null;
@@ -226,16 +225,16 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.badRequest('Invalid cursor');
       }
 
-      // Build query
-      const conditions: any[] = [];
+      // Build query - always filter by userId
+      const conditions: any[] = [eq(categories.userId, userId)];
 
-      // Apply cursor for pagination (ASC order)
+      // Apply cursor for pagination (alphabetical ASC order by name)
       if (cursorData) {
         conditions.push(
           or(
-            gt(categories.createdAt, cursorData.createdAt),
+            gt(categories.name, cursorData.createdAt), // createdAt field holds the name value
             and(
-              eq(categories.createdAt, cursorData.createdAt),
+              eq(categories.name, cursorData.createdAt),
               gt(categories.id, cursorData.id)
             )
           )
@@ -254,7 +253,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
       const query = db
         .select()
         .from(categories)
-        .orderBy(asc(categories.createdAt), asc(categories.id))
+        .orderBy(asc(categories.name), asc(categories.id))
         .limit(limit + 1);
 
       if (conditions.length > 0) {
@@ -263,11 +262,11 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
       const results = await query;
 
-      // Create paginated response
+      // Create paginated response (use name for cursor)
       const response = fastify.createPaginatedResponse(
         results,
         limit,
-        (item) => item.createdAt,
+        (item) => item.name,
         (item) => item.id
       );
 
@@ -284,6 +283,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{ Params: { id: string } }>(
     '/categories/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         // Validate ID
@@ -300,10 +300,11 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
         const [category] = await db
           .select()
           .from(categories)
-          .where(eq(categories.id, request.params.id));
+          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
 
         if (!category) {
           return reply.notFound('Category', request.params.id);
@@ -323,6 +324,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.patch<{ Params: { id: string } }>(
     '/categories/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         // Validate ID
@@ -353,12 +355,13 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
         const data = bodyValidation.data;
         const db = await getDb();
+        const userId = request.user!.id;
 
-        // Check if category exists
+        // Check if category exists and belongs to user
         const [existing] = await db
           .select()
           .from(categories)
-          .where(eq(categories.id, request.params.id));
+          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Category', request.params.id);
@@ -425,6 +428,7 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.delete<{ Params: { id: string } }>(
     '/categories/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         // Validate ID
@@ -438,12 +442,13 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
 
-        // Check if category exists
+        // Check if category exists and belongs to user
         const [existing] = await db
           .select()
           .from(categories)
-          .where(eq(categories.id, request.params.id));
+          .where(and(eq(categories.id, request.params.id), eq(categories.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Category', request.params.id);

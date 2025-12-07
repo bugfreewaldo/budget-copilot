@@ -95,6 +95,24 @@ export const passwordResetTokens = sqliteTable(
   })
 );
 
+export const emailVerificationTokens = sqliteTable(
+  'email_verification_tokens',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    token: text('token').notNull(),
+    expiresAt: integer('expires_at').notNull(),
+    usedAt: integer('used_at'),
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('email_verification_token_idx').on(table.token),
+    userIdx: index('email_verification_user_idx').on(table.userId),
+  })
+);
+
 // ============================================================================
 // HOUSEHOLDS (FAMILY SHARING)
 // ============================================================================
@@ -331,6 +349,8 @@ export const debts = sqliteTable(
     currentBalanceCents: integer('current_balance_cents').notNull(),
     aprPercent: real('apr_percent').notNull(),
     minimumPaymentCents: integer('minimum_payment_cents'),
+    termMonths: integer('term_months'), // Loan duration in months (null for revolving credit)
+    startDate: text('start_date'), // ISO date when loan was originated (optional)
     dueDay: integer('due_day'),
     nextDueDate: text('next_due_date'),
     status: text('status', {

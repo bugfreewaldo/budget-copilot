@@ -1,3 +1,8 @@
+// Load environment variables BEFORE any other imports
+// This must be the first import to ensure env vars are available
+// when other modules (like @budget-copilot/ai) read process.env
+import 'dotenv/config';
+
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import { initializeDatabase, flushSave } from '../db/client.js';
@@ -21,6 +26,9 @@ import authRoutes from '../routes/v1/auth.js';
 import copilotRoutes from '../routes/v1/copilot.js';
 import debtsRoutes from '../routes/v1/debts.js';
 import goalsRoutes from '../routes/v1/goals.js';
+import { uploadRoutes } from './routes/uploads.js';
+import { filesRoutes } from './routes/files.js';
+import { cronRoutes } from './routes/cron.js';
 
 /**
  * Bootstrap Fastify server with all plugins and routes
@@ -77,6 +85,13 @@ async function buildServer() {
   await server.register(copilotRoutes, { prefix: '/v1' });
   await server.register(debtsRoutes, { prefix: '/v1' });
   await server.register(goalsRoutes, { prefix: '/v1' });
+
+  // File upload routes
+  await server.register(uploadRoutes, { prefix: '/v1' });
+  await server.register(filesRoutes, { prefix: '/v1' });
+
+  // Cron routes (for background processing)
+  await server.register(cronRoutes, { prefix: '/v1' });
 
   return server;
 }

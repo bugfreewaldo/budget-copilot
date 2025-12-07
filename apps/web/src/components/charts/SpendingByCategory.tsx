@@ -2,9 +2,17 @@
 
 import type { Category, Transaction } from '@/lib/api';
 
+interface CategoryData {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
+
 interface SpendingByCategoryProps {
   transactions: Transaction[];
   categories: Category[];
+  onCategoryClick?: (category: CategoryData) => void;
 }
 
 const COLORS = [
@@ -21,6 +29,7 @@ const COLORS = [
 export function SpendingByCategory({
   transactions,
   categories,
+  onCategoryClick,
 }: SpendingByCategoryProps) {
   // Calculate spending by category (only expenses)
   const spendingByCategory = transactions
@@ -36,6 +45,7 @@ export function SpendingByCategory({
     .map(([categoryId, amountCents]) => {
       const category = categories.find((c) => c.id === categoryId);
       return {
+        id: categoryId,
         name: category?.name || 'Sin categoría',
         value: amountCents / 100,
         emoji: category?.emoji || '📦',
@@ -59,12 +69,28 @@ export function SpendingByCategory({
     <div className="space-y-3">
       {data.map((item, index) => {
         const percent = (item.value / maxValue) * 100;
+        const color = COLORS[index % COLORS.length]!;
+        const handleClick = () => {
+          if (onCategoryClick) {
+            onCategoryClick({
+              id: item.id,
+              name: item.name,
+              emoji: item.emoji,
+              color,
+            });
+          }
+        };
         return (
-          <div key={item.name} className="flex items-center gap-3">
+          <button
+            key={item.id}
+            type="button"
+            onClick={handleClick}
+            className="flex items-center gap-3 w-full text-left p-2 -mx-2 rounded-lg hover:bg-gray-800/50 transition-colors group cursor-pointer"
+          >
             <span className="text-xl w-8 text-center">{item.emoji}</span>
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm text-gray-300 truncate">
+                <span className="text-sm text-gray-300 truncate group-hover:text-white transition-colors">
                   {item.name}
                 </span>
                 <span className="text-sm font-medium text-white ml-2">
@@ -79,12 +105,25 @@ export function SpendingByCategory({
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${percent}%`,
-                    backgroundColor: COLORS[index % COLORS.length],
+                    backgroundColor: color,
                   }}
                 />
               </div>
             </div>
-          </div>
+            <svg
+              className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
         );
       })}
       <div className="pt-3 mt-2 border-t border-gray-700 flex items-center justify-between">

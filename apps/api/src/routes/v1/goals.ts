@@ -4,6 +4,7 @@ import { getDb } from '../../db/client.js';
 import { goals } from '../../db/schema.js';
 import { eq, and, asc, gt, or, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { requireAuth } from '../../server/plugins/auth.js';
 
 /**
  * Goals V1 Routes - Seguimiento de Metas
@@ -145,7 +146,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/goals
    * Create a new goal
    */
-  fastify.post('/goals', async (request, reply) => {
+  fastify.post('/goals', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const validation = fastify.safeValidate(createGoalSchema, request.body);
 
@@ -155,6 +156,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const data = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       const id = nanoid();
       const now = Date.now();
@@ -167,10 +169,6 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         startDate,
         data.target_date || null
       );
-
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
 
       await db.insert(goals).values({
         id,
@@ -210,7 +208,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/goals
    * List goals with cursor-based pagination
    */
-  fastify.get('/goals', async (request, reply) => {
+  fastify.get('/goals', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const validation = fastify.safeValidate(
         listGoalsQuerySchema,
@@ -223,6 +221,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { cursor, limit, status, type } = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       const cursorData = cursor ? fastify.decodeCursor(cursor) : null;
 
@@ -230,7 +229,8 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.badRequest('Invalid cursor');
       }
 
-      const conditions: any[] = [];
+      // Always filter by userId
+      const conditions: any[] = [eq(goals.userId, userId)];
 
       if (cursorData) {
         conditions.push(
@@ -268,11 +268,11 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const results = await query;
 
-      // Calculate summary stats
+      // Calculate summary stats (filtered by userId)
       const allActiveGoals = await db
         .select()
         .from(goals)
-        .where(eq(goals.status, 'active'));
+        .where(and(eq(goals.userId, userId), eq(goals.status, 'active')));
       const totalTargetCents = allActiveGoals.reduce(
         (sum, g) => sum + g.targetAmountCents,
         0
@@ -315,6 +315,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{ Params: { id: string } }>(
     '/goals/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const validation = fastify.safeValidate(
@@ -327,10 +328,11 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
         const [goal] = await db
           .select()
           .from(goals)
-          .where(eq(goals.id, request.params.id));
+          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
 
         if (!goal) {
           return reply.notFound('Goal', request.params.id);
@@ -350,6 +352,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.patch<{ Params: { id: string } }>(
     '/goals/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const idValidation = fastify.safeValidate(
@@ -375,11 +378,12 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
 
         const data = bodyValidation.data;
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(goals)
-          .where(eq(goals.id, request.params.id));
+          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);
@@ -457,6 +461,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.post<{ Params: { id: string } }>(
     '/goals/:id/contribute',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const idValidation = fastify.safeValidate(
@@ -482,11 +487,12 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
 
         const { amount_cents } = bodyValidation.data;
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(goals)
-          .where(eq(goals.id, request.params.id));
+          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);
@@ -554,6 +560,7 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.delete<{ Params: { id: string } }>(
     '/goals/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const validation = fastify.safeValidate(
@@ -566,11 +573,12 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(goals)
-          .where(eq(goals.id, request.params.id));
+          .where(and(eq(goals.id, request.params.id), eq(goals.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Goal', request.params.id);

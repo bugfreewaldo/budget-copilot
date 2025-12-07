@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { getDb, saveDatabase } from '../../db/client.js';
+import { requireAuth } from '../plugins/auth.js';
 import {
   createEnvelopeSchema,
   listEnvelopesQuerySchema,
@@ -14,8 +15,8 @@ import * as envelopeRepo from '../lib/repo/envelopes.js';
  * POST /v1/envelopes - Create or update envelope (upsert)
  */
 export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
-  // GET /v1/envelopes - List envelopes with spending calculation
-  fastify.get('/envelopes', async (request, reply) => {
+  // GET /v1/envelopes - List envelopes with spending calculation for current user
+  fastify.get('/envelopes', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate query params
       const validation = listEnvelopesQuerySchema.safeParse(request.query);
@@ -25,9 +26,11 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
+      const userId = request.user!.id;
       const envelopes = await envelopeRepo.findEnvelopesByMonth(
         db,
-        validation.data.month
+        validation.data.month,
+        userId
       );
 
       // Calculate spending for each envelope
@@ -59,7 +62,7 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // POST /v1/envelopes - Create or update envelope
-  fastify.post('/envelopes', async (request, reply) => {
+  fastify.post('/envelopes', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = createEnvelopeSchema.safeParse(request.body);
@@ -69,9 +72,7 @@ export const envelopeRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
+      const userId = request.user!.id;
       const envelope = await envelopeRepo.upsertEnvelope(db, {
         ...validation.data,
         userId,

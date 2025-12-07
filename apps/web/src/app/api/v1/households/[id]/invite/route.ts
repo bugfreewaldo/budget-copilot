@@ -10,6 +10,7 @@ import {
 import { json, errorJson, idSchema } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId, generateToken } from '@/lib/auth/crypto';
+import { sendHouseholdInviteEmail } from '@/lib/email';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -103,8 +104,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     // Build the invite URL
-    const baseUrl = request.headers.get('origin') || 'http://localhost:3000';
+    const baseUrl =
+      request.headers.get('origin') || 'https://budgetcopilot.app';
     const inviteUrl = `${baseUrl}/invite/${inviteToken}`;
+
+    // Send invite email if email was provided
+    if (email) {
+      const inviterName = user.name || user.email;
+      sendHouseholdInviteEmail(
+        email,
+        inviterName,
+        household.name,
+        role,
+        inviteToken,
+        baseUrl
+      ).catch((err) => {
+        console.error('Failed to send household invite email:', err);
+      });
+    }
 
     return json(
       {

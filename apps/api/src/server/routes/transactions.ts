@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { getDb, saveDatabase } from '../../db/client.js';
+import { requireAuth } from '../plugins/auth.js';
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -20,8 +21,8 @@ import * as transactionRepo from '../lib/repo/transactions.js';
  * DELETE /v1/transactions/:id - Delete transaction
  */
 export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
-  // GET /v1/transactions - List transactions
-  fastify.get('/transactions', async (request, reply) => {
+  // GET /v1/transactions - List transactions for current user
+  fastify.get('/transactions', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate query params
       const validation = listTransactionsQuerySchema.safeParse(request.query);
@@ -31,10 +32,11 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      const transactions = await transactionRepo.findAllTransactions(
-        db,
-        validation.data
-      );
+      const userId = request.user!.id;
+      const transactions = await transactionRepo.findAllTransactions(db, {
+        ...validation.data,
+        userId,
+      });
 
       return reply.send({ data: transactions });
     } catch (error) {
@@ -48,7 +50,7 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // POST /v1/transactions - Create new transaction
-  fastify.post('/transactions', async (request, reply) => {
+  fastify.post('/transactions', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = createTransactionSchema.safeParse(request.body);
@@ -58,9 +60,7 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
+      const userId = request.user!.id;
       const transaction = await transactionRepo.createTransaction(db, {
         ...validation.data,
         userId,
@@ -91,6 +91,7 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
   // PATCH /v1/transactions/:id - Update transaction
   fastify.patch<{ Params: { id: string } }>(
     '/transactions/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         // Validate ID param
@@ -111,14 +112,15 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
 
-        // Check if transaction exists
+        // Check if transaction exists and belongs to current user
         const existing = await transactionRepo.findTransactionById(
           db,
           idValidation.data
         );
 
-        if (!existing) {
+        if (!existing || existing.userId !== userId) {
           return reply
             .status(404)
             .send(createErrorResponse('NOT_FOUND', 'Transaction not found'));
@@ -153,6 +155,7 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
   // DELETE /v1/transactions/:id - Delete transaction
   fastify.delete<{ Params: { id: string } }>(
     '/transactions/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         // Validate ID param
@@ -166,14 +169,15 @@ export const transactionRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
 
-        // Check if transaction exists
+        // Check if transaction exists and belongs to current user
         const existing = await transactionRepo.findTransactionById(
           db,
           idValidation.data
         );
 
-        if (!existing) {
+        if (!existing || existing.userId !== userId) {
           return reply
             .status(404)
             .send(createErrorResponse('NOT_FOUND', 'Transaction not found'));

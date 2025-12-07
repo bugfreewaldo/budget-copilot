@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import * as copilotService from '../../services/transaction-copilot/index.js';
+import { requireAuth } from '../../server/plugins/auth.js';
 
 /**
  * Copilot V1 Routes
@@ -38,7 +39,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/copilot/chat
    * Send a message to the transaction copilot
    */
-  fastify.post('/copilot/chat', async (request, reply) => {
+  fastify.post('/copilot/chat', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = fastify.safeValidate(chatMessageSchema, request.body);
@@ -49,8 +50,8 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { message, conversationHistory } = validation.data;
 
-      // Get user ID from auth context (using test user for now)
-      const userId = request.user?.id || 'test-user-00000000000000000001';
+      // Get user ID from auth context
+      const userId = request.user!.id;
 
       // Process message through copilot service
       const response = await copilotService.processMessage(
@@ -72,7 +73,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/copilot/update-category
    * Update the category of a recently created transaction
    */
-  fastify.post('/copilot/update-category', async (request, reply) => {
+  fastify.post('/copilot/update-category', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = fastify.safeValidate(
@@ -87,7 +88,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
       const { transactionId, categoryId } = validation.data;
 
       // Get user ID from auth context
-      const userId = request.user?.id || 'test-user-00000000000000000001';
+      const userId = request.user!.id;
 
       const success = await copilotService.updateTransactionCategory(
         transactionId,
@@ -112,7 +113,7 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/copilot/quick-actions
    * Get suggested quick actions for the copilot UI
    */
-  fastify.get('/copilot/quick-actions', async (request, reply) => {
+  fastify.get('/copilot/quick-actions', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const quickActions = copilotService.getQuickActions();
 

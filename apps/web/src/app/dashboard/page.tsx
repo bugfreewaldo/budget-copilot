@@ -18,6 +18,8 @@ import {
   BudgetProgress,
   IncomeVsExpenses,
   FinancialWeather,
+  CategoryDetailModal,
+  SpenderPersonality,
 } from '@/components/charts';
 import { CreateTransactionModal } from '@/components/transactions';
 
@@ -31,12 +33,21 @@ function getLastDayOfMonth(): string {
 /**
  * Dashboard page - protected (placeholder for auth)
  */
+interface SelectedCategory {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
+
 export default function DashboardPage() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>(
     'expense'
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] =
+    useState<SelectedCategory | null>(null);
 
   const currentMonth = getCurrentMonth();
   const from = getFirstDayOfMonth();
@@ -141,15 +152,37 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              {/* Financial Weather Widget */}
-              <div className="mb-6 lg:mb-8">
-                <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
-                  <span>🌤️</span> Tu Clima Financiero
-                </h3>
-                <FinancialWeather
-                  transactions={transactions}
-                  envelopes={envelopes}
-                />
+              {/* Top Row: Weather + Personality */}
+              <div className="grid md:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+                {/* Financial Weather Widget */}
+                <div className="md:col-span-2">
+                  <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
+                    <span>🌤️</span> Tu Clima Financiero
+                  </h3>
+                  <FinancialWeather
+                    transactions={transactions}
+                    envelopes={envelopes}
+                  />
+                </div>
+
+                {/* Spender Personality */}
+                <div>
+                  <div className="flex items-center justify-between mb-3 lg:mb-4">
+                    <h3 className="text-base lg:text-lg font-semibold text-white flex items-center gap-2">
+                      <span>🎭</span> Tu Perfil
+                    </h3>
+                    <Link
+                      href="/perfil"
+                      className="text-xs text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
+                    >
+                      Ver cuenta <span>→</span>
+                    </Link>
+                  </div>
+                  <SpenderPersonality
+                    transactions={transactions}
+                    categories={categories}
+                  />
+                </div>
               </div>
 
               {/* Charts Grid */}
@@ -170,17 +203,19 @@ export default function DashboardPage() {
                   <SpendingByCategory
                     transactions={transactions}
                     categories={categories}
+                    onCategoryClick={setSelectedCategory}
                   />
                 </div>
               </div>
 
+              {/* TODO: Temporarily hidden - re-enable when presupuesto is ready */}
               {/* Budget Progress Section */}
-              <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-4 lg:p-6 mb-6 lg:mb-8 hover:border-amber-500/30 transition-all">
+              {/* <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-4 lg:p-6 mb-6 lg:mb-8 hover:border-amber-500/30 transition-all">
                 <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
                   <span>📈</span> Progreso del Presupuesto - {currentMonth}
                 </h3>
                 <BudgetProgress envelopes={envelopes} categories={categories} />
-              </div>
+              </div> */}
 
               {/* Recent Transactions Section */}
               <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 overflow-hidden mb-6 lg:mb-8">
@@ -372,6 +407,14 @@ export default function DashboardPage() {
           onClose={() => setShowTransactionModal(false)}
           onSuccess={handleTransactionCreated}
           defaultType={transactionType}
+        />
+
+        {/* Category Detail Modal */}
+        <CategoryDetailModal
+          isOpen={selectedCategory !== null}
+          onClose={() => setSelectedCategory(null)}
+          category={selectedCategory}
+          transactions={transactions}
         />
       </div>
     </Sidebar>

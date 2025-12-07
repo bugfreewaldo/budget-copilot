@@ -93,6 +93,72 @@ function calculateTotalInterest(
   return totalPaid - principal;
 }
 
+// Calculate freedom date from debts
+function calculateFreedomDate(
+  debts: Debt[],
+  strategy: PaymentStrategy
+): { date: Date | null; months: number } {
+  const activeDebts = debts.filter((d) => d.status === 'active' && d.currentBalanceCents > 0);
+  if (activeDebts.length === 0) return { date: null, months: 0 };
+
+  // Sort debts by strategy
+  const sortedDebts =
+    strategy === 'avalanche'
+      ? [...activeDebts].sort((a, b) => b.aprPercent - a.aprPercent)
+      : [...activeDebts].sort((a, b) => a.currentBalanceCents - b.currentBalanceCents);
+
+  // Calculate total months - simplified simulation
+  let totalMonths = 0;
+  let remainingDebts = sortedDebts.map((d) => ({
+    balance: d.currentBalanceCents,
+    apr: d.aprPercent,
+    minPayment: d.minimumPaymentCents || 0,
+  }));
+
+  // Get total minimum payment budget
+  const totalMinPayment = remainingDebts.reduce((sum, d) => sum + d.minPayment, 0);
+  if (totalMinPayment <= 0) return { date: null, months: 0 };
+
+  while (remainingDebts.some((d) => d.balance > 0) && totalMonths < 600) {
+    totalMonths++;
+
+    // Apply payments in strategy order
+    let extraPayment = 0;
+    remainingDebts = remainingDebts.map((debt, index) => {
+      if (debt.balance <= 0) return debt;
+
+      const monthlyRate = debt.apr / 100 / 12;
+      const interest = debt.balance * monthlyRate;
+      const payment = index === 0 ? debt.minPayment + extraPayment : debt.minPayment;
+      const newBalance = Math.max(0, debt.balance + interest - payment);
+
+      if (newBalance === 0 && debt.balance > 0) {
+        // Debt paid off, extra goes to next
+        extraPayment = payment - (debt.balance + interest);
+      }
+
+      return { ...debt, balance: newBalance };
+    });
+
+    // Redistribute freed-up payments to first debt
+    const paidOffPayments = sortedDebts
+      .filter((_, i) => remainingDebts[i]!.balance === 0)
+      .reduce((sum, d) => sum + (d.minimumPaymentCents || 0), 0);
+
+    if (remainingDebts[0] && remainingDebts[0].balance > 0) {
+      remainingDebts[0].minPayment =
+        (sortedDebts[0]?.minimumPaymentCents || 0) + paidOffPayments;
+    }
+  }
+
+  if (totalMonths >= 600) return { date: null, months: Infinity };
+
+  const freedomDate = new Date();
+  freedomDate.setMonth(freedomDate.getMonth() + totalMonths);
+
+  return { date: freedomDate, months: totalMonths };
+}
+
 export default function DeudasPage() {
   const { debts, summary, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
@@ -129,6 +195,8 @@ export default function DeudasPage() {
     current_balance_cents: 0,
     apr_percent: 0,
     minimum_payment_cents: 0,
+    term_months: null as number | null,
+    start_date: '' as string,
     due_day: 1,
   });
 
@@ -151,6 +219,8 @@ export default function DeudasPage() {
         current_balance_cents: Math.round(newDebt.current_balance_cents * 100),
         apr_percent: newDebt.apr_percent,
         minimum_payment_cents: Math.round(newDebt.minimum_payment_cents * 100),
+        term_months: newDebt.term_months,
+        start_date: newDebt.start_date || null,
         due_day: newDebt.due_day,
       });
       setShowAddModal(false);
@@ -161,6 +231,8 @@ export default function DeudasPage() {
         current_balance_cents: 0,
         apr_percent: 0,
         minimum_payment_cents: 0,
+        term_months: null,
+        start_date: '',
         due_day: 1,
       });
       refresh();
@@ -353,131 +425,234 @@ export default function DeudasPage() {
                   <p className="text-gray-400 text-sm mb-1">
                     Fecha de Libertad
                   </p>
-                  <p className="text-xl font-bold text-green-400">
-                    {strategies?.avalanche?.monthsToPayoff
-                      ? `${Math.ceil(strategies.avalanche.monthsToPayoff / 12)} años`
-                      : 'Calcular...'}
-                  </p>
-                  <p className="text-xs text-gray-500">Con método avalancha</p>
+                  {(() => {
+                    const freedom = calculateFreedomDate(debts, selectedStrategy);
+                    if (!freedom.date) {
+                      return (
+                        <>
+                          <p className="text-xl font-bold text-gray-500">
+                            Sin datos
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Agrega pagos mínimos
+                          </p>
+                        </>
+                      );
+                    }
+                    if (freedom.months === Infinity) {
+                      return (
+                        <>
+                          <p className="text-xl font-bold text-red-400">
+                            ⚠️ Nunca
+                          </p>
+                          <p className="text-xs text-red-400">
+                            Pago mínimo muy bajo
+                          </p>
+                        </>
+                      );
+                    }
+                    return (
+                      <>
+                        <p className="text-xl font-bold text-green-400">
+                          {freedom.date.toLocaleDateString('es-PA', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {freedom.months} meses •{' '}
+                          {selectedStrategy === 'avalanche'
+                            ? 'Avalancha'
+                            : 'Bola de Nieve'}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
-              {/* Strategy Comparison */}
-              {strategies && (
+              {/* Strategy Comparison - Global */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
+                <h2 className="text-lg font-semibold mb-2">
+                  Estrategia Global
+                </h2>
+                <p className="text-sm text-gray-400 mb-4">
+                  Selecciona tu estrategia preferida para pagar todas tus deudas
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Avalanche */}
+                  <button
+                    onClick={() => handleSelectStrategy('avalanche')}
+                    className={`p-4 rounded-lg border text-left transition-all ${
+                      selectedStrategy === 'avalanche'
+                        ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
+                        : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">🏔️</span>
+                      <div>
+                        <h3 className="font-semibold">Método Avalancha</h3>
+                        <p className="text-xs text-gray-400">
+                          Paga primero la deuda con mayor APR
+                        </p>
+                      </div>
+                      <div className="ml-auto flex flex-col items-end gap-1">
+                        {selectedStrategy === 'avalanche' && (
+                          <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
+                            ✓ Activo
+                          </span>
+                        )}
+                        {strategies?.recommendation === 'avalanche' && (
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                            Recomendado
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-400">Interés Total</p>
+                        <p className="font-semibold text-orange-400">
+                          {strategies
+                            ? formatCurrency(strategies.avalanche.totalInterestCents)
+                            : '$0'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Tiempo</p>
+                        <p className="font-semibold">
+                          {(() => {
+                            const freedom = calculateFreedomDate(debts, 'avalanche');
+                            return freedom.months > 0 && freedom.months !== Infinity
+                              ? `${freedom.months} meses`
+                              : '-';
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Snowball */}
+                  <button
+                    onClick={() => handleSelectStrategy('snowball')}
+                    className={`p-4 rounded-lg border text-left transition-all ${
+                      selectedStrategy === 'snowball'
+                        ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
+                        : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">⛄</span>
+                      <div>
+                        <h3 className="font-semibold">Método Bola de Nieve</h3>
+                        <p className="text-xs text-gray-400">
+                          Paga primero la deuda más pequeña
+                        </p>
+                      </div>
+                      <div className="ml-auto flex flex-col items-end gap-1">
+                        {selectedStrategy === 'snowball' && (
+                          <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
+                            ✓ Activo
+                          </span>
+                        )}
+                        {strategies?.recommendation === 'snowball' && (
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                            Recomendado
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-400">Interés Total</p>
+                        <p className="font-semibold text-orange-400">
+                          {strategies
+                            ? formatCurrency(strategies.snowball.totalInterestCents)
+                            : '$0'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Tiempo</p>
+                        <p className="font-semibold">
+                          {(() => {
+                            const freedom = calculateFreedomDate(debts, 'snowball');
+                            return freedom.months > 0 && freedom.months !== Infinity
+                              ? `${freedom.months} meses`
+                              : '-';
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                {strategies && strategies.savingsWithAvalanche > 0 && (
+                  <p className="mt-4 text-sm text-center text-green-400">
+                    💡 Con avalancha ahorras{' '}
+                    {formatCurrency(strategies.savingsWithAvalanche)} en intereses
+                  </p>
+                )}
+              </div>
+
+              {/* Per-Debt Attack Order */}
+              {debts.filter((d) => d.status === 'active').length > 1 && (
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
                   <h2 className="text-lg font-semibold mb-2">
-                    Estrategias de Pago
+                    Orden de Ataque{' '}
+                    <span className="text-sm font-normal text-gray-400">
+                      ({selectedStrategy === 'avalanche' ? 'Avalancha' : 'Bola de Nieve'})
+                    </span>
                   </h2>
                   <p className="text-sm text-gray-400 mb-4">
-                    Selecciona tu estrategia preferida para pagar tus deudas
+                    {selectedStrategy === 'avalanche'
+                      ? 'Enfoca tus pagos extra en la deuda con mayor interés primero'
+                      : 'Enfoca tus pagos extra en la deuda más pequeña primero'}
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Avalanche */}
-                    <button
-                      onClick={() => handleSelectStrategy('avalanche')}
-                      className={`p-4 rounded-lg border text-left transition-all ${
+                  <div className="space-y-2">
+                    {[...debts]
+                      .filter((d) => d.status === 'active' && d.currentBalanceCents > 0)
+                      .sort((a, b) =>
                         selectedStrategy === 'avalanche'
-                          ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
-                          : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-2xl">🏔️</span>
-                        <div>
-                          <h3 className="font-semibold">Método Avalancha</h3>
-                          <p className="text-xs text-gray-400">
-                            Paga primero la deuda con mayor APR
-                          </p>
-                        </div>
-                        <div className="ml-auto flex flex-col items-end gap-1">
-                          {selectedStrategy === 'avalanche' && (
-                            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
-                              ✓ Seleccionado
-                            </span>
-                          )}
-                          {strategies.recommendation === 'avalanche' && (
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                              Recomendado
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-400">Interés Total</p>
-                          <p className="font-semibold text-orange-400">
-                            {formatCurrency(
-                              strategies.avalanche.totalInterestCents
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Tiempo</p>
-                          <p className="font-semibold">
-                            {strategies.avalanche.monthsToPayoff} meses
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* Snowball */}
-                    <button
-                      onClick={() => handleSelectStrategy('snowball')}
-                      className={`p-4 rounded-lg border text-left transition-all ${
-                        selectedStrategy === 'snowball'
-                          ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/30'
-                          : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-2xl">⛄</span>
-                        <div>
-                          <h3 className="font-semibold">
-                            Método Bola de Nieve
-                          </h3>
-                          <p className="text-xs text-gray-400">
-                            Paga primero la deuda más pequeña
-                          </p>
-                        </div>
-                        <div className="ml-auto flex flex-col items-end gap-1">
-                          {selectedStrategy === 'snowball' && (
-                            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
-                              ✓ Seleccionado
-                            </span>
-                          )}
-                          {strategies.recommendation === 'snowball' && (
-                            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                              Recomendado
+                          ? b.aprPercent - a.aprPercent
+                          : a.currentBalanceCents - b.currentBalanceCents
+                      )
+                      .map((debt, index) => (
+                        <div
+                          key={debt.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border ${
+                            index === 0
+                              ? 'border-yellow-500/50 bg-yellow-500/10'
+                              : 'border-gray-700 bg-gray-800/30'
+                          }`}
+                        >
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                              index === 0
+                                ? 'bg-yellow-500 text-black'
+                                : 'bg-gray-700 text-gray-300'
+                            }`}
+                          >
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-white truncate">
+                              {debt.name}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {formatCurrency(debt.currentBalanceCents)} •{' '}
+                              {debt.aprPercent}% APR
+                            </p>
+                          </div>
+                          {index === 0 && (
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded font-medium">
+                              🎯 Prioridad
                             </span>
                           )}
                         </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-400">Interés Total</p>
-                          <p className="font-semibold text-orange-400">
-                            {formatCurrency(
-                              strategies.snowball.totalInterestCents
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Tiempo</p>
-                          <p className="font-semibold">
-                            {strategies.snowball.monthsToPayoff} meses
-                          </p>
-                        </div>
-                      </div>
-                    </button>
+                      ))}
                   </div>
-
-                  {strategies.savingsWithAvalanche > 0 && (
-                    <p className="mt-4 text-sm text-center text-green-400">
-                      💡 Con avalancha ahorras{' '}
-                      {formatCurrency(strategies.savingsWithAvalanche)} en
-                      intereses
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -764,6 +939,66 @@ export default function DeudasPage() {
                     />
                   </div>
                 </div>
+
+                {/* Term duration - only for fixed-term loans */}
+                {newDebt.type !== 'credit_card' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">
+                        Duración del préstamo (meses)
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          value={newDebt.term_months || ''}
+                          onChange={(e) =>
+                            setNewDebt({
+                              ...newDebt,
+                              term_months: e.target.value
+                                ? parseInt(e.target.value)
+                                : null,
+                            })
+                          }
+                          className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                          placeholder="Ej: 48 meses"
+                          min="1"
+                          max="360"
+                        />
+                        {newDebt.term_months && (
+                          <span className="text-sm text-gray-500">
+                            ({(newDebt.term_months / 12).toFixed(1)} años)
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Opcional - útil para préstamos con plazo fijo
+                      </p>
+                    </div>
+
+                    {/* Start date - shown when term is entered */}
+                    {newDebt.term_months && (
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Fecha de inicio del préstamo
+                        </label>
+                        <input
+                          type="date"
+                          value={newDebt.start_date}
+                          onChange={(e) =>
+                            setNewDebt({
+                              ...newDebt,
+                              start_date: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Opcional - ¿cuándo sacaste el préstamo?
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">

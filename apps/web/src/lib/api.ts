@@ -305,7 +305,7 @@ export async function deleteCategory(id: string): Promise<void> {
  * Get all categories (convenience wrapper around listCategories)
  */
 export async function getCategories(): Promise<Category[]> {
-  const result = await listCategories({ limit: 100 });
+  const result = await listCategories({ limit: 500 });
   return result.data;
 }
 
@@ -616,6 +616,8 @@ export interface Debt {
   currentBalanceCents: number;
   aprPercent: number;
   minimumPaymentCents: number | null;
+  termMonths: number | null;
+  startDate: string | null;
   dueDay: number | null;
   nextDueDate: string | null;
   status: DebtStatus;
@@ -690,6 +692,8 @@ export async function createDebt(input: {
   current_balance_cents: number;
   apr_percent: number;
   minimum_payment_cents?: number;
+  term_months?: number | null;
+  start_date?: string | null;
   due_day?: number;
   account_id?: string | null;
 }): Promise<Debt> {
@@ -711,6 +715,8 @@ export async function updateDebt(
     current_balance_cents?: number;
     apr_percent?: number;
     minimum_payment_cents?: number;
+    term_months?: number | null;
+    start_date?: string | null;
     due_day?: number;
     status?: DebtStatus;
   }
@@ -907,4 +913,195 @@ export async function deleteGoal(id: string): Promise<void> {
       'Idempotency-Key': crypto.randomUUID(),
     },
   });
+}
+
+// ============================================================================
+// File Uploads
+// ============================================================================
+
+export type FileStatus = 'stored' | 'processing' | 'processed' | 'failed';
+export type DocumentType = 'receipt' | 'invoice' | 'bank_statement' | 'excel_table';
+
+export interface UploadedFile {
+  id: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  status: FileStatus;
+  createdAt: string;
+}
+
+export interface UploadTarget {
+  uploadUrl: string;
+  storageKey: string;
+  expiresAt: string;
+}
+
+export interface ParsedTransaction {
+  id: string;
+  date: string | null;
+  description: string;
+  amount: number;
+  isCredit?: boolean;
+}
+
+export interface ParsedReceipt {
+  documentType: 'receipt' | 'invoice';
+  currency: string;
+  mainTransaction: {
+    id: 'main';
+    date: string;
+    merchant: string;
+    amount: number;
+    categoryGuess?: string | null;
+    notes?: string | null;
+  };
+}
+
+export interface ParsedBankStatement {
+  documentType: 'bank_statement';
+  accountName?: string | null;
+  period?: {
+    from?: string | null;
+    to?: string | null;
+  };
+  currency: string;
+  transactions: ParsedTransaction[];
+}
+
+export type ParsedSummary = ParsedReceipt | ParsedBankStatement;
+
+export interface FileSummaryResponse {
+  documentType: DocumentType;
+  parserVersion: string;
+  summary: ParsedSummary;
+  importedItemIds: string[];
+}
+
+export interface ImportResult {
+  ok: boolean;
+  imported: string[];
+  skipped: string[];
+  errors: Array<{ itemId: string; error: string }>;
+}
+
+/**
+ * Request pre-signed upload URLs for files
+ */
+export async function createUploadUrls(
+  files: Array<{ filename: string; mimeType: string; size: number }>
+): Promise<{ uploadTargets: UploadTarget[] }> {
+  // Map to API expected format: name, type, size
+  const apiFiles = files.map((f) => ({
+    name: f.filename,
+    type: f.mimeType,
+    size: f.size,
+  }));
+
+  return await fetchApi<{ uploadTargets: UploadTarget[] }>(
+    '/v1/uploads/create-url',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ files: apiFiles }),
+    }
+  );
+}
+
+/**
+ * Complete file upload after uploading to S3
+ */
+export async function completeUpload(
+  completedFiles: Array<{
+    storageKey: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+  }>
+): Promise<{
+  ok: boolean;
+  fileIds: string[];
+  parsed: string[];
+  queued: string[];
+}> {
+  return await fetchApi<{
+    ok: boolean;
+    fileIds: string[];
+    parsed: string[];
+    queued: string[];
+  }>('/v1/uploads/complete', {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify({ completedFiles }),
+  });
+}
+
+/**
+ * List user's uploaded files
+ */
+export async function listFiles(): Promise<UploadedFile[]> {
+  const response = await fetchApi<{ data: UploadedFile[] }>('/v1/files');
+  return response.data;
+}
+
+/**
+ * Get parsed summary for a file
+ */
+export async function getFileSummary(
+  fileId: string
+): Promise<FileSummaryResponse> {
+  return await fetchApi<FileSummaryResponse>(`/v1/files/${fileId}/summary`);
+}
+
+/**
+ * Import parsed items as transactions
+ */
+export interface ImportItem {
+  id: string;
+  categoryId?: string;
+}
+
+export async function importFileItems(
+  fileId: string,
+  items: ImportItem[],
+  options?: {
+    defaultType?: 'income' | 'expense';
+    accountId?: string;
+  }
+): Promise<ImportResult> {
+  return await fetchApi<ImportResult>(`/v1/files/${fileId}/import`, {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify({
+      items,
+      defaultType: options?.defaultType,
+      accountId: options?.accountId,
+    }),
+  });
+}
+
+/**
+ * Upload a file directly to S3 using pre-signed URL
+ */
+export async function uploadFileToS3(
+  file: File,
+  uploadUrl: string
+): Promise<void> {
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: {
+      'Content-Type': file.type,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`);
+  }
 }

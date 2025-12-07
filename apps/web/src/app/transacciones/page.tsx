@@ -13,18 +13,14 @@ import {
 } from '@/lib/api';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
-// Get first day of 3 months ago for wider date range
-function getThreeMonthsAgo(): string {
-  const date = new Date();
-  date.setMonth(date.getMonth() - 3);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+// No date limit - fetch all transactions
+function getAllTimeStart(): string {
+  return '2020-01-01';
 }
 
-// Get last day of current month
-function getLastDayOfMonth(): string {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return lastDay.toISOString().split('T')[0]!;
+// Future date to include everything
+function getFutureDate(): string {
+  return '2099-12-31';
 }
 
 export default function TransaccionesPage() {
@@ -43,8 +39,8 @@ export default function TransaccionesPage() {
     useState<Transaction | null>(null);
 
   const currentMonth = getCurrentMonth();
-  const from = getThreeMonthsAgo();
-  const to = getLastDayOfMonth();
+  const from = getAllTimeStart();
+  const to = getFutureDate();
 
   const {
     categories,
@@ -341,7 +337,7 @@ export default function TransaccionesPage() {
                       <button
                         onClick={() => setDeleteConfirm(tx)}
                         disabled={deletingId === tx.id}
-                        className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
+                        className="p-2 flex items-center justify-center text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
                         title="Eliminar"
                       >
                         {deletingId === tx.id ? (

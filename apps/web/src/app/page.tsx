@@ -482,7 +482,7 @@ export default function HomePage() {
                   </span>
                 </h2>
 
-                <p className="text-base lg:text-xl text-gray-400 mb-4 h-6 lg:h-8 font-mono">
+                <p className="text-base lg:text-xl text-gray-400 mb-4 min-h-[3rem] lg:min-h-[2rem] font-mono">
                   {typedText}
                   <span className="animate-pulse">|</span>
                 </p>

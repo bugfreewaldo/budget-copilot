@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { register, AuthError } from '@/lib/auth';
+import { register, createEmailVerificationToken, AuthError } from '@/lib/auth';
 import { json, errorJson, formatZodError } from '@/lib/api/utils';
+import { sendWelcomeEmail, sendEmailVerification } from '@/lib/email';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -28,6 +29,23 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await register(validation.data);
+
+    const baseUrl =
+      request.headers.get('origin') || 'https://budgetcopilot.app';
+
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(result.user.email, result.user.name).catch((err) => {
+      console.error('Failed to send welcome email:', err);
+    });
+
+    // Send email verification (non-blocking)
+    createEmailVerificationToken(result.user.id).then((token) => {
+      if (token) {
+        sendEmailVerification(result.user.email, token, baseUrl).catch((err) => {
+          console.error('Failed to send verification email:', err);
+        });
+      }
+    });
 
     const response = NextResponse.json(
       {

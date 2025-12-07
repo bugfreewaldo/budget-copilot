@@ -24,12 +24,13 @@ const NAV_ITEMS: NavItem[] = [
     emoji: '💸',
     description: 'Gestiona tus movimientos',
   },
-  {
-    href: '/presupuesto',
-    label: 'Presupuesto',
-    emoji: '📊',
-    description: 'Controla tus sobres',
-  },
+  // TODO: Temporarily hidden - re-enable when presupuesto is ready
+  // {
+  //   href: '/presupuesto',
+  //   label: 'Presupuesto',
+  //   emoji: '📊',
+  //   description: 'Controla tus sobres',
+  // },
   {
     href: '/alcancia',
     label: 'Alcancía',

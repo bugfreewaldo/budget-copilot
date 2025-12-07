@@ -17,12 +17,46 @@ import {
   accounts,
   userProfiles,
 } from '../../db/schema.js';
-import { eq, and, count } from 'drizzle-orm';
+import { eq, count, and } from 'drizzle-orm';
 import type { Message } from '@budget-copilot/ai';
 import { getProvider } from '@budget-copilot/ai';
 import * as categoryRepo from '../../server/lib/repo/categories.js';
 import * as transactionRepo from '../../server/lib/repo/transactions.js';
 import * as accountRepo from '../../server/lib/repo/accounts.js';
+
+/**
+ * Parse JSON from AI response, handling markdown code blocks and raw text
+ * Claude sometimes wraps JSON in ```json ... ``` blocks or responds with plain text
+ */
+function parseAIResponse(content: string): unknown {
+  let jsonStr = content.trim();
+
+  // Remove markdown code blocks if present
+  if (jsonStr.startsWith('```')) {
+    // Find the end of the opening fence (```json or just ```)
+    const firstNewline = jsonStr.indexOf('\n');
+    if (firstNewline !== -1) {
+      jsonStr = jsonStr.substring(firstNewline + 1);
+    }
+    // Remove closing fence
+    if (jsonStr.endsWith('```')) {
+      jsonStr = jsonStr.substring(0, jsonStr.length - 3).trim();
+    }
+  }
+
+  // Try to parse as JSON
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    // If parsing fails, Claude responded with raw text instead of JSON
+    // Wrap it in the expected format
+    console.log('[Copilot] AI returned raw text, wrapping in JSON format');
+    return {
+      understood: true,
+      response: content.trim(),
+    };
+  }
+}
 
 // Onboarding questions flow
 const ONBOARDING_QUESTIONS = [
@@ -106,9 +140,15 @@ TU PERSONALIDAD:
 
 TU TRABAJO:
 1. Extraer transacciones de mensajes naturales
-2. Auto-crear categorías creativas con emojis cuando sea necesario
-3. Dar tips financieros cortos y útiles ocasionalmente
-4. Animar al usuario a gastar menos y ahorrar más
+2. Responder preguntas sobre los gastos e ingresos del usuario
+3. Auto-crear categorías creativas con emojis cuando sea necesario
+4. Dar tips financieros cortos y útiles
+5. Animar al usuario a gastar menos y ahorrar más
+
+TIPOS DE MENSAJE:
+1. REGISTRO DE TRANSACCIÓN: Usuario describe un gasto/ingreso -> extraer datos
+2. PREGUNTA ANALÍTICA: Usuario pregunta sobre sus finanzas -> analizar datos que te proporciono
+3. CONVERSACIÓN GENERAL: Saludo o chat -> responder naturalmente
 
 Cuando el usuario describe un gasto o ingreso, extrae:
 1. Monto (requerido) - cantidad en dólares
@@ -132,6 +172,7 @@ Responde SOLO con un JSON válido con este formato:
 {
   "understood": true/false,
   "needsMoreInfo": true/false,
+  "isAnalyticalQuestion": true/false,
   "followUpQuestion": "pregunta si necesitas más info",
   "transaction": {
     "amountCents": número en centavos (ej: $50 = 5000),
@@ -144,6 +185,51 @@ Responde SOLO con un JSON válido con este formato:
   },
   "response": "mensaje con tu personalidad"
 }`;
+
+// Patterns to detect analytical questions about finances
+const ANALYTICAL_PATTERNS = [
+  // Cuánto he gastado/ganado/etc
+  /\b(cuánto|cuanto|cuantos|cuántos)\s+(gast|ganar|tengo|llevo|he|hemos)/i,
+  // En qué estoy gastando / he gastado
+  /\b(en\s+qué|en\s+que)\s+(gast|estoy|he|hemos)/i,
+  // Qué he gastado / en qué he gastado
+  /\b(qué|que)\s+(he|hemos|estoy)\s*(gast)/i,
+  // Gastando demasiado/mucho
+  /\b(demasiado|mucho|más|mas)\b.*(gast|dinero)/i,
+  // Resumen, análisis, reporte
+  /\b(resumen|análisis|analisis|reporte|estadísticas|estadisticas)\b/i,
+  // Cómo voy/ando/estoy con mis finanzas
+  /\b(cómo|como)\s+(voy|ando|estoy|van)/i,
+  // Qué categoría gasto más
+  /\b(qué|que)\s+(categoría|categoria|tipo).*(gast|más|mas)/i,
+  // Tendencias, patrones, promedios
+  /\b(tendencia|patrón|patron|promedio)\b/i,
+  // Comparar meses/semanas
+  /\b(comparar?|diferencia)\b.*(mes|semana|año)/i,
+  // Puedo/debería ahorrar
+  /\b(puedo|debería|deberia)\s+(ahorrar|gastar)/i,
+  // Dónde va mi dinero
+  /\b(dónde|donde|adónde|adonde)\s+(se\s+)?va\s+(el|mi)/i,
+  // Más este mes/semana
+  /\b(más|mas)\s+(este|esta)\s+(mes|semana)/i,
+  // Gastado más
+  /\b(gastado|gaste)\s+(más|mas)/i,
+  // Ayúdame con / ayuda con finanzas
+  /\b(ayud|ayúd).*(finanz|dinero|presupuesto|gasto|ahorro)/i,
+];
+
+// Patterns to detect advice/recommendation questions
+const ADVICE_PATTERNS = [
+  /\b(qué|que)\s+(me\s+)?(recomiend|suger|aconse)/i,
+  /\b(cómo|como)\s+(puedo|podría|debería|debo)\s+(ahorrar|invertir|mejorar|empezar|iniciar|crear|hacer)/i,
+  /\b(tips?|consejos?|recomendaci)/i,
+  /\b(fondo\s+de\s+emergencia|emergencias)/i,
+  /\b(ahorrar|invertir|mejorar)\s+(más|mejor|mis)/i,
+  /\b(estrategia|plan)\s+(de\s+)?(ahorro|financ|presupuesto)/i,
+  /\b(deber[ií]a)\s+(yo\s+)?(hacer|empezar|iniciar|ahorrar|invertir)/i,
+  /\b(ayud|ayúd).*(ahorr|invert|presupuest|financ)/i,
+  /\bcomo\s+ahorr/i,
+];
 
 // Category mapping with emojis for auto-creation
 const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
@@ -731,6 +817,519 @@ function findMatchingCategories(
 }
 
 /**
+ * Check if message is an analytical question
+ */
+function isAnalyticalQuestion(text: string): boolean {
+  return ANALYTICAL_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Check if message is an advice/recommendation question
+ */
+function isAdviceQuestion(text: string): boolean {
+  return ADVICE_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Get spending summary for a user (last 30 days by default)
+ */
+async function getSpendingSummary(
+  db: any,
+  userId: string,
+  daysBack: number = 30
+): Promise<{
+  totalExpenses: number;
+  totalIncome: number;
+  byCategory: Array<{ name: string; emoji: string | null; total: number; count: number }>;
+  recentTransactions: Array<{ description: string; amount: number; date: string; category: string | null }>;
+}> {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - daysBack);
+  const startDateStr = startDate.toISOString().split('T')[0];
+
+  // Get all transactions for the period
+  const userTxs = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.userId, userId));
+
+  // Filter by date
+  const recentTxs = userTxs.filter((tx: any) => tx.date >= startDateStr);
+
+  // Calculate totals
+  let totalExpenses = 0;
+  let totalIncome = 0;
+  const categoryTotals: Record<string, { name: string; emoji: string | null; total: number; count: number }> = {};
+
+  // Get user categories for lookup
+  const userCats = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.userId, userId));
+  const catMap = new Map(userCats.map((c: any) => [c.id, c]));
+
+  for (const tx of recentTxs) {
+    const amount = tx.amountCents / 100;
+    if (tx.type === 'income' || tx.amountCents > 0) {
+      totalIncome += Math.abs(amount);
+    } else {
+      totalExpenses += Math.abs(amount);
+      // Track by category
+      const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
+      const catKey = cat?.name || 'Sin categoría';
+      if (!categoryTotals[catKey]) {
+        categoryTotals[catKey] = { name: catKey, emoji: cat?.emoji || null, total: 0, count: 0 };
+      }
+      categoryTotals[catKey].total += Math.abs(amount);
+      categoryTotals[catKey].count += 1;
+    }
+  }
+
+  // Sort categories by total (descending)
+  const byCategory = Object.values(categoryTotals).sort((a, b) => b.total - a.total);
+
+  // Get last 10 transactions
+  const recentTransactions = recentTxs
+    .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10)
+    .map((tx: any) => {
+      const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
+      return {
+        description: tx.description,
+        amount: tx.amountCents / 100,
+        date: tx.date,
+        category: cat?.name || null,
+      };
+    });
+
+  return { totalExpenses, totalIncome, byCategory, recentTransactions };
+}
+
+/**
+ * Detect subscription-like recurring expenses from actual transaction history.
+ * Looks for repeated expenses to same merchants with similar amounts.
+ */
+async function detectRecurringExpenses(
+  db: any,
+  userId: string
+): Promise<Array<{ name: string; amount: number; count: number; monthlyEstimate: number }>> {
+  // Get last 90 days of transactions to detect patterns
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 90);
+  const startDateStr = startDate.toISOString().split('T')[0];
+
+  const userTxs = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.userId, userId));
+
+  // Filter to expenses in the date range
+  const expenses = userTxs.filter(
+    (tx: any) => tx.date >= startDateStr && tx.type === 'expense'
+  );
+
+  // Group by description (normalized) to find recurring patterns
+  const byDescription: Record<string, { amounts: number[]; dates: string[]; description: string }> = {};
+
+  for (const tx of expenses) {
+    // Normalize description for grouping
+    const normalizedDesc = tx.description
+      .toLowerCase()
+      .replace(/[0-9]/g, '')
+      .trim();
+
+    if (!byDescription[normalizedDesc]) {
+      byDescription[normalizedDesc] = {
+        amounts: [],
+        dates: [],
+        description: tx.description,
+      };
+    }
+    byDescription[normalizedDesc].amounts.push(Math.abs(tx.amountCents));
+    byDescription[normalizedDesc].dates.push(tx.date);
+  }
+
+  // Find recurring patterns (same merchant, 2+ times, similar amounts)
+  const recurring: Array<{ name: string; amount: number; count: number; monthlyEstimate: number }> = [];
+
+  for (const [, data] of Object.entries(byDescription)) {
+    if (data.amounts.length >= 2) {
+      // Check if amounts are similar (within 10% variance)
+      const avgAmount = data.amounts.reduce((a, b) => a + b, 0) / data.amounts.length;
+      const allSimilar = data.amounts.every(
+        (amt) => Math.abs(amt - avgAmount) / avgAmount < 0.1
+      );
+
+      if (allSimilar) {
+        // Estimate monthly cost based on frequency
+        const daySpan =
+          (new Date(data.dates[data.dates.length - 1]!).getTime() -
+            new Date(data.dates[0]!).getTime()) /
+          (1000 * 60 * 60 * 24);
+        const frequency = daySpan > 0 ? data.amounts.length / (daySpan / 30) : 1;
+        const monthlyEstimate = (avgAmount / 100) * Math.max(1, frequency);
+
+        recurring.push({
+          name: data.description,
+          amount: avgAmount / 100,
+          count: data.amounts.length,
+          monthlyEstimate,
+        });
+      }
+    }
+  }
+
+  // Sort by monthly estimate descending
+  return recurring.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate);
+}
+
+/**
+ * Get top individual expenses by category with transaction details
+ */
+async function getTopExpensesByCategory(
+  db: any,
+  userId: string,
+  daysBack: number = 30
+): Promise<Record<string, Array<{ description: string; amount: number; date: string }>>> {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - daysBack);
+  const startDateStr = startDate.toISOString().split('T')[0];
+
+  const userTxs = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.userId, userId));
+
+  const userCats = await db
+    .select()
+    .from(categories)
+    .where(eq(categories.userId, userId));
+  const catMap = new Map(userCats.map((c: any) => [c.id, c]));
+
+  // Filter and group expenses by category
+  const byCategory: Record<string, Array<{ description: string; amount: number; date: string }>> = {};
+
+  for (const tx of userTxs) {
+    if (tx.date >= startDateStr && tx.type === 'expense') {
+      const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
+      const catName = cat?.name || 'Sin categoría';
+
+      if (!byCategory[catName]) {
+        byCategory[catName] = [];
+      }
+      byCategory[catName].push({
+        description: tx.description,
+        amount: Math.abs(tx.amountCents) / 100,
+        date: tx.date,
+      });
+    }
+  }
+
+  // Sort each category by amount descending and keep top 5
+  for (const catName of Object.keys(byCategory)) {
+    byCategory[catName] = byCategory[catName]
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+  }
+
+  return byCategory;
+}
+
+/**
+ * Generate analytical response based on user data
+ */
+async function processAnalyticalQuestion(
+  db: any,
+  userId: string,
+  userMessage: string,
+  conversationHistory: Message[]
+): Promise<CopilotResponse> {
+  // Get spending summary, recurring expenses, and top expenses by category
+  const summary = await getSpendingSummary(db, userId);
+  const recurringExpenses = await detectRecurringExpenses(db, userId);
+  const topExpensesByCategory = await getTopExpensesByCategory(db, userId);
+  const totalRecurringCost = recurringExpenses.slice(0, 10).reduce((sum, r) => sum + r.monthlyEstimate, 0);
+
+  // Build recurring expenses section (subscription-like patterns from actual transactions)
+  const recurringSection = recurringExpenses.length > 0
+    ? `\nGASTOS RECURRENTES DETECTADOS (${recurringExpenses.length} patrones, ~$${totalRecurringCost.toFixed(2)}/mes estimado):
+${recurringExpenses.slice(0, 10).map((r, i) => `${i + 1}. ${r.name}: $${r.amount.toFixed(2)} x ${r.count} veces (~$${r.monthlyEstimate.toFixed(2)}/mes)`).join('\n')}`
+    : '\nGASTOS RECURRENTES: No se detectaron patrones de suscripciones';
+
+  // Build top expenses per category section
+  const topExpensesSection = Object.entries(topExpensesByCategory)
+    .slice(0, 5)
+    .map(([catName, expenses]) => {
+      const topExpense = expenses[0];
+      return topExpense
+        ? `${catName}: Mayor gasto "$${topExpense.description}" $${topExpense.amount.toFixed(2)}`
+        : null;
+    })
+    .filter(Boolean)
+    .join('\n');
+
+  const dataContext = `
+DATOS DEL USUARIO (últimos 30 días):
+- Total gastado: $${summary.totalExpenses.toFixed(2)}
+- Total ingresos: $${summary.totalIncome.toFixed(2)}
+- Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
+
+GASTOS POR CATEGORÍA (ordenados de mayor a menor):
+${summary.byCategory.slice(0, 10).map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)} (${c.count} transacciones)`).join('\n')}
+
+MAYORES GASTOS POR CATEGORÍA:
+${topExpensesSection}
+${recurringSection}
+
+ÚLTIMAS TRANSACCIONES:
+${summary.recentTransactions.slice(0, 5).map((t) => `- ${t.date}: ${t.description} $${t.amount.toFixed(2)}${t.category ? ` (${t.category})` : ''}`).join('\n')}
+`;
+
+  const analyticalPrompt = `${SYSTEM_PROMPT}
+
+${dataContext}
+
+El usuario está haciendo una pregunta sobre sus finanzas. Usa los datos anteriores para responder de forma útil, específica y con tu personalidad.
+
+Responde con JSON:
+{
+  "understood": true,
+  "isAnalyticalQuestion": true,
+  "response": "tu respuesta analítica con datos específicos"
+}`;
+
+  // Try AI first
+  try {
+    const provider = getProvider();
+    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
+    if (provider.isConfigured()) {
+      const messages: Message[] = [
+        { role: 'system', content: analyticalPrompt },
+        ...conversationHistory,
+        { role: 'user', content: userMessage },
+      ];
+      console.log('[Copilot] Calling AI for analytical question...');
+      const result = await provider.chat(messages, {
+        temperature: 0.5,
+        maxTokens: 800,
+      });
+      console.log('[Copilot] AI response received');
+      const aiResponse = parseAIResponse(result.message.content) as any;
+      return {
+        message: aiResponse.response,
+        needsMoreInfo: false,
+      };
+    } else {
+      console.log('[Copilot] AI provider not configured, using fallback');
+    }
+  } catch (error) {
+    console.error('[Copilot] AI error for analytics:', error);
+  }
+
+  // Fallback: Generate rule-based analytical response
+  if (summary.byCategory.length === 0) {
+    return {
+      message: 'Hmm, no tienes transacciones registradas todavía. ¡Cuéntame qué gastaste hoy y empecemos a trackear! 📊',
+      needsMoreInfo: false,
+    };
+  }
+
+  const topCategory = summary.byCategory[0];
+  const topThree = summary.byCategory.slice(0, 3);
+  const percentOfTotal = ((topCategory.total / summary.totalExpenses) * 100).toFixed(0);
+
+  let response = `📊 Bueno, veamos tus números...\n\n`;
+  response += `En los últimos 30 días gastaste $${summary.totalExpenses.toFixed(2)}\n\n`;
+  response += `Tu gasto más fuerte es ${topCategory.emoji || ''} ${topCategory.name} con $${topCategory.total.toFixed(2)} (${percentOfTotal}% del total) 👀\n\n`;
+
+  if (topThree.length > 1) {
+    response += `Top 3 categorías:\n`;
+    topThree.forEach((c, i) => {
+      response += `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}\n`;
+    });
+  }
+
+  if (summary.totalIncome > 0) {
+    const savings = summary.totalIncome - summary.totalExpenses;
+    if (savings > 0) {
+      response += `\n💪 ¡Bien! Ahorraste $${savings.toFixed(2)} este mes.`;
+    } else {
+      response += `\n⚠️ Ojo: gastaste $${Math.abs(savings).toFixed(2)} más de lo que ganaste.`;
+    }
+  }
+
+  return {
+    message: response,
+    needsMoreInfo: false,
+  };
+}
+
+/**
+ * Generate advice response based on user data and question
+ */
+async function processAdviceQuestion(
+  db: any,
+  userId: string,
+  userMessage: string,
+  conversationHistory: Message[]
+): Promise<CopilotResponse> {
+  // Get spending summary for context
+  const summary = await getSpendingSummary(db, userId);
+
+  // Get user profile for financial info
+  const profile = await getOrCreateUserProfile(db, userId);
+
+  // Build context for AI
+  const dataContext = `
+DATOS DEL USUARIO:
+- Salario mensual: ${profile.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'No especificado'}
+- Frecuencia de pago: ${profile.payFrequency || 'No especificada'}
+- Meta de ahorro mensual: ${profile.monthlySavingsGoalCents ? `$${(profile.monthlySavingsGoalCents / 100).toFixed(2)}` : 'No especificada'}
+
+RESUMEN ÚLTIMOS 30 DÍAS:
+- Total gastado: $${summary.totalExpenses.toFixed(2)}
+- Total ingresos: $${summary.totalIncome.toFixed(2)}
+- Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
+
+PRINCIPALES GASTOS:
+${summary.byCategory.slice(0, 5).map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}`).join('\n')}
+`;
+
+  const advicePrompt = `${SYSTEM_PROMPT}
+
+${dataContext}
+
+El usuario está pidiendo consejos o recomendaciones financieras. Usa los datos anteriores para dar consejos personalizados, específicos y prácticos. Sé motivador pero realista.
+
+TEMAS COMUNES Y CÓMO RESPONDER:
+- Fondo de emergencias: Recomienda 3-6 meses de gastos. Calcula basándote en sus gastos.
+- Ahorro: Sugiere la regla 50/30/20 o un porcentaje basado en su situación.
+- Reducir gastos: Identifica categorías donde gasta mucho y sugiere alternativas.
+- Inversiones: Solo menciona si ya tiene fondo de emergencias. Sugiere empezar simple.
+- Deudas: Priorizar pagar deudas de alto interés primero.
+
+Responde con JSON:
+{
+  "understood": true,
+  "isAdviceQuestion": true,
+  "response": "tu consejo personalizado con datos específicos del usuario"
+}`;
+
+  // Try AI first
+  try {
+    const provider = getProvider();
+    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
+    if (provider.isConfigured()) {
+      const messages: Message[] = [
+        { role: 'system', content: advicePrompt },
+        ...conversationHistory,
+        { role: 'user', content: userMessage },
+      ];
+      console.log('[Copilot] Calling AI for advice question...');
+      const result = await provider.chat(messages, {
+        temperature: 0.6,
+        maxTokens: 1000,
+      });
+      console.log('[Copilot] AI response received');
+      const aiResponse = parseAIResponse(result.message.content) as any;
+      return {
+        message: aiResponse.response,
+        needsMoreInfo: false,
+      };
+    } else {
+      console.log('[Copilot] AI provider not configured, using fallback');
+    }
+  } catch (error) {
+    console.error('[Copilot] AI error for advice:', error);
+  }
+
+  // Fallback: Generate rule-based advice
+  const lowerMessage = userMessage.toLowerCase();
+  let response = '';
+
+  // Detect what type of advice they want
+  if (lowerMessage.includes('emergencia') || lowerMessage.includes('fondo')) {
+    // Emergency fund advice
+    const monthlyExpenses = summary.totalExpenses;
+    const recommendedFund3 = monthlyExpenses * 3;
+    const recommendedFund6 = monthlyExpenses * 6;
+
+    response = `💡 Fondo de Emergencias\n\n`;
+    response += `Basándome en tus gastos de $${monthlyExpenses.toFixed(2)}/mes, te recomiendo:\n\n`;
+    response += `• Mínimo: $${recommendedFund3.toFixed(2)} (3 meses de gastos)\n`;
+    response += `• Ideal: $${recommendedFund6.toFixed(2)} (6 meses de gastos)\n\n`;
+
+    if (profile.monthlySalaryCents) {
+      const salary = profile.monthlySalaryCents / 100;
+      const suggested20 = salary * 0.2;
+      const monthsTo3 = Math.ceil(recommendedFund3 / suggested20);
+      response += `Si ahorras 20% de tu salario ($${suggested20.toFixed(2)}/mes), llegarías a tu meta en ~${monthsTo3} meses 💪\n\n`;
+    }
+
+    response += `Tip: Abre una cuenta separada SOLO para emergencias. ¡No la toques a menos que sea real emergencia!`;
+  } else if (lowerMessage.includes('ahorr')) {
+    // Savings advice
+    response = `🐷 Tips para Ahorrar\n\n`;
+
+    if (summary.byCategory.length > 0) {
+      const topSpending = summary.byCategory[0];
+      response += `Tu mayor gasto es ${topSpending.emoji || ''} ${topSpending.name} ($${topSpending.total.toFixed(2)}). `;
+
+      if (topSpending.name.toLowerCase().includes('restaurant') ||
+          topSpending.name.toLowerCase().includes('café') ||
+          topSpending.name.toLowerCase().includes('comida')) {
+        response += `¿Has pensado en cocinar más en casa? Podrías ahorrar hasta 50% 🍳\n\n`;
+      } else if (topSpending.name.toLowerCase().includes('streaming') ||
+                 topSpending.name.toLowerCase().includes('suscripc')) {
+        response += `Revisa si usas todas esas suscripciones. ¡Cancela las que no uses! 📺\n\n`;
+      } else {
+        response += `Busca alternativas más económicas o reduce la frecuencia.\n\n`;
+      }
+    }
+
+    response += `La regla 50/30/20:\n`;
+    response += `• 50% necesidades (renta, servicios, comida)\n`;
+    response += `• 30% gustos (entretenimiento, restaurantes)\n`;
+    response += `• 20% ahorro e inversión\n\n`;
+
+    if (profile.monthlySalaryCents) {
+      const salary = profile.monthlySalaryCents / 100;
+      response += `Con tu salario, eso sería ~$${(salary * 0.2).toFixed(2)}/mes para ahorrar.`;
+    }
+  } else if (lowerMessage.includes('invert') || lowerMessage.includes('inversión')) {
+    // Investment advice
+    response = `📈 Sobre Inversiones\n\n`;
+    response += `Antes de invertir, asegúrate de tener:\n`;
+    response += `1. ✅ Fondo de emergencias (3-6 meses de gastos)\n`;
+    response += `2. ✅ Deudas de alto interés pagadas\n\n`;
+    response += `Si ya tienes eso, empieza simple:\n`;
+    response += `• Principiante: Fondos indexados (ETFs) de bajo costo\n`;
+    response += `• Diversifica: No pongas todo en una sola cosa\n`;
+    response += `• Largo plazo: Invierte dinero que no necesitarás en 5+ años\n\n`;
+    response += `⚠️ Nunca inviertas dinero que no puedas perder. ¡Infórmate bien primero!`;
+  } else {
+    // General financial advice
+    response = `💰 Consejos Generales\n\n`;
+
+    if (summary.totalIncome > 0 && summary.totalExpenses > summary.totalIncome) {
+      response += `⚠️ Estás gastando más de lo que ganas. Prioridad #1: reducir gastos.\n\n`;
+    }
+
+    response += `Orden de prioridades financieras:\n`;
+    response += `1. 🏦 Fondo de emergencias (3-6 meses)\n`;
+    response += `2. 💳 Pagar deudas (empezando por las de mayor interés)\n`;
+    response += `3. 🐷 Ahorrar 20% de tus ingresos\n`;
+    response += `4. 📈 Invertir para el futuro\n\n`;
+    response += `¿Sobre qué tema específico quieres que profundicemos? 🤔`;
+  }
+
+  return {
+    message: response,
+    needsMoreInfo: false,
+  };
+}
+
+/**
  * Process a user message and extract transaction info
  */
 export async function processMessage(
@@ -749,6 +1348,16 @@ export async function processMessage(
       userMessage,
       onboardingStatus.step
     );
+  }
+
+  // Check if this is an advice/recommendation question (check FIRST - more specific)
+  if (isAdviceQuestion(userMessage)) {
+    return processAdviceQuestion(db, userId, userMessage, conversationHistory);
+  }
+
+  // Check if this is an analytical question
+  if (isAnalyticalQuestion(userMessage)) {
+    return processAnalyticalQuestion(db, userId, userMessage, conversationHistory);
   }
 
   // Get user's categories for context
@@ -794,15 +1403,25 @@ export async function processMessage(
   let aiResponse: any = null;
   try {
     const provider = getProvider();
+    console.log(`[Copilot] AI provider: ${provider.name}, configured: ${provider.isConfigured()}`);
     if (provider.isConfigured()) {
+      console.log('[Copilot] Calling AI for transaction extraction...');
       const result = await provider.chat(messages, {
         temperature: 0.3,
         maxTokens: 500,
       });
-      aiResponse = JSON.parse(result.message.content);
+      console.log('[Copilot] AI response received');
+      aiResponse = parseAIResponse(result.message.content) as any;
+    } else {
+      console.log('[Copilot] AI provider not configured, using rule-based extraction');
     }
   } catch (error) {
-    console.log('AI provider not available, using rule-based extraction');
+    console.error('[Copilot] AI error for extraction:', error);
+  }
+
+  // Check if AI detected an analytical question
+  if (aiResponse?.isAnalyticalQuestion) {
+    return processAnalyticalQuestion(db, userId, userMessage, conversationHistory);
   }
 
   // If AI is not available, use rule-based extraction

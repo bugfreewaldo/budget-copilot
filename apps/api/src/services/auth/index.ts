@@ -13,6 +13,7 @@ import {
   hashToken,
   generateId,
 } from './crypto';
+import { seedDefaultCategoriesForUser } from '../categories/index.js';
 
 // Session duration: 30 days
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -101,6 +102,11 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     plan: 'free',
     createdAt: now,
     updatedAt: now,
+  });
+
+  // Create default categories for the new user (async, don't block registration)
+  seedDefaultCategoriesForUser(userId).catch((err) => {
+    console.error('Failed to seed default categories:', err);
   });
 
   // Create session

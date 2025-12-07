@@ -436,6 +436,8 @@ export const debts = sqliteTable(
     // Interest and terms
     aprPercent: real('apr_percent').notNull(), // Annual percentage rate
     minimumPaymentCents: integer('minimum_payment_cents'),
+    termMonths: integer('term_months'), // Loan duration in months (null for revolving credit like credit cards)
+    startDate: text('start_date'), // ISO date when loan was originated (optional)
 
     // Due dates
     dueDay: integer('due_day'), // Day of month (1-31)
@@ -1039,6 +1041,98 @@ export const dailySummaries = sqliteTable(
 );
 
 // ============================================================================
+// FILE UPLOADS - S3/R2 file storage and parsing
+// ============================================================================
+
+// Uploaded files stored in S3/R2
+export const uploadedFiles = sqliteTable(
+  'uploaded_files',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+
+    // File metadata
+    filename: text('filename').notNull(),
+    mimeType: text('mime_type').notNull(),
+    sizeBytes: integer('size_bytes').notNull(),
+    storageKey: text('storage_key').notNull(), // S3/R2 object key
+
+    // Processing status
+    status: text('status', {
+      enum: ['stored', 'processing', 'processed', 'failed'],
+    })
+      .notNull()
+      .default('stored'),
+    failureReason: text('failure_reason'),
+
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('uploaded_file_user_idx').on(table.userId),
+    statusIdx: index('uploaded_file_status_idx').on(table.status),
+    storageKeyIdx: uniqueIndex('uploaded_file_storage_key_idx').on(
+      table.storageKey
+    ),
+  })
+);
+
+// Parsed summaries from uploaded files
+export const fileParsedSummaries = sqliteTable(
+  'file_parsed_summaries',
+  {
+    id: text('id').primaryKey(),
+    fileId: text('file_id').notNull(),
+
+    // Parser metadata
+    parserVersion: text('parser_version').notNull(), // e.g. 'v1'
+    documentType: text('document_type', {
+      enum: ['receipt', 'invoice', 'bank_statement', 'excel_table'],
+    }).notNull(),
+
+    // Parsed data (JSON string)
+    summaryJson: text('summary_json').notNull(),
+
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    fileIdx: index('parsed_summary_file_idx').on(table.fileId),
+    versionIdx: index('parsed_summary_version_idx').on(table.parserVersion),
+  })
+);
+
+// Tracks which parsed items have been imported as transactions
+export const fileImportedItems = sqliteTable(
+  'file_imported_items',
+  {
+    id: text('id').primaryKey(),
+    fileId: text('file_id').notNull(),
+    parsedItemId: text('parsed_item_id').notNull(), // e.g. 'main', 'row_1'
+    transactionId: text('transaction_id').notNull(),
+
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    fileIdx: index('imported_item_file_idx').on(table.fileId),
+    transactionIdx: index('imported_item_transaction_idx').on(
+      table.transactionId
+    ),
+    uniqueImportIdx: uniqueIndex('imported_item_unique_idx').on(
+      table.fileId,
+      table.parsedItemId
+    ),
+  })
+);
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -1134,3 +1228,13 @@ export type NewGoal = typeof goals.$inferInsert;
 // Daily summaries
 export type DailySummary = typeof dailySummaries.$inferSelect;
 export type NewDailySummary = typeof dailySummaries.$inferInsert;
+
+// File uploads
+export type UploadedFile = typeof uploadedFiles.$inferSelect;
+export type NewUploadedFile = typeof uploadedFiles.$inferInsert;
+
+export type FileParsedSummary = typeof fileParsedSummaries.$inferSelect;
+export type NewFileParsedSummary = typeof fileParsedSummaries.$inferInsert;
+
+export type FileImportedItem = typeof fileImportedItems.$inferSelect;
+export type NewFileImportedItem = typeof fileImportedItems.$inferInsert;

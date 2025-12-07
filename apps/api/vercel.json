@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/v1/cron/parse-files",
+      "schedule": "*/2 * * * *"
+    }
+  ]
+}

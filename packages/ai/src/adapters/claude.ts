@@ -42,7 +42,7 @@ export class ClaudeProvider implements LLMProvider {
     this.ensureConfigured();
 
     const response = await this.client!.messages.create({
-      model: options?.model || 'claude-3-5-sonnet-20241022',
+      model: options?.model || 'claude-sonnet-4-20250514',
       max_tokens: options?.maxTokens || 1024,
       temperature: options?.temperature,
       top_p: options?.topP,
@@ -82,7 +82,7 @@ export class ClaudeProvider implements LLMProvider {
       messages.find((m) => m.role === 'system')?.content;
 
     const response = await this.client!.messages.create({
-      model: options?.model || 'claude-3-5-sonnet-20241022',
+      model: options?.model || 'claude-sonnet-4-20250514',
       max_tokens: options?.maxTokens || 1024,
       temperature: options?.temperature,
       top_p: options?.topP,

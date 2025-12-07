@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="brainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0abfc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c084fc;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bgGrad)"/>
+
+  <!-- Circuit pattern background -->
+  <g stroke="#ffffff" stroke-width="0.5" opacity="0.2">
+    <line x1="10" y1="30" x2="25" y2="30"/>
+    <line x1="25" y1="30" x2="25" y2="45"/>
+    <circle cx="25" cy="45" r="2" fill="#ffffff"/>
+    <line x1="75" y1="25" x2="90" y2="25"/>
+    <line x1="75" y1="25" x2="75" y2="35"/>
+    <circle cx="75" cy="35" r="2" fill="#ffffff"/>
+    <line x1="15" y1="70" x2="30" y2="70"/>
+    <circle cx="30" cy="70" r="2" fill="#ffffff"/>
+    <line x1="70" y1="75" x2="85" y2="75"/>
+    <line x1="85" y1="75" x2="85" y2="65"/>
+    <circle cx="85" cy="65" r="2" fill="#ffffff"/>
+  </g>
+
+  <!-- AI Brain with $ -->
+  <g filter="url(#glow)">
+    <!-- Brain shape -->
+    <path d="M50 25
+             C35 25 30 35 30 45
+             C30 50 32 55 35 58
+             C32 62 30 68 35 73
+             C40 78 48 78 50 75
+             C52 78 60 78 65 73
+             C70 68 68 62 65 58
+             C68 55 70 50 70 45
+             C70 35 65 25 50 25Z"
+          fill="url(#brainGrad)" stroke="#a855f7" stroke-width="1"/>
+
+    <!-- Brain folds -->
+    <path d="M40 35 Q45 40 40 48" stroke="#9333ea" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M55 32 Q50 38 55 45" stroke="#9333ea" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M45 55 Q50 50 55 55" stroke="#9333ea" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M38 62 Q45 58 40 68" stroke="#9333ea" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M55 60 Q60 65 58 70" stroke="#9333ea" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Dollar sign in center -->
+  <text x="50" y="58" font-family="Arial" font-size="24" font-weight="bold" fill="#1f2937" text-anchor="middle">$</text>
+
+  <!-- AI Sparkles -->
+  <g fill="#ffffff" filter="url(#glow)">
+    <polygon points="20,20 22,25 27,25 23,28 25,33 20,30 15,33 17,28 13,25 18,25" />
+    <polygon points="80,18 81,21 84,21 82,23 83,26 80,24 77,26 78,23 76,21 79,21" transform="scale(0.7) translate(35,5)"/>
+    <polygon points="78,70 79,73 82,73 80,75 81,78 78,76 75,78 76,75 74,73 77,73" />
+    <polygon points="22,75 23,77 25,77 24,78 24.5,80 22,79 19.5,80 20,78 19,77 21,77" />
+  </g>
+
+  <!-- Floating coins -->
+  <g filter="url(#glow)">
+    <circle cx="18" cy="50" r="6" fill="url(#coinGrad)" stroke="#d97706" stroke-width="0.5"/>
+    <text x="18" y="53" font-family="Arial" font-size="7" font-weight="bold" fill="#92400e" text-anchor="middle">$</text>
+    <circle cx="82" cy="52" r="5" fill="url(#coinGrad)" stroke="#d97706" stroke-width="0.5"/>
+    <text x="82" y="55" font-family="Arial" font-size="6" font-weight="bold" fill="#92400e" text-anchor="middle">$</text>
+  </g>
+</svg>

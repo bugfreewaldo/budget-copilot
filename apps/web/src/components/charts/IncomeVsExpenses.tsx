@@ -19,6 +19,7 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
 
   const balance = income - expenses;
   const savingsRate = income > 0 ? ((balance / income) * 100).toFixed(0) : 0;
+  const isLowBalance = balance >= 0 && balance < 100;
 
   if (income === 0 && expenses === 0) {
     return (
@@ -34,17 +35,24 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
       <div className="text-center py-4">
         <p className="text-gray-400 text-sm mb-1">Balance del Mes</p>
         <p
-          className={`text-4xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}
+          className={`text-4xl font-bold ${balance < 0 ? 'text-red-400' : isLowBalance ? 'text-amber-400' : 'text-green-400'}`}
         >
           {balance >= 0 ? '+' : ''}$
           {Math.abs(balance).toLocaleString('en-US', {
             minimumFractionDigits: 2,
           })}
         </p>
-        {balance > 0 && (
+        {balance > 0 && !isLowBalance && (
           <p className="text-cyan-400 text-sm mt-1">
             Ahorrando {savingsRate}% de tus ingresos
           </p>
+        )}
+        {isLowBalance && (
+          <div className="mt-2 px-3 py-2 bg-amber-500/20 border border-amber-500/40 rounded-lg inline-block">
+            <p className="text-amber-400 text-sm font-medium flex items-center gap-1">
+              <span>&#9888;</span> Balance bajo - Cuidado con los gastos
+            </p>
+          </div>
         )}
       </div>
 

@@ -1,0 +1,36 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { verifyEmail } from '@/lib/auth';
+import { json, errorJson, formatZodError } from '@/lib/api/utils';
+
+const verifyEmailSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const validation = verifyEmailSchema.safeParse(body);
+
+    if (!validation.success) {
+      return json(formatZodError(validation.error), 400);
+    }
+
+    const success = await verifyEmail(validation.data.token);
+
+    if (!success) {
+      return errorJson(
+        'INVALID_TOKEN',
+        'El enlace de verificación es inválido o ha expirado',
+        400
+      );
+    }
+
+    return NextResponse.json({
+      message: '¡Tu correo electrónico ha sido verificado!',
+    });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    return errorJson('INTERNAL_ERROR', 'Error al verificar el correo', 500);
+  }
+}

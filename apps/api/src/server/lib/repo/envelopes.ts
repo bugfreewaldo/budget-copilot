@@ -31,13 +31,18 @@ export async function findEnvelopeById(db: DatabaseInstance, id: string) {
 export async function findEnvelopeByCategoryMonth(
   db: DatabaseInstance,
   categoryId: string,
-  month: string
+  month: string,
+  userId: string
 ) {
   const result = await db
     .select()
     .from(envelopes)
     .where(
-      and(eq(envelopes.categoryId, categoryId), eq(envelopes.month, month))
+      and(
+        eq(envelopes.categoryId, categoryId),
+        eq(envelopes.month, month),
+        eq(envelopes.userId, userId)
+      )
     );
   return result[0];
 }
@@ -46,11 +51,12 @@ export async function upsertEnvelope(
   db: DatabaseInstance,
   input: CreateEnvelopeInput & { userId: string }
 ) {
-  // Check if envelope exists
+  // Check if envelope exists for this user
   const existing = await findEnvelopeByCategoryMonth(
     db,
     input.categoryId,
-    input.month
+    input.month,
+    input.userId
   );
 
   if (existing) {

@@ -4,6 +4,7 @@ import { getDb } from '../../db/client.js';
 import { debts, debtPayments } from '../../db/schema.js';
 import { eq, and, asc, gt, or, desc } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { requireAuth } from '../../server/plugins/auth.js';
 
 /**
  * Debts V1 Routes - Copiloto de Deudas
@@ -163,7 +164,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    * POST /v1/debts
    * Create a new debt
    */
-  fastify.post('/debts', async (request, reply) => {
+  fastify.post('/debts', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const validation = fastify.safeValidate(createDebtSchema, request.body);
 
@@ -173,6 +174,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const data = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       const id = nanoid();
       const now = Date.now();
@@ -206,10 +208,6 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         }
         nextDueDate = dueThisMonth.toISOString().split('T')[0];
       }
-
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
 
       await db.insert(debts).values({
         id,
@@ -247,7 +245,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/debts
    * List debts with cursor-based pagination
    */
-  fastify.get('/debts', async (request, reply) => {
+  fastify.get('/debts', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const validation = fastify.safeValidate(
         listDebtsQuerySchema,
@@ -260,6 +258,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const { cursor, limit, status } = validation.data;
       const db = await getDb();
+      const userId = request.user!.id;
 
       const cursorData = cursor ? fastify.decodeCursor(cursor) : null;
 
@@ -267,7 +266,8 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.badRequest('Invalid cursor');
       }
 
-      const conditions: any[] = [];
+      // Always filter by userId
+      const conditions: any[] = [eq(debts.userId, userId)];
 
       // Apply cursor for pagination
       if (cursorData) {
@@ -299,11 +299,11 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const results = await query;
 
-      // Calculate summary stats
+      // Calculate summary stats (filtered by userId)
       const allDebts = await db
         .select()
         .from(debts)
-        .where(eq(debts.status, 'active'));
+        .where(and(eq(debts.userId, userId), eq(debts.status, 'active')));
       const totalDebtCents = allDebts.reduce(
         (sum, d) => sum + d.currentBalanceCents,
         0
@@ -340,6 +340,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get<{ Params: { id: string } }>(
     '/debts/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const validation = fastify.safeValidate(
@@ -352,10 +353,11 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
         const [debt] = await db
           .select()
           .from(debts)
-          .where(eq(debts.id, request.params.id));
+          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
 
         if (!debt) {
           return reply.notFound('Debt', request.params.id);
@@ -382,6 +384,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.patch<{ Params: { id: string } }>(
     '/debts/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const idValidation = fastify.safeValidate(
@@ -407,11 +410,12 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
 
         const data = bodyValidation.data;
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(debts)
-          .where(eq(debts.id, request.params.id));
+          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -474,6 +478,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.post<{ Params: { id: string } }>(
     '/debts/:id/payments',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const idValidation = fastify.safeValidate(
@@ -499,11 +504,12 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
 
         const data = bodyValidation.data;
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(debts)
-          .where(eq(debts.id, request.params.id));
+          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -588,6 +594,7 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.delete<{ Params: { id: string } }>(
     '/debts/:id',
+    { preHandler: requireAuth },
     async (request, reply) => {
       try {
         const validation = fastify.safeValidate(
@@ -600,11 +607,12 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         const db = await getDb();
+        const userId = request.user!.id;
 
         const [existing] = await db
           .select()
           .from(debts)
-          .where(eq(debts.id, request.params.id));
+          .where(and(eq(debts.id, request.params.id), eq(debts.userId, userId)));
 
         if (!existing) {
           return reply.notFound('Debt', request.params.id);
@@ -631,13 +639,14 @@ const debtsRoutes: FastifyPluginAsync = async (fastify) => {
    * GET /v1/debts/strategies
    * Compare payoff strategies (avalanche vs snowball)
    */
-  fastify.get('/debts/strategies', async (request, reply) => {
+  fastify.get('/debts/strategies', { preHandler: requireAuth }, async (request, reply) => {
     try {
       const db = await getDb();
+      const userId = request.user!.id;
       const activeDebts = await db
         .select()
         .from(debts)
-        .where(eq(debts.status, 'active'));
+        .where(and(eq(debts.userId, userId), eq(debts.status, 'active')));
 
       if (activeDebts.length === 0) {
         return reply.send({

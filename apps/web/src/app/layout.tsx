@@ -9,10 +9,6 @@ export const metadata: Metadata = {
   title: 'Budget Copilot - Tu Copiloto Financiero Personal',
   description:
     'Toma el control de tus finanzas con Budget Copilot. Gestiona presupuestos, rastrea deudas, alcanza tus metas de ahorro y visualiza tu clima financiero. Simple, intuitivo y en español.',
-  icons: {
-    icon: '/favicon.svg',
-    apple: '/favicon.svg',
-  },
 };
 
 export default function RootLayout({

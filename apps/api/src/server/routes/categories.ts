@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { getDb, saveDatabase } from '../../db/client.js';
+import { requireAuth } from '../plugins/auth.js';
 import {
   createCategorySchema,
   listCategoriesQuerySchema,
@@ -13,8 +14,8 @@ import * as categoryRepo from '../lib/repo/categories.js';
  * POST /v1/categories - Create new category
  */
 export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
-  // GET /v1/categories - List categories
-  fastify.get('/categories', async (request, reply) => {
+  // GET /v1/categories - List categories for current user
+  fastify.get('/categories', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate query params
       const validation = listCategoriesQuerySchema.safeParse(request.query);
@@ -24,8 +25,10 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
+      const userId = request.user!.id;
       const categories = await categoryRepo.findAllCategories(db, {
         parentId: validation.data.parentId,
+        userId,
       });
 
       return reply.send({ data: categories });
@@ -40,7 +43,7 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // POST /v1/categories - Create new category
-  fastify.post('/categories', async (request, reply) => {
+  fastify.post('/categories', { preHandler: requireAuth }, async (request, reply) => {
     try {
       // Validate request body
       const validation = createCategorySchema.safeParse(request.body);
@@ -50,9 +53,7 @@ export const categoryRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const db = await getDb();
-      // For now, use a default test user ID
-      // TODO: Replace with actual authentication when auth routes are ready
-      const userId = 'test-user-id';
+      const userId = request.user!.id;
       const category = await categoryRepo.createCategory(db, {
         ...validation.data,
         userId,

@@ -17,6 +17,8 @@ import type {
   GoalStatus,
   GoalType,
   GoalSummary,
+  UploadedFile,
+  FileSummaryResponse,
 } from './api';
 
 const API_BASE_URL = '/api';
@@ -117,7 +119,7 @@ export function useEnvelopes(month: string) {
  * Refresh all dashboard data
  */
 export function useDashboardData(month: string, from: string, to: string) {
-  const categories = useCategories({ limit: 100 });
+  const categories = useCategories({ limit: 500 });
   const transactions = useTransactions({ from, to });
   const envelopes = useEnvelopes(month);
 
@@ -203,6 +205,55 @@ export function useGoals(options?: { status?: GoalStatus; type?: GoalType }) {
     summary: data?.summary ?? null,
     nextCursor: data?.nextCursor ?? null,
     isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching uploaded files
+ */
+export function useFiles() {
+  const { data, error, isLoading, mutate } = useSWR<{ data: UploadedFile[] }>(
+    '/v1/files',
+    fetcher,
+    swrConfig
+  );
+
+  return {
+    files: data?.data ?? [],
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching a file's parsed summary
+ * Returns null if file is not yet processed
+ */
+export function useFileSummary(fileId: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<FileSummaryResponse>(
+    fileId ? `/v1/files/${fileId}/summary` : null,
+    fetcher,
+    {
+      ...swrConfig,
+      // Poll every 3 seconds while processing
+      refreshInterval: (latestData) => {
+        // If we got data, stop polling
+        if (latestData) return 0;
+        // If still processing (404), poll every 3s
+        return 3000;
+      },
+      // Don't throw on 404 (file still processing)
+      shouldRetryOnError: false,
+    }
+  );
+
+  return {
+    summary: data ?? null,
+    isLoading,
+    isProcessing: !data && !error,
     error,
     refresh: mutate,
   };

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createPasswordResetToken } from '@/lib/auth';
 import { json, errorJson, formatZodError } from '@/lib/api/utils';
+import { sendPasswordResetEmail } from '@/lib/email';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -18,10 +19,14 @@ export async function POST(request: NextRequest) {
 
     const token = await createPasswordResetToken(validation.data.email);
 
-    // In development, log the token
-    if (token && process.env.NODE_ENV === 'development') {
-      console.log(
-        `Password reset token for ${validation.data.email}: ${token}`
+    if (token) {
+      // Send password reset email (non-blocking)
+      const baseUrl =
+        request.headers.get('origin') || 'https://budgetcopilot.app';
+      sendPasswordResetEmail(validation.data.email, token, baseUrl).catch(
+        (err) => {
+          console.error('Failed to send password reset email:', err);
+        }
       );
     }
 

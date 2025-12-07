@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
+import { proxyToApi } from '@/lib/api/proxy';
 import { z } from 'zod';
-import { json, errorJson, formatZodError, idSchema } from '@/lib/api/utils';
-import { updateTransactionCategory } from '@/lib/copilot';
+import { json, formatZodError, idSchema } from '@/lib/api/utils';
 
 const updateCategorySchema = z.object({
   transactionId: idSchema,
@@ -10,6 +10,7 @@ const updateCategorySchema = z.object({
 
 /**
  * POST /api/v1/copilot/update-category - Update transaction category
+ * Proxies to Fastify backend PATCH /v1/transactions/:id
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,24 +21,25 @@ export async function POST(request: NextRequest) {
       return json(formatZodError(validation.error), 400);
     }
 
-    // TODO: Get userId from session
-    const userId = 'test-user-00000000000000000001';
-
-    const success = await updateTransactionCategory(
-      validation.data.transactionId,
-      validation.data.categoryId,
-      userId
+    // Proxy to Fastify's PATCH /v1/transactions/:id endpoint
+    return proxyToApi(
+      request,
+      `/v1/transactions/${validation.data.transactionId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ category_id: validation.data.categoryId }),
+      }
     );
-
-    if (!success) {
-      return errorJson('NOT_FOUND', 'Transaction not found', 404);
-    }
-
-    return json({ data: { success: true } });
   } catch (error) {
     console.error('Failed to update transaction category:', error);
-    return errorJson('INTERNAL_ERROR', 'Failed to update category', 500, {
-      error: (error as Error).message,
-    });
+    return json(
+      {
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to update category',
+        },
+      },
+      500
+    );
   }
 }

@@ -102,24 +102,41 @@ export default function PresupuestoPage() {
 
   // Create or update envelope
   const handleSaveEnvelope = async () => {
-    if (!selectedCategoryId || !budgetAmount) return;
+    const categoryId = editingEnvelope?.categoryId || selectedCategoryId;
+    if (!categoryId || !budgetAmount) return;
+
+    // Validate budget amount
+    const parsedAmount = parseFloat(budgetAmount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert('El presupuesto debe ser mayor a $0');
+      return;
+    }
 
     setSaving(true);
     try {
-      const budgetCents = Math.round(parseFloat(budgetAmount) * 100);
+      const budgetCents = Math.round(parsedAmount * 100);
 
       const response = await fetch('/api/v1/envelopes', {
         method: 'POST', // API handles upsert based on categoryId + month
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          categoryId: editingEnvelope?.categoryId || selectedCategoryId,
+          categoryId,
           month: selectedMonth,
           budgetCents,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save envelope');
+        const errorData = await response.json().catch(() => null);
+        console.log('Envelope API error response:', errorData);
+        // Handle different error formats
+        const errorMessage =
+          errorData?.error?.message ||
+          errorData?.error?.details?.budgetCents ||
+          errorData?.message ||
+          (errorData?.error?.details ? JSON.stringify(errorData.error.details) : null) ||
+          `Error ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       await loadData();
@@ -129,7 +146,7 @@ export default function PresupuestoPage() {
       setBudgetAmount('');
     } catch (err) {
       console.error('Failed to save envelope:', err);
-      alert('Error al guardar el sobre. Intenta de nuevo.');
+      alert(`Error al guardar el sobre: ${err instanceof Error ? err.message : 'Intenta de nuevo'}`);
     } finally {
       setSaving(false);
     }
