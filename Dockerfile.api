@@ -9,16 +9,20 @@ WORKDIR /app
 # Copy workspace config files
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json ./apps/api/
+COPY apps/api/scripts ./apps/api/scripts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/ai/package.json ./packages/ai/
 COPY packages/config/package.json ./packages/config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (ignore postinstall scripts, run manually after)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy all source code
 COPY . .
+
+# Run postinstall scripts now that source is available
+RUN cd apps/api && node scripts/copy-wasm.cjs
 
 # Build packages and API
 RUN pnpm --filter @budget-copilot/core build || true
