@@ -1,9 +1,9 @@
-import { NextRequest } from 'next/server';
-import { proxyToApi } from '@/lib/api/proxy';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { json, formatZodError, idSchema } from '@/lib/api/utils';
+import { getAuthenticatedUser } from '@/lib/api/auth';
+import { json, formatZodError, errorJson, idSchema } from '@/lib/api/utils';
+import { updateTransactionCategory } from '@/lib/copilot';
 
-// Force dynamic rendering since proxyToApi uses cookies
 export const dynamic = 'force-dynamic';
 
 const updateCategorySchema = z.object({
@@ -13,10 +13,12 @@ const updateCategorySchema = z.object({
 
 /**
  * POST /api/v1/copilot/update-category - Update transaction category
- * Proxies to Fastify backend PATCH /v1/transactions/:id
  */
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const validation = updateCategorySchema.safeParse(body);
 
@@ -24,25 +26,19 @@ export async function POST(request: NextRequest) {
       return json(formatZodError(validation.error), 400);
     }
 
-    // Proxy to Fastify's PATCH /v1/transactions/:id endpoint
-    return proxyToApi(
-      request,
-      `/v1/transactions/${validation.data.transactionId}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({ category_id: validation.data.categoryId }),
-      }
+    const success = await updateTransactionCategory(
+      validation.data.transactionId,
+      validation.data.categoryId,
+      auth.user.id
     );
+
+    if (!success) {
+      return errorJson('NOT_FOUND', 'Transaction not found', 404);
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to update transaction category:', error);
-    return json(
-      {
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Failed to update category',
-        },
-      },
-      500
-    );
+    return errorJson('INTERNAL_ERROR', 'Failed to update category', 500);
   }
 }

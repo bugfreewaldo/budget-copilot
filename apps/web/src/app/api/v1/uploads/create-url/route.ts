@@ -1,13 +1,27 @@
 import { NextRequest } from 'next/server';
-import { proxyToApi } from '@/lib/api/proxy';
+import { errorJson } from '@/lib/api/utils';
+import { getAuthenticatedUser } from '@/lib/api/auth';
 
-// Force dynamic rendering since proxyToApi uses cookies
 export const dynamic = 'force-dynamic';
 
+/**
+ * POST /api/v1/uploads/create-url - Generate pre-signed S3 URLs
+ * Currently returns feature not configured - S3 storage needs to be set up
+ */
 export async function POST(request: NextRequest) {
-  const body = await request.text();
-  return proxyToApi(request, '/v1/uploads/create-url', {
-    method: 'POST',
-    body,
-  });
+  try {
+    const auth = await getAuthenticatedUser(request);
+    if (!auth.success) return auth.response;
+
+    // S3 storage is not configured yet
+    // TODO: Migrate storage service to work with Next.js serverless
+    return errorJson(
+      'INTERNAL_ERROR',
+      'La función de subir archivos no está disponible en este momento. Por favor, usa el chat de texto.',
+      503
+    );
+  } catch (error) {
+    console.error('Failed to create upload URL:', error);
+    return errorJson('INTERNAL_ERROR', 'Failed to create upload URL', 500);
+  }
 }
