@@ -47,10 +47,15 @@ const swrConfig = {
 /**
  * Hook for fetching categories with caching
  */
-export function useCategories(options?: { limit?: number; q?: string }) {
+export function useCategories(options?: {
+  limit?: number;
+  q?: string;
+  flat?: boolean;
+}) {
   const params = new URLSearchParams();
   if (options?.limit) params.set('limit', String(options.limit));
   if (options?.q) params.set('q', options.q);
+  if (options?.flat) params.set('flat', 'true');
 
   const queryString = params.toString();
   const key = `/v1/categories${queryString ? `?${queryString}` : ''}`;
@@ -119,7 +124,8 @@ export function useEnvelopes(month: string) {
  * Refresh all dashboard data
  */
 export function useDashboardData(month: string, from: string, to: string) {
-  const categories = useCategories({ limit: 500 });
+  // Use flat=true to get all categories including children for lookup
+  const categories = useCategories({ limit: 500, flat: true });
   const transactions = useTransactions({ from, to });
   const envelopes = useEnvelopes(month);
 
