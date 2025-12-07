@@ -230,11 +230,13 @@ const categoriesRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Apply cursor for pagination (alphabetical ASC order by name)
       if (cursorData) {
+        // For name-based pagination, createdAt field holds the name value (string)
+        const cursorName = cursorData.createdAt as string;
         conditions.push(
           or(
-            gt(categories.name, cursorData.createdAt), // createdAt field holds the name value
+            gt(categories.name, cursorName),
             and(
-              eq(categories.name, cursorData.createdAt),
+              eq(categories.name, cursorName),
               gt(categories.id, cursorData.id)
             )
           )

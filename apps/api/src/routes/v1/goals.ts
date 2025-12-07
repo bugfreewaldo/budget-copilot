@@ -233,11 +233,13 @@ const goalsRoutes: FastifyPluginAsync = async (fastify) => {
       const conditions: any[] = [eq(goals.userId, userId)];
 
       if (cursorData) {
+        // For timestamp-based pagination, createdAt is a number
+        const cursorTimestamp = cursorData.createdAt as number;
         conditions.push(
           or(
-            gt(goals.createdAt, cursorData.createdAt),
+            gt(goals.createdAt, cursorTimestamp),
             and(
-              eq(goals.createdAt, cursorData.createdAt),
+              eq(goals.createdAt, cursorTimestamp),
               gt(goals.id, cursorData.id)
             )
           )

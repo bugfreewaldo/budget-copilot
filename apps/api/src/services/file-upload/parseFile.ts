@@ -113,19 +113,23 @@ export async function parseFile(fileId: string): Promise<ParseFileOutput> {
     // Parse the file
     const result = await parseFileByType(file);
 
-    if (!result.success) {
-      // Mark as failed
+    if (result.success === false) {
+      // Mark as failed - result is narrowed to ParserError here
+      const errorMessage = result.error;
       await db
         .update(uploadedFiles)
         .set({
           status: 'failed',
-          failureReason: result.error.slice(0, 500), // Truncate long errors
+          failureReason: errorMessage.slice(0, 500), // Truncate long errors
           updatedAt: Date.now(),
         })
         .where(eq(uploadedFiles.id, fileId));
       saveDatabase();
 
-      return result;
+      return {
+        success: false as const,
+        error: errorMessage,
+      };
     }
 
     // Save the parsed summary

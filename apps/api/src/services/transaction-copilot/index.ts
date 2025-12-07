@@ -866,7 +866,9 @@ async function getSpendingSummary(
     .select()
     .from(categories)
     .where(eq(categories.userId, userId));
-  const catMap = new Map(userCats.map((c: any) => [c.id, c]));
+  const catMap = new Map<string, { id: string; name: string; emoji: string | null }>(
+    userCats.map((c: (typeof userCats)[number]) => [c.id, { id: c.id, name: c.name, emoji: c.emoji ?? null }])
+  );
 
   for (const tx of recentTxs) {
     const amount = tx.amountCents / 100;
@@ -1004,7 +1006,9 @@ async function getTopExpensesByCategory(
     .select()
     .from(categories)
     .where(eq(categories.userId, userId));
-  const catMap = new Map(userCats.map((c: any) => [c.id, c]));
+  const catMap = new Map<string, { id: string; name: string; emoji: string | null }>(
+    userCats.map((c: (typeof userCats)[number]) => [c.id, { id: c.id, name: c.name, emoji: c.emoji ?? null }])
+  );
 
   // Filter and group expenses by category
   const byCategory: Record<string, Array<{ description: string; amount: number; date: string }>> = {};

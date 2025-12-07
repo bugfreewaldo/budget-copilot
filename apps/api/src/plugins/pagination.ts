@@ -7,7 +7,7 @@ import fp from 'fastify-plugin';
  */
 
 export interface CursorData {
-  createdAt: number; // Unix timestamp in ms
+  createdAt: number | string; // Unix timestamp in ms, or string for alphabetical cursors
   id: string;
 }
 
@@ -18,16 +18,16 @@ export interface PaginatedResponse<T> {
 }
 
 /**
- * Encode cursor from timestamp and ID
+ * Encode cursor from timestamp/value and ID
  */
-export function encodeCursor(createdAt: number | Date, id: string): string {
-  const timestamp = createdAt instanceof Date ? createdAt.getTime() : createdAt;
-  const payload = JSON.stringify({ createdAt: timestamp, id });
+export function encodeCursor(createdAt: number | Date | string, id: string): string {
+  const value = createdAt instanceof Date ? createdAt.getTime() : createdAt;
+  const payload = JSON.stringify({ createdAt: value, id });
   return Buffer.from(payload).toString('base64url');
 }
 
 /**
- * Decode cursor to timestamp and ID
+ * Decode cursor to timestamp/value and ID
  * Returns null if invalid
  */
 export function decodeCursor(cursor: string): CursorData | null {
@@ -35,11 +35,12 @@ export function decodeCursor(cursor: string): CursorData | null {
     const payload = Buffer.from(cursor, 'base64url').toString('utf-8');
     const data = JSON.parse(payload);
 
-    if (
-      typeof data.createdAt === 'number' &&
-      typeof data.id === 'string' &&
-      data.createdAt > 0
-    ) {
+    // Accept both number (timestamp) and string (alphabetical) cursor values
+    const isValidValue =
+      (typeof data.createdAt === 'number' && data.createdAt > 0) ||
+      (typeof data.createdAt === 'string' && data.createdAt.length > 0);
+
+    if (isValidValue && typeof data.id === 'string') {
       return data as CursorData;
     }
     return null;
@@ -54,7 +55,7 @@ export function decodeCursor(cursor: string): CursorData | null {
 export function createPaginatedResponse<T>(
   items: T[],
   limit: number,
-  getCreatedAt: (item: T) => number | Date,
+  getCreatedAt: (item: T) => number | Date | string,
   getId: (item: T) => string
 ): PaginatedResponse<T> {
   // If we got more items than requested, we have a next page

@@ -56,7 +56,11 @@ export const uploadRoutes: FastifyPluginAsync = async (fastify) => {
         const { files } = validation.data;
 
         // Generate pre-signed URLs
-        const uploadTargets = await generateUploadUrls(userId, files);
+        // Type assertion needed because Zod's inferred type has optional fields
+        const uploadTargets = await generateUploadUrls(
+          userId,
+          files as Array<{ name: string; type: string; size: number }>
+        );
 
         request.log.info(
           { userId, fileCount: files.length },
