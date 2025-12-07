@@ -1,34 +1,41 @@
-FROM node:20-slim
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.1 --activate
-
+FROM base AS build
 WORKDIR /app
 
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# Copy workspace config files
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json ./apps/api/
-COPY apps/api/scripts ./apps/api/scripts
 COPY packages/core/package.json ./packages/core/
 COPY packages/ai/package.json ./packages/ai/
 COPY packages/config/package.json ./packages/config/
+COPY packages/ui/package.json ./packages/ui/
 
-# Install dependencies (ignore postinstall failures for now, will run after copy)
-RUN pnpm install --frozen-lockfile --ignore-scripts
-RUN cd apps/api && node scripts/copy-wasm.cjs || true
+# Install dependencies
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Copy source code
-COPY packages/core ./packages/core
-COPY packages/ai ./packages/ai
-COPY packages/config ./packages/config
-COPY apps/api ./apps/api
+# Copy all source code
+COPY . .
 
-# Skip TypeScript build - use tsx to run directly (same as dev mode)
-# This bypasses the TypeScript errors until they're fixed
+# Build packages and API
+RUN pnpm --filter @budget-copilot/core build || true
+RUN pnpm --filter @budget-copilot/ai build || true
+RUN pnpm --filter api build
+
+FROM base AS runtime
+WORKDIR /app
+
+# Copy the entire built workspace (needed for workspace dependencies)
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=build /app/apps/api/package.json ./apps/api/
+COPY --from=build /app/packages ./packages
 
 WORKDIR /app/apps/api
 
 EXPOSE 4000
-
-# Use tsx to run TypeScript directly without compilation
-CMD ["npx", "tsx", "src/server/index.ts"]
+CMD ["node", "dist/server/index.js"]
