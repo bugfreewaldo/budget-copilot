@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { validateSession, changePassword, AuthError } from '@/lib/auth';
 import { json, errorJson, formatZodError } from '@/lib/api/utils';
 
+// Force dynamic rendering since this route uses cookies
+export const dynamic = 'force-dynamic';
+
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),

@@ -11,6 +11,9 @@ import { json, errorJson } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId } from '@/lib/auth/crypto';
 
+// Force dynamic rendering since getUserFromRequest uses cookies
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ token: string }>;
 }

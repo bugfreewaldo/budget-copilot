@@ -3,6 +3,9 @@ import { proxyToApi } from '@/lib/api/proxy';
 import { z } from 'zod';
 import { json, formatZodError, idSchema } from '@/lib/api/utils';
 
+// Force dynamic rendering since proxyToApi uses cookies
+export const dynamic = 'force-dynamic';
+
 const updateCategorySchema = z.object({
   transactionId: idSchema,
   categoryId: idSchema,

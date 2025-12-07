@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
 import { proxyToApi } from '@/lib/api/proxy';
 
+// Force dynamic rendering since proxyToApi uses cookies
+export const dynamic = 'force-dynamic';
+
 type RouteContext = { params: Promise<{ id: string }> };
 
 /**

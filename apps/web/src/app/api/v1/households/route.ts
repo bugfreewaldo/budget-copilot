@@ -7,6 +7,9 @@ import { json, errorJson } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId, generateToken } from '@/lib/auth/crypto';
 
+// Force dynamic rendering since getUserFromRequest uses cookies
+export const dynamic = 'force-dynamic';
+
 const createHouseholdSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
 });

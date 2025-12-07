@@ -12,6 +12,9 @@ import { getUserFromRequest } from '@/lib/auth/getUser';
 import { generateId, generateToken } from '@/lib/auth/crypto';
 import { sendHouseholdInviteEmail } from '@/lib/email';
 
+// Force dynamic rendering since getUserFromRequest uses cookies
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }

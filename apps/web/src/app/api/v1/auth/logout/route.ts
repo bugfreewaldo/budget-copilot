@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logout } from '@/lib/auth';
 
+// Force dynamic rendering since this route uses cookies
+export const dynamic = 'force-dynamic';
+
 const SESSION_COOKIE_NAME = 'session';
 
 export async function POST(request: NextRequest) {

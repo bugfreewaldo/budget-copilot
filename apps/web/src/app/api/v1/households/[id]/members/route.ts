@@ -5,6 +5,9 @@ import { householdMembers, users } from '@/lib/db/schema';
 import { json, errorJson, idSchema } from '@/lib/api/utils';
 import { getUserFromRequest } from '@/lib/auth/getUser';
 
+// Force dynamic rendering since getUserFromRequest uses cookies
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
