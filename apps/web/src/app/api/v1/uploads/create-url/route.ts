@@ -70,12 +70,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ uploadTargets });
   } catch (error) {
-    console.error('Failed to create upload URL:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Failed to create upload URL:', errorMessage, error);
 
-    if (
-      error instanceof Error &&
-      error.message.includes('environment variable')
-    ) {
+    if (errorMessage.includes('environment variable')) {
       return errorJson(
         'INTERNAL_ERROR',
         'File storage is not properly configured',
@@ -83,6 +81,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return errorJson('INTERNAL_ERROR', 'Failed to create upload URL', 500);
+    // Include actual error for debugging S3 configuration issues
+    return errorJson(
+      'INTERNAL_ERROR',
+      `Failed to create upload URL: ${errorMessage}`,
+      500
+    );
   }
 }
