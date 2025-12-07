@@ -40,9 +40,9 @@ export async function GET(request: NextRequest) {
     const db = getDb();
     const searchParams = request.nextUrl.searchParams;
 
-    // Parse filter params
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
+    // Parse filter params (support both from/to and startDate/endDate)
+    const startDate = searchParams.get('startDate') || searchParams.get('from');
+    const endDate = searchParams.get('endDate') || searchParams.get('to');
     const accountId = searchParams.get('accountId');
     const categoryId = searchParams.get('categoryId');
     const type = searchParams.get('type');
