@@ -45,7 +45,7 @@ export async function GET(
     // Check file status
     if (file.status === 'processing') {
       return errorJson(
-        'PROCESSING',
+        'INVALID_STATE',
         'File is still being processed. Please try again later.',
         404
       );
@@ -53,14 +53,14 @@ export async function GET(
 
     if (file.status === 'failed') {
       return errorJson(
-        'PROCESSING_FAILED',
+        'INVALID_STATE',
         `File processing failed: ${file.failureReason || 'Unknown error'}`,
         404
       );
     }
 
     if (file.status === 'stored') {
-      return errorJson('NOT_PROCESSED', 'File has not been processed yet.', 404);
+      return errorJson('INVALID_STATE', 'File has not been processed yet.', 404);
     }
 
     // Get the latest summary
@@ -79,7 +79,7 @@ export async function GET(
       parsedSummary = JSON.parse(summary.summaryJson);
     } catch {
       console.error(`[file-summary] Corrupted summary JSON for file ${fileId}`);
-      return errorJson('DATA_ERROR', 'Summary data is corrupted', 500);
+      return errorJson('INTERNAL_ERROR', 'Summary data is corrupted', 500);
     }
 
     // Get already imported items
