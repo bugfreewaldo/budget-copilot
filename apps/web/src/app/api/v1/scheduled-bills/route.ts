@@ -5,7 +5,13 @@ import { eq, and, desc } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { scheduledBills } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { formatZodError, json, errorJson, centsSchema, idSchema } from '@/lib/api/utils';
+import {
+  formatZodError,
+  json,
+  errorJson,
+  centsSchema,
+  idSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,7 +142,9 @@ export async function PUT(request: NextRequest) {
     const [existing] = await db
       .select()
       .from(scheduledBills)
-      .where(and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id)));
+      .where(
+        and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled bill not found', 404);

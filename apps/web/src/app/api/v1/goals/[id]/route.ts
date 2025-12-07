@@ -4,7 +4,13 @@ import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { goals } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,14 +25,16 @@ const updateGoalSchema = z.object({
   targetAmountCents: centsSchema.optional(),
   currentAmountCents: centsSchema.optional(),
   targetDate: z.string().nullable().optional(),
-  goalType: z.enum([
-    'savings',
-    'debt_payoff',
-    'purchase',
-    'emergency_fund',
-    'investment',
-    'other',
-  ]).optional(),
+  goalType: z
+    .enum([
+      'savings',
+      'debt_payoff',
+      'purchase',
+      'emergency_fund',
+      'investment',
+      'other',
+    ])
+    .optional(),
   linkedDebtId: idSchema.nullable().optional(),
   linkedAccountId: idSchema.nullable().optional(),
   status: z.enum(['active', 'completed', 'paused', 'abandoned']).optional(),
@@ -50,7 +58,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const [goal] = await db
       .select()
       .from(goals)
-      .where(and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id)));
+      .where(
+        and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id))
+      );
 
     if (!goal) {
       return errorJson('NOT_FOUND', 'Goal not found', 404);
@@ -90,7 +100,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(goals)
-      .where(and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id)));
+      .where(
+        and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Goal not found', 404);
@@ -101,8 +113,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Calculate new progress if amounts changed
     const targetAmount = data.targetAmountCents ?? existing.targetAmountCents;
-    const currentAmount = data.currentAmountCents ?? existing.currentAmountCents;
-    const progressPercent = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
+    const currentAmount =
+      data.currentAmountCents ?? existing.currentAmountCents;
+    const progressPercent =
+      targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
 
     // Auto-complete if reached 100%
     let status = data.status ?? existing.status;
@@ -154,7 +168,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(goals)
-      .where(and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id)));
+      .where(
+        and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Goal not found', 404);
@@ -162,7 +178,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await db
       .delete(goals)
-      .where(and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id)));
+      .where(
+        and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id))
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {

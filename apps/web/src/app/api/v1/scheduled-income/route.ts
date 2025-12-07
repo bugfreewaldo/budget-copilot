@@ -5,7 +5,13 @@ import { eq, and, desc } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { scheduledIncome } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { formatZodError, json, errorJson, centsSchema, idSchema } from '@/lib/api/utils';
+import {
+  formatZodError,
+  json,
+  errorJson,
+  centsSchema,
+  idSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -134,7 +140,12 @@ export async function PUT(request: NextRequest) {
     const [existing] = await db
       .select()
       .from(scheduledIncome)
-      .where(and(eq(scheduledIncome.id, id), eq(scheduledIncome.userId, auth.user.id)));
+      .where(
+        and(
+          eq(scheduledIncome.id, id),
+          eq(scheduledIncome.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled income not found', 404);

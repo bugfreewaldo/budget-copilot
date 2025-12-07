@@ -32,7 +32,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(scheduledIncome)
-      .where(and(eq(scheduledIncome.id, id), eq(scheduledIncome.userId, auth.user.id)));
+      .where(
+        and(
+          eq(scheduledIncome.id, id),
+          eq(scheduledIncome.userId, auth.user.id)
+        )
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled income not found', 404);
@@ -41,7 +46,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Delete the income
     await db
       .delete(scheduledIncome)
-      .where(and(eq(scheduledIncome.id, id), eq(scheduledIncome.userId, auth.user.id)));
+      .where(
+        and(
+          eq(scheduledIncome.id, id),
+          eq(scheduledIncome.userId, auth.user.id)
+        )
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {

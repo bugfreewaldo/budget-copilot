@@ -4,7 +4,13 @@ import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { debts } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +50,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const [debt] = await db
       .select()
       .from(debts)
-      .where(and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id)));
+      .where(
+        and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id))
+      );
 
     if (!debt) {
       return errorJson('NOT_FOUND', 'Debt not found', 404);
@@ -52,11 +60,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const previousStatus = debt.status;
     if (previousStatus !== 'active') {
-      return errorJson('INVALID_STATE', 'Cannot make payment on a non-active debt', 400);
+      return errorJson(
+        'INVALID_STATE',
+        'Cannot make payment on a non-active debt',
+        400
+      );
     }
 
     const now = Date.now();
-    const newBalance = Math.max(0, debt.currentBalanceCents - validation.data.amountCents);
+    const newBalance = Math.max(
+      0,
+      debt.currentBalanceCents - validation.data.amountCents
+    );
 
     // Auto-set to paid_off if balance reaches 0
     const status = newBalance <= 0 ? 'paid_off' : previousStatus;
@@ -70,7 +85,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
       .where(eq(debts.id, idValidation.data));
 
-    const [updated] = await db.select().from(debts).where(eq(debts.id, idValidation.data));
+    const [updated] = await db
+      .select()
+      .from(debts)
+      .where(eq(debts.id, idValidation.data));
 
     return NextResponse.json({
       data: updated,

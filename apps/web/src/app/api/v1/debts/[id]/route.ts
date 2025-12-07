@@ -4,7 +4,13 @@ import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { debts } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +20,17 @@ interface RouteParams {
 
 const updateDebtSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  type: z.enum([
-    'credit_card',
-    'personal_loan',
-    'auto_loan',
-    'mortgage',
-    'student_loan',
-    'medical',
-    'other',
-  ]).optional(),
+  type: z
+    .enum([
+      'credit_card',
+      'personal_loan',
+      'auto_loan',
+      'mortgage',
+      'student_loan',
+      'medical',
+      'other',
+    ])
+    .optional(),
   accountId: idSchema.nullable().optional(),
   originalBalanceCents: centsSchema.optional(),
   currentBalanceCents: centsSchema.optional(),
@@ -53,7 +61,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const [debt] = await db
       .select()
       .from(debts)
-      .where(and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id)));
+      .where(
+        and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id))
+      );
 
     if (!debt) {
       return errorJson('NOT_FOUND', 'Debt not found', 404);
@@ -93,7 +103,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(debts)
-      .where(and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id)));
+      .where(
+        and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Debt not found', 404);
@@ -104,7 +116,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     // Auto-set to paid_off if balance reaches 0
     let status = data.status ?? existing.status;
-    if (data.currentBalanceCents !== undefined && data.currentBalanceCents <= 0 && status === 'active') {
+    if (
+      data.currentBalanceCents !== undefined &&
+      data.currentBalanceCents <= 0 &&
+      status === 'active'
+    ) {
       status = 'paid_off';
     }
 
@@ -117,7 +133,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       })
       .where(eq(debts.id, idValidation.data));
 
-    const [updated] = await db.select().from(debts).where(eq(debts.id, idValidation.data));
+    const [updated] = await db
+      .select()
+      .from(debts)
+      .where(eq(debts.id, idValidation.data));
 
     return NextResponse.json({ data: updated });
   } catch (error) {
@@ -145,7 +164,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(debts)
-      .where(and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id)));
+      .where(
+        and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Debt not found', 404);
@@ -153,7 +174,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await db
       .delete(debts)
-      .where(and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id)));
+      .where(
+        and(eq(debts.id, idValidation.data), eq(debts.userId, auth.user.id))
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {

@@ -4,7 +4,13 @@ import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import { goals } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +49,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const [goal] = await db
       .select()
       .from(goals)
-      .where(and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id)));
+      .where(
+        and(eq(goals.id, idValidation.data), eq(goals.userId, auth.user.id))
+      );
 
     if (!goal) {
       return errorJson('NOT_FOUND', 'Goal not found', 404);
@@ -51,17 +59,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const previousStatus = goal.status;
     if (previousStatus !== 'active') {
-      return errorJson('INVALID_STATE', 'Cannot contribute to a non-active goal', 400);
+      return errorJson(
+        'INVALID_STATE',
+        'Cannot contribute to a non-active goal',
+        400
+      );
     }
 
     const now = Date.now();
-    const newCurrentAmount = goal.currentAmountCents + validation.data.amountCents;
-    const progressPercent = goal.targetAmountCents > 0
-      ? (newCurrentAmount / goal.targetAmountCents) * 100
-      : 0;
+    const newCurrentAmount =
+      goal.currentAmountCents + validation.data.amountCents;
+    const progressPercent =
+      goal.targetAmountCents > 0
+        ? (newCurrentAmount / goal.targetAmountCents) * 100
+        : 0;
 
     // Auto-complete if reached target
-    let status: 'active' | 'completed' | 'paused' | 'abandoned' = previousStatus;
+    let status: 'active' | 'completed' | 'paused' | 'abandoned' =
+      previousStatus;
     let completedAt = goal.completedAt;
     if (newCurrentAmount >= goal.targetAmountCents) {
       status = 'completed';

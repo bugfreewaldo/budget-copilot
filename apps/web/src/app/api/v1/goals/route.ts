@@ -5,7 +5,13 @@ import { nanoid } from 'nanoid';
 import { getDb } from '@/lib/db/client';
 import { goals } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,9 +64,16 @@ export async function GET(request: NextRequest) {
     const summary = {
       totalGoals: filteredGoals.length,
       activeGoals: filteredGoals.filter((g) => g.status === 'active').length,
-      completedGoals: filteredGoals.filter((g) => g.status === 'completed').length,
-      totalTargetCents: filteredGoals.reduce((sum, g) => sum + g.targetAmountCents, 0),
-      totalCurrentCents: filteredGoals.reduce((sum, g) => sum + g.currentAmountCents, 0),
+      completedGoals: filteredGoals.filter((g) => g.status === 'completed')
+        .length,
+      totalTargetCents: filteredGoals.reduce(
+        (sum, g) => sum + g.targetAmountCents,
+        0
+      ),
+      totalCurrentCents: filteredGoals.reduce(
+        (sum, g) => sum + g.currentAmountCents,
+        0
+      ),
     };
 
     return NextResponse.json({ data: filteredGoals, summary });
@@ -90,12 +103,14 @@ export async function POST(request: NextRequest) {
 
     const id = nanoid();
     const now = Date.now();
-    const startDateValue = data.startDate || new Date().toISOString().split('T')[0];
+    const startDateValue =
+      data.startDate || new Date().toISOString().split('T')[0];
 
     // Calculate initial progress
-    const progressPercent = data.targetAmountCents > 0
-      ? ((data.currentAmountCents || 0) / data.targetAmountCents) * 100
-      : 0;
+    const progressPercent =
+      data.targetAmountCents > 0
+        ? ((data.currentAmountCents || 0) / data.targetAmountCents) * 100
+        : 0;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await db.insert(goals).values({

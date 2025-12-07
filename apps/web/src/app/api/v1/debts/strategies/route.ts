@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
       .from(debts)
       .where(eq(debts.userId, auth.user.id));
 
-    const activeDebts = userDebts.filter((d) => d.status === 'active' && d.currentBalanceCents > 0);
+    const activeDebts = userDebts.filter(
+      (d) => d.status === 'active' && d.currentBalanceCents > 0
+    );
 
     if (activeDebts.length === 0) {
       return NextResponse.json({
@@ -49,7 +51,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Avalanche: highest APR first
-    const avalancheOrder = [...activeDebts].sort((a, b) => b.aprPercent - a.aprPercent);
+    const avalancheOrder = [...activeDebts].sort(
+      (a, b) => b.aprPercent - a.aprPercent
+    );
 
     // Snowball: lowest balance first
     const snowballOrder = [...activeDebts].sort(
@@ -57,11 +61,12 @@ export async function GET(request: NextRequest) {
     );
 
     const calculatePayoffInfo = (
-      debt: typeof activeDebts[0],
+      debt: (typeof activeDebts)[0],
       order: number
     ): DebtWithPayoff => {
       const monthlyRate = debt.aprPercent / 100 / 12;
-      const minPayment = debt.minimumPaymentCents || Math.ceil(debt.currentBalanceCents * 0.02);
+      const minPayment =
+        debt.minimumPaymentCents || Math.ceil(debt.currentBalanceCents * 0.02);
 
       let balance = debt.currentBalanceCents;
       let months = 0;
@@ -90,9 +95,14 @@ export async function GET(request: NextRequest) {
     const avalanche = avalancheOrder.map((d, i) => calculatePayoffInfo(d, i));
     const snowball = snowballOrder.map((d, i) => calculatePayoffInfo(d, i));
 
-    const totalDebtCents = activeDebts.reduce((sum, d) => sum + d.currentBalanceCents, 0);
+    const totalDebtCents = activeDebts.reduce(
+      (sum, d) => sum + d.currentBalanceCents,
+      0
+    );
     const totalMinimumPaymentCents = activeDebts.reduce(
-      (sum, d) => sum + (d.minimumPaymentCents || Math.ceil(d.currentBalanceCents * 0.02)),
+      (sum, d) =>
+        sum +
+        (d.minimumPaymentCents || Math.ceil(d.currentBalanceCents * 0.02)),
       0
     );
 
@@ -103,8 +113,14 @@ export async function GET(request: NextRequest) {
         summary: {
           totalDebtCents,
           totalMinimumPaymentCents,
-          avalancheTotalInterestCents: avalanche.reduce((sum, d) => sum + d.totalInterestCents, 0),
-          snowballTotalInterestCents: snowball.reduce((sum, d) => sum + d.totalInterestCents, 0),
+          avalancheTotalInterestCents: avalanche.reduce(
+            (sum, d) => sum + d.totalInterestCents,
+            0
+          ),
+          snowballTotalInterestCents: snowball.reduce(
+            (sum, d) => sum + d.totalInterestCents,
+            0
+          ),
         },
       },
     });

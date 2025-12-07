@@ -32,7 +32,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const [existing] = await db
       .select()
       .from(scheduledBills)
-      .where(and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id)));
+      .where(
+        and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id))
+      );
 
     if (!existing) {
       return errorJson('NOT_FOUND', 'Scheduled bill not found', 404);
@@ -41,7 +43,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Delete the bill
     await db
       .delete(scheduledBills)
-      .where(and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id)));
+      .where(
+        and(eq(scheduledBills.id, id), eq(scheduledBills.userId, auth.user.id))
+      );
 
     return new Response(null, { status: 204 });
   } catch (error) {

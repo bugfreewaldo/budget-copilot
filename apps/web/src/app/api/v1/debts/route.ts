@@ -5,7 +5,13 @@ import { nanoid } from 'nanoid';
 import { getDb } from '@/lib/db/client';
 import { debts } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
-import { json, errorJson, formatZodError, idSchema, centsSchema } from '@/lib/api/utils';
+import {
+  json,
+  errorJson,
+  formatZodError,
+  idSchema,
+  centsSchema,
+} from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,7 +80,8 @@ export async function GET(request: NextRequest) {
       ),
       averageApr:
         activeDebts.length > 0
-          ? activeDebts.reduce((sum, d) => sum + d.aprPercent, 0) / activeDebts.length
+          ? activeDebts.reduce((sum, d) => sum + d.aprPercent, 0) /
+            activeDebts.length
           : 0,
     };
 

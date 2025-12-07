@@ -51,8 +51,13 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(categories.createdAt));
 
     // Build hierarchical structure
-    const categoryMap = new Map<string, typeof userCategories[0] & { children?: typeof userCategories }>();
-    const topLevel: Array<typeof userCategories[0] & { children?: typeof userCategories }> = [];
+    const categoryMap = new Map<
+      string,
+      (typeof userCategories)[0] & { children?: typeof userCategories }
+    >();
+    const topLevel: Array<
+      (typeof userCategories)[0] & { children?: typeof userCategories }
+    > = [];
 
     for (const cat of userCategories) {
       categoryMap.set(cat.id, { ...cat, children: [] });
