@@ -1,4 +1,4 @@
-import type { Transaction } from './types';
+import type { Transaction } from './types.js';
 
 /**
  * CSV parsing utilities for transaction imports

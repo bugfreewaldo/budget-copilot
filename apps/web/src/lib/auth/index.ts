@@ -36,6 +36,7 @@ export interface AuthResult {
     name: string | null;
     emailVerified: boolean;
     plan: 'free' | 'pro' | 'premium';
+    role: 'user' | 'admin' | 'superadmin';
   };
   session: {
     token: string;
@@ -50,6 +51,7 @@ export interface User {
   avatarUrl: string | null;
   emailVerified: boolean;
   status: 'active' | 'suspended' | 'deleted';
+  role: 'user' | 'admin' | 'superadmin';
   plan: 'free' | 'pro' | 'premium';
   createdAt: number;
 }
@@ -72,11 +74,17 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     .from(users)
     .where(eq(users.email, email.toLowerCase()));
 
-  if (existing) {
+  // Only block if user exists and is not deleted
+  if (existing && existing.status !== 'deleted') {
     throw new AuthError(
       'EMAIL_EXISTS',
       'An account with this email already exists'
     );
+  }
+
+  // If a deleted account exists with this email, remove it first
+  if (existing && existing.status === 'deleted') {
+    await db.delete(users).where(eq(users.id, existing.id));
   }
 
   if (password.length < 8) {
@@ -122,6 +130,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
       name: name || null,
       emailVerified: false,
       plan: 'free',
+      role: 'user',
     },
     session: {
       token: sessionToken,
@@ -181,6 +190,7 @@ export async function login(input: LoginInput): Promise<AuthResult> {
       name: user.name,
       emailVerified: user.emailVerified,
       plan: user.plan as 'free' | 'pro' | 'premium',
+      role: user.role as 'user' | 'admin' | 'superadmin',
     },
     session: {
       token: sessionToken,
@@ -230,6 +240,7 @@ export async function validateSession(
     avatarUrl: user.avatarUrl,
     emailVerified: user.emailVerified,
     status: user.status as 'active' | 'suspended' | 'deleted',
+    role: user.role as 'user' | 'admin' | 'superadmin',
     plan: user.plan as 'free' | 'pro' | 'premium',
     createdAt: user.createdAt,
   };
@@ -370,6 +381,7 @@ export async function createEmailVerificationToken(
   await db.insert(emailVerificationTokens).values({
     id: generateId(),
     userId,
+    email: user.email,
     token: tokenHash,
     expiresAt,
     createdAt: now,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface NavItem {
   href: string;
@@ -76,7 +76,31 @@ interface SidebarProps {
 export function Sidebar({ children }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Check authentication and email verification
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/v1/auth/me', { credentials: 'include' });
+        if (!res.ok) {
+          router.push('/login');
+          return;
+        }
+        const data = await res.json();
+        if (!data.user.emailVerified) {
+          router.push('/pending-verification');
+          return;
+        }
+        setAuthChecked(true);
+      } catch {
+        router.push('/login');
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   // Load collapsed state from localStorage
   useEffect(() => {
@@ -109,6 +133,18 @@ export function Sidebar({ children }: SidebarProps) {
       document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
+
+  // Show loading state while checking auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+          <p className="text-gray-400 text-sm">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950">

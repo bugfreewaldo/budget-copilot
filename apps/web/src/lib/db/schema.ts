@@ -33,6 +33,11 @@ export const users = sqliteTable(
     })
       .notNull()
       .default('active'),
+    role: text('role', {
+      enum: ['user', 'admin', 'superadmin'],
+    })
+      .notNull()
+      .default('user'),
     preferences: text('preferences'),
     plan: text('plan', {
       enum: ['free', 'pro', 'premium'],
@@ -100,6 +105,7 @@ export const emailVerificationTokens = sqliteTable(
   {
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),
+    email: text('email').notNull(),
     token: text('token').notNull(),
     expiresAt: integer('expires_at').notNull(),
     usedAt: integer('used_at'),

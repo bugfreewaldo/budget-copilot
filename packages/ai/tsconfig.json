@@ -6,6 +6,10 @@
     "moduleResolution": "bundler",
     "types": ["node"],
     "baseUrl": ".",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
     "paths": {
       "@/*": ["./src/*"]
     }

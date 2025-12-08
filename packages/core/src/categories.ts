@@ -1,4 +1,4 @@
-import type { Category, Transaction } from './types';
+import type { Category, Transaction } from './types.js';
 
 /**
  * Category matching and assignment logic

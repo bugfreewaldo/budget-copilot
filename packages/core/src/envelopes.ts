@@ -1,4 +1,4 @@
-import type { Envelope, Transaction } from './types';
+import type { Envelope, Transaction } from './types.js';
 
 /**
  * Envelope budgeting logic
