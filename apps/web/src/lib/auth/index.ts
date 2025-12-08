@@ -395,18 +395,29 @@ export async function verifyEmail(token: string): Promise<boolean> {
   const tokenHash = hashToken(token);
   const now = Date.now();
 
+  console.log('[verifyEmail] Looking up token...');
+
   const [verificationToken] = await db
     .select()
     .from(emailVerificationTokens)
     .where(eq(emailVerificationTokens.token, tokenHash));
 
-  if (
-    !verificationToken ||
-    verificationToken.expiresAt < now ||
-    verificationToken.usedAt
-  ) {
+  if (!verificationToken) {
+    console.log('[verifyEmail] Token not found in database');
     return false;
   }
+
+  if (verificationToken.expiresAt < now) {
+    console.log('[verifyEmail] Token expired');
+    return false;
+  }
+
+  if (verificationToken.usedAt) {
+    console.log('[verifyEmail] Token already used');
+    return false;
+  }
+
+  console.log('[verifyEmail] Token valid, updating user:', verificationToken.userId);
 
   // Mark email as verified
   await db
@@ -419,6 +430,14 @@ export async function verifyEmail(token: string): Promise<boolean> {
     .update(emailVerificationTokens)
     .set({ usedAt: now })
     .where(eq(emailVerificationTokens.id, verificationToken.id));
+
+  // Verify the update worked
+  const [updatedUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, verificationToken.userId));
+
+  console.log('[verifyEmail] User emailVerified after update:', updatedUser?.emailVerified);
 
   return true;
 }

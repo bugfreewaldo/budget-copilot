@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get('token');
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   );
   const [message, setMessage] = useState('');
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     if (!token) {
@@ -25,6 +27,7 @@ function VerifyEmailContent() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
+          credentials: 'include',
         });
 
         const data = await res.json();
@@ -49,6 +52,24 @@ function VerifyEmailContent() {
 
     verifyEmail();
   }, [token]);
+
+  // Auto-redirect on success
+  useEffect(() => {
+    if (status !== 'success') return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          router.push('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [status, router]);
 
   return (
     <div className="bg-gray-900/80 backdrop-blur-xl py-8 px-4 shadow-2xl border border-gray-800 sm:rounded-2xl sm:px-10">
@@ -102,12 +123,15 @@ function VerifyEmailContent() {
           <h3 className="text-xl font-semibold text-white mb-2">
             ¡Correo verificado!
           </h3>
-          <p className="text-gray-400 mb-6">{message}</p>
+          <p className="text-gray-400 mb-4">{message}</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Redirigiendo al dashboard en {countdown}...
+          </p>
           <Link
             href="/dashboard"
             className="inline-flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 transition-all"
           >
-            Ir al Dashboard
+            Ir al Dashboard ahora
           </Link>
         </div>
       )}
@@ -135,20 +159,17 @@ function VerifyEmailContent() {
           <p className="text-gray-400 mb-6">{message}</p>
           <div className="space-y-3">
             <Link
-              href="/dashboard"
+              href="/pending-verification"
               className="block w-full py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 transition-all text-center"
             >
-              Ir al Dashboard
+              Solicitar nuevo enlace
             </Link>
-            <p className="text-sm text-gray-500">
-              ¿Necesitas un nuevo enlace?{' '}
-              <Link
-                href="/dashboard"
-                className="text-cyan-400 hover:text-cyan-300"
-              >
-                Solicitar reenvío
-              </Link>
-            </p>
+            <Link
+              href="/login"
+              className="block w-full py-3 px-4 border border-gray-700 rounded-xl text-sm font-medium text-gray-300 hover:bg-gray-800 hover:border-gray-600 transition-all text-center"
+            >
+              Volver al login
+            </Link>
           </div>
         </div>
       )}
