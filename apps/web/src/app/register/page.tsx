@@ -90,8 +90,8 @@ export default function RegisterPage() {
 
     try {
       await register({ email, password, name: name || undefined });
+      // Redirect to dashboard after registration
       router.push('/dashboard');
-      router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.statusCode === 409) {

@@ -80,18 +80,13 @@ export function Sidebar({ children }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Check authentication and email verification
+  // Check authentication
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch('/api/v1/auth/me', { credentials: 'include' });
         if (!res.ok) {
           router.push('/login');
-          return;
-        }
-        const data = await res.json();
-        if (!data.user.emailVerified) {
-          router.push('/pending-verification');
           return;
         }
         setAuthChecked(true);

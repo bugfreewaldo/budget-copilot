@@ -20,8 +20,13 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      await login({ email, password });
-      router.push(redirectTo);
+      const result = await login({ email, password });
+      // Redirect admins to admin dashboard, others to their intended destination
+      const destination =
+        result.user.role === 'admin' || result.user.role === 'superadmin'
+          ? '/admin'
+          : redirectTo;
+      router.push(destination);
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError) {
