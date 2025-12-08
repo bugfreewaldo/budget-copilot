@@ -16,6 +16,7 @@ export interface User {
   name: string | null;
   emailVerified: boolean;
   plan: 'free' | 'pro' | 'premium';
+  role: 'user' | 'admin' | 'superadmin';
 }
 
 export interface AuthResponse {
