@@ -28,7 +28,8 @@ export interface ErrorResponse {
       | 'INTERNAL_ERROR'
       | 'UNAUTHORIZED'
       | 'INVALID_TOKEN'
-      | 'INVALID_STATE';
+      | 'INVALID_STATE'
+      | 'FORBIDDEN';
     message: string;
     details?: Record<string, unknown>;
   };
