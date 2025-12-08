@@ -8,6 +8,10 @@ export type AuthResult =
   | { success: true; user: User }
   | { success: false; response: ReturnType<typeof errorJson> };
 
+export type AdminAuthResult =
+  | { success: true; user: User & { role: 'admin' | 'superadmin' } }
+  | { success: false; response: ReturnType<typeof errorJson> };
+
 /**
  * Get authenticated user from request
  * Returns user if authenticated, or error response if not
@@ -34,4 +38,60 @@ export async function getAuthenticatedUser(
   }
 
   return { success: true, user };
+}
+
+/**
+ * Get authenticated admin user from request
+ * Returns user if authenticated and has admin/superadmin role, or error response if not
+ */
+export async function getAdminUser(
+  request: NextRequest
+): Promise<AdminAuthResult> {
+  const auth = await getAuthenticatedUser(request);
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  const { user } = auth;
+
+  if (user.role !== 'admin' && user.role !== 'superadmin') {
+    return {
+      success: false,
+      response: errorJson('FORBIDDEN', 'Admin access required', 403),
+    };
+  }
+
+  return {
+    success: true,
+    user: user as User & { role: 'admin' | 'superadmin' },
+  };
+}
+
+/**
+ * Get authenticated superadmin user from request
+ * Returns user if authenticated and has superadmin role, or error response if not
+ */
+export async function getSuperadminUser(
+  request: NextRequest
+): Promise<AdminAuthResult> {
+  const auth = await getAuthenticatedUser(request);
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  const { user } = auth;
+
+  if (user.role !== 'superadmin') {
+    return {
+      success: false,
+      response: errorJson('FORBIDDEN', 'Superadmin access required', 403),
+    };
+  }
+
+  return {
+    success: true,
+    user: user as User & { role: 'superadmin' },
+  };
 }
