@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+          package-name: budget-copilot
+          changelog-types: |
+            [
+              {"type": "feat", "section": "Features", "hidden": false},
+              {"type": "fix", "section": "Bug Fixes", "hidden": false},
+              {"type": "perf", "section": "Performance", "hidden": false},
+              {"type": "refactor", "section": "Code Refactoring", "hidden": false},
+              {"type": "docs", "section": "Documentation", "hidden": false},
+              {"type": "chore", "section": "Maintenance", "hidden": true},
+              {"type": "style", "section": "Styles", "hidden": true},
+              {"type": "test", "section": "Tests", "hidden": true},
+              {"type": "ci", "section": "CI/CD", "hidden": true}
+            ]
+
+      - name: Release summary
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          echo "## Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ steps.release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL:** https://github.com/${{ github.repository }}/releases/tag/${{ steps.release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY

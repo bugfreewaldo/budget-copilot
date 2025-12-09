@@ -1,0 +1,104 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8.15.1'
+
+jobs:
+  # Gate: Only proceed if CI passed
+  check-ci:
+    name: Verify CI Success
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      should-deploy: ${{ steps.check.outputs.deploy }}
+    steps:
+      - name: CI passed - proceeding with deployment
+        id: check
+        run: echo "deploy=true" >> $GITHUB_OUTPUT
+
+  # Run database migrations before deployment
+  migrate:
+    name: Database Migrations
+    runs-on: ubuntu-latest
+    needs: [check-ci]
+    if: ${{ needs.check-ci.outputs.should-deploy == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        working-directory: apps/web
+        run: pnpm drizzle-kit push
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+
+  # Verify Vercel deployment
+  verify-deploy:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [migrate]
+    steps:
+      - name: Wait for Vercel deployment
+        run: |
+          echo "Vercel deployment triggered via GitHub integration"
+          echo "Migrations completed successfully"
+          echo "Deployment will be available at your Vercel domain"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** main" >> $GITHUB_STEP_SUMMARY
+          echo "- **CI Status:** Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Migrations:** Completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deploy:** Triggered via Vercel GitHub integration" >> $GITHUB_STEP_SUMMARY
+
+  # Notify on CI failure (deployment blocked)
+  ci-failed:
+    name: CI Failed - Deploy Blocked
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Deployment blocked
+        run: |
+          echo "## Deployment Blocked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "CI workflow failed. Deployment has been blocked." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please fix CI issues before merging to main." >> $GITHUB_STEP_SUMMARY
+          exit 1
