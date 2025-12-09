@@ -18,6 +18,8 @@ const PUBLIC_API_ROUTES = [
   '/api/v1/auth/register',
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
+  '/api/v1/auth/me',
+  '/api/v1/households/invite',
 ];
 
 // Static files and Next.js internals
