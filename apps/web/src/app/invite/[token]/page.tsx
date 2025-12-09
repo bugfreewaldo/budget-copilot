@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface InviteDetails {
@@ -25,12 +25,9 @@ const ROLE_LABELS: Record<string, string> = {
   viewer: 'Solo lectura',
 };
 
-export default function InvitePage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
-  const { token } = use(params);
+export default function InvitePage() {
+  const params = useParams<{ token: string }>();
+  const token = params.token;
   const router = useRouter();
   const [invite, setInvite] = useState<InviteDetails | null>(null);
   const [loading, setLoading] = useState(true);
