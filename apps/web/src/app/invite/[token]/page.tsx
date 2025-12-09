@@ -33,19 +33,26 @@ export default function InvitePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
-  const [needsAuth, setNeedsAuth] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    async function loadInvite() {
+    async function loadData() {
       try {
-        const res = await fetch(`/api/v1/households/invite/${token}`);
-        const data = await res.json();
+        // Load invite details and check auth status in parallel
+        const [inviteRes, authRes] = await Promise.all([
+          fetch(`/api/v1/households/invite/${token}`),
+          fetch('/api/v1/auth/me', { credentials: 'include' }),
+        ]);
 
-        if (!res.ok) {
-          throw new Error(data.error?.message || 'Invalid invite');
+        // Handle invite response
+        const inviteData = await inviteRes.json();
+        if (!inviteRes.ok) {
+          throw new Error(inviteData.error?.message || 'Invalid invite');
         }
+        setInvite(inviteData.invite);
 
-        setInvite(data.invite);
+        // Handle auth response
+        setIsAuthenticated(authRes.ok);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : 'No se pudo cargar la invitación'
@@ -55,13 +62,12 @@ export default function InvitePage() {
       }
     }
 
-    loadInvite();
+    loadData();
   }, [token]);
 
   const handleAccept = async () => {
     setIsAccepting(true);
     setError(null);
-    let shouldResetAccepting = true;
 
     try {
       const res = await fetch(`/api/v1/households/invite/${token}`, {
@@ -71,13 +77,6 @@ export default function InvitePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 401) {
-          // Don't reset isAccepting - we're transitioning to a different view
-          // This avoids a React DOM reconciliation error from rapid state changes
-          shouldResetAccepting = false;
-          setNeedsAuth(true);
-          return;
-        }
         throw new Error(data.error?.message || 'Failed to accept invite');
       }
 
@@ -87,10 +86,7 @@ export default function InvitePage() {
       setError(
         err instanceof Error ? err.message : 'Error al aceptar la invitación'
       );
-    } finally {
-      if (shouldResetAccepting) {
-        setIsAccepting(false);
-      }
+      setIsAccepting(false);
     }
   };
 
@@ -117,39 +113,6 @@ export default function InvitePage() {
           >
             Ir a Iniciar Sesión
           </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (needsAuth) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-gray-900 rounded-2xl p-8 border border-gray-800 text-center">
-          <div className="text-6xl mb-4">🔐</div>
-          <h1 className="text-2xl font-bold text-white mb-2">
-            Inicia Sesión para Continuar
-          </h1>
-          <p className="text-gray-400 mb-6">
-            Necesitas iniciar sesión o crear una cuenta para unirte a{' '}
-            <span className="text-white font-medium">
-              {invite?.household.name}
-            </span>
-          </p>
-          <div className="space-y-3">
-            <Link
-              href={`/login?redirect=/invite/${token}`}
-              className="block w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium"
-            >
-              Iniciar Sesión
-            </Link>
-            <Link
-              href={`/register?redirect=/invite/${token}`}
-              className="block w-full py-3 bg-gray-800 text-gray-300 rounded-xl font-medium hover:bg-gray-700"
-            >
-              Crear Cuenta
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -204,44 +167,66 @@ export default function InvitePage() {
           </div>
         )}
 
-        {/* Actions */}
-        <div className="space-y-3">
-          <button
-            onClick={handleAccept}
-            disabled={isAccepting}
-            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {isAccepting ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Uniéndose...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                Unirme al Hogar
-              </>
-            )}
-          </button>
-          <Link
-            href="/dashboard"
-            className="block w-full py-3 bg-gray-800 text-gray-300 text-center rounded-xl font-medium hover:bg-gray-700"
-          >
-            Cancelar
-          </Link>
-        </div>
+        {/* Actions - different based on auth status */}
+        {isAuthenticated ? (
+          <div className="space-y-3">
+            <button
+              onClick={handleAccept}
+              disabled={isAccepting}
+              className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isAccepting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Uniéndose...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  Unirme al Hogar
+                </>
+              )}
+            </button>
+            <Link
+              href="/dashboard"
+              className="block w-full py-3 bg-gray-800 text-gray-300 text-center rounded-xl font-medium hover:bg-gray-700"
+            >
+              Cancelar
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-center text-gray-400 text-sm">
+              Crea una cuenta o inicia sesión para unirte a este hogar
+            </p>
+            <div className="space-y-3">
+              <Link
+                href={`/register?redirect=/invite/${token}`}
+                className="block w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-center rounded-xl font-medium transition-all"
+              >
+                Crear Cuenta
+              </Link>
+              <Link
+                href={`/login?redirect=/invite/${token}`}
+                className="block w-full py-3 bg-gray-800 text-gray-300 text-center rounded-xl font-medium hover:bg-gray-700"
+              >
+                Ya tengo cuenta
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-gray-500">
