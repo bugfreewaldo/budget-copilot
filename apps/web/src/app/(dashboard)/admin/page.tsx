@@ -336,7 +336,7 @@ function ConfirmDeleteModal({
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage(): JSX.Element {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
