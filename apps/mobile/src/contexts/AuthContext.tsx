@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData = await api.getMe();
         setUser(userData);
       }
-    } catch (error) {
+    } catch {
       // Token invalid or expired
       await SecureStore.deleteItemAsync(TOKEN_KEY);
       api.setToken(null);

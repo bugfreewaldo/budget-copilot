@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../src/theme/colors';
 
 export default function TransactionsScreen() {
@@ -7,9 +7,7 @@ export default function TransactionsScreen() {
       <View style={styles.emptyState}>
         <Text style={styles.emptyIcon}>📋</Text>
         <Text style={styles.emptyTitle}>Sin Movimientos</Text>
-        <Text style={styles.emptyText}>
-          Tus transacciones aparecerán aquí
-        </Text>
+        <Text style={styles.emptyText}>Tus transacciones aparecerán aquí</Text>
       </View>
     </View>
   );
