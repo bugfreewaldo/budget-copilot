@@ -1,6 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Temporarily disabled - TODO: fix lint errors across codebase
-# pnpm lint-staged
-exit 0
+pnpm lint-staged
