@@ -1,10 +1,44 @@
 {
-  "name": "mobile",
+  "name": "@budget-copilot/mobile",
   "version": "0.1.0",
   "private": true,
-  "description": "Budget Copilot mobile app (React Native/Expo) - Coming Soon",
-  "main": "index.js",
+  "main": "expo-router/entry",
   "scripts": {
-    "placeholder": "echo 'Mobile app coming soon!'"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "prebuild": "expo prebuild",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios",
+    "submit:android": "eas submit --platform android",
+    "submit:ios": "eas submit --platform ios"
+  },
+  "dependencies": {
+    "@budget-copilot/core": "workspace:*",
+    "@expo/vector-icons": "^14.0.0",
+    "expo": "~54.0.27",
+    "expo-constants": "~18.0.0",
+    "expo-linking": "~7.0.0",
+    "expo-router": "~5.0.0",
+    "expo-secure-store": "~15.0.0",
+    "expo-splash-screen": "~0.30.0",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "~19.1.0",
+    "eslint": "^8.56.0",
+    "eslint-config-expo": "~9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "~5.9.2"
   }
 }

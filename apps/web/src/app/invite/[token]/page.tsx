@@ -90,18 +90,17 @@ export default function InvitePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  // Determine which view to show
+  const viewState = loading ? 'loading' : error && !invite ? 'error' : 'invite';
 
-  if (error && !invite) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      {viewState === 'loading' && (
+        <div key="loading" className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+      )}
+
+      {viewState === 'error' && (
+        <div key="error" className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-white mb-2">
             Invitación Inválida
@@ -114,13 +113,10 @@ export default function InvitePage() {
             Ir a Iniciar Sesión
           </Link>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-gray-900 rounded-2xl p-8 border border-gray-800">
+      {viewState === 'invite' && (
+        <div key="invite" className="max-w-md w-full bg-gray-900 rounded-2xl p-8 border border-gray-800">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 mb-4">
@@ -228,14 +224,15 @@ export default function InvitePage() {
           </div>
         )}
 
-        {/* Footer */}
-        <p className="mt-6 text-center text-xs text-gray-500">
-          Esta invitación expira el{' '}
-          {invite?.expiresAt
-            ? new Date(invite.expiresAt).toLocaleDateString('es-ES')
-            : ''}
-        </p>
-      </div>
+          {/* Footer */}
+          <p className="mt-6 text-center text-xs text-gray-500">
+            Esta invitación expira el{' '}
+            {invite?.expiresAt
+              ? new Date(invite.expiresAt).toLocaleDateString('es-ES')
+              : ''}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
