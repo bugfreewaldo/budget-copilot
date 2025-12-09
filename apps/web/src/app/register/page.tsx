@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { register, ApiError } from '@/lib/api';
 
@@ -51,6 +51,8 @@ function getPasswordStrength(password: string): {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,8 +92,8 @@ export default function RegisterPage() {
 
     try {
       await register({ email, password, name: name || undefined });
-      // Redirect to dashboard after registration
-      router.push('/dashboard');
+      // Redirect to the specified page (or dashboard) after registration
+      router.push(redirectTo);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.statusCode === 409) {
@@ -129,7 +131,11 @@ export default function RegisterPage() {
         <p className="mt-2 text-center text-sm text-gray-400">
           ¿Ya tienes cuenta?{' '}
           <Link
-            href="/login"
+            href={
+              redirectTo !== '/dashboard'
+                ? `/login?redirect=${encodeURIComponent(redirectTo)}`
+                : '/login'
+            }
             className="text-cyan-400 hover:text-cyan-300 font-medium"
           >
             Inicia sesión

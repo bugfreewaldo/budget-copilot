@@ -221,6 +221,26 @@ function LoginFormFallback() {
   );
 }
 
+function RegisterLink() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
+  const registerHref = redirectTo
+    ? `/register?redirect=${encodeURIComponent(redirectTo)}`
+    : '/register';
+
+  return (
+    <p className="mt-2 text-center text-sm text-gray-400">
+      ¿No tienes cuenta?{' '}
+      <Link
+        href={registerHref}
+        className="text-cyan-400 hover:text-cyan-300 font-medium"
+      >
+        Regístrate gratis
+      </Link>
+    </p>
+  );
+}
+
 export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -241,15 +261,16 @@ export default function LoginPage() {
         <h2 className="text-center text-3xl font-bold text-white">
           Iniciar Sesión
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-400">
-          ¿No tienes cuenta?{' '}
-          <Link
-            href="/register"
-            className="text-cyan-400 hover:text-cyan-300 font-medium"
-          >
-            Regístrate gratis
-          </Link>
-        </p>
+        <Suspense
+          fallback={
+            <p className="mt-2 text-center text-sm text-gray-400">
+              ¿No tienes cuenta?{' '}
+              <span className="text-cyan-400">Regístrate gratis</span>
+            </p>
+          }
+        >
+          <RegisterLink />
+        </Suspense>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
