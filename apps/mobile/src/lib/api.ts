@@ -50,8 +50,9 @@ class ApiClient {
     };
 
     if (this.token) {
-      (headers as Record<string, string>)['Authorization'] =
-        `Bearer ${this.token}`;
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${
+        this.token
+      }`;
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
