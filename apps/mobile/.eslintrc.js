@@ -1,11 +1,21 @@
 module.exports = {
   root: true,
-  extends: ['expo', 'prettier'],
-  plugins: ['prettier'],
+  extends: ['prettier'],
+  plugins: ['prettier', '@typescript-eslint'],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+    },
+  },
   rules: {
     'prettier/prettier': 'error',
-    // Disable rules not available in the current typescript-eslint version
-    '@typescript-eslint/no-empty-object-type': 'off',
-    '@typescript-eslint/no-wrapper-object-types': 'off',
+    '@typescript-eslint/no-unused-vars': 'warn',
+  },
+  env: {
+    node: true,
+    es2021: true,
   },
 };

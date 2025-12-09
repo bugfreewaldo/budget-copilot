@@ -58,7 +58,8 @@
       "Bash(gh run:*)",
       "Bash(gh pr list:*)",
       "Bash(npx create-expo-app@latest:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(pnpm --filter @budget-copilot/mobile lint:*)"
     ],
     "deny": [],
     "ask": []
