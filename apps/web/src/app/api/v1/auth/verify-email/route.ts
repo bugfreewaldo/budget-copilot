@@ -12,11 +12,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validation = verifyEmailSchema.safeParse(body);
 
+    console.log('[verify-email] Processing verification request');
+
     if (!validation.success) {
+      console.log('[verify-email] Validation failed');
       return json(formatZodError(validation.error), 400);
     }
 
+    console.log('[verify-email] Token received, calling verifyEmail...');
     const success = await verifyEmail(validation.data.token);
+    console.log('[verify-email] verifyEmail returned:', success);
 
     if (!success) {
       return errorJson(
@@ -26,6 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('[verify-email] Verification successful!');
     return NextResponse.json({
       message: '¡Tu correo electrónico ha sido verificado!',
     });

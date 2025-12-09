@@ -2,18 +2,38 @@
   "name": "@budget-copilot/core",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Framework-agnostic domain logic for budget management",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./categories": "./src/categories.ts",
-    "./envelopes": "./src/envelopes.ts",
-    "./projections": "./src/projections.ts",
-    "./csv-parser": "./src/csv-parser.ts",
-    "./types": "./src/types.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./categories": {
+      "types": "./dist/categories.d.ts",
+      "default": "./dist/categories.js"
+    },
+    "./envelopes": {
+      "types": "./dist/envelopes.d.ts",
+      "default": "./dist/envelopes.js"
+    },
+    "./projections": {
+      "types": "./dist/projections.d.ts",
+      "default": "./dist/projections.js"
+    },
+    "./csv-parser": {
+      "types": "./dist/csv-parser.d.ts",
+      "default": "./dist/csv-parser.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

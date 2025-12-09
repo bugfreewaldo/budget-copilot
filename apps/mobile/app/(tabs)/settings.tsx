@@ -7,21 +7,17 @@ export default function SettingsScreen() {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro que deseas cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Cerrar Sesión',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/(auth)/login');
-          },
+    Alert.alert('Cerrar Sesión', '¿Estás seguro que deseas cerrar sesión?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Cerrar Sesión',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/(auth)/login');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (

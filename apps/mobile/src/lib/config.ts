@@ -6,7 +6,8 @@ import Constants from 'expo-constants';
  */
 export const config = {
   // API configuration
-  apiUrl: Constants.expoConfig?.extra?.apiUrl || 'https://budgetcopilot.app/api/v1',
+  apiUrl:
+    Constants.expoConfig?.extra?.apiUrl || 'https://budgetcopilot.app/api/v1',
 
   // App info
   appName: Constants.expoConfig?.name || 'Budget Copilot',

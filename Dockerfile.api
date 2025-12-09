@@ -24,9 +24,7 @@ COPY . .
 # Run postinstall scripts now that source is available
 RUN cd apps/api && node scripts/copy-wasm.cjs
 
-# Build packages and API
-RUN pnpm --filter @budget-copilot/core build || true
-RUN pnpm --filter @budget-copilot/ai build || true
+# Build only the API (we'll use tsx for runtime to handle TS packages)
 RUN pnpm --filter api build
 
 FROM base AS runtime
@@ -37,9 +35,11 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=build /app/apps/api/package.json ./apps/api/
+COPY --from=build /app/apps/api/sql-wasm.wasm ./apps/api/
 COPY --from=build /app/packages ./packages
 
 WORKDIR /app/apps/api
 
 EXPOSE 4000
-CMD ["node", "dist/server/index.js"]
+# Use tsx to handle TypeScript workspace dependencies at runtime
+CMD ["npx", "tsx", "dist/server/index.js"]

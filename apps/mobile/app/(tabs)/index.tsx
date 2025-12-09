@@ -1,4 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+} from 'react-native';
 import { useState, useCallback } from 'react';
 import { colors } from '../../src/theme/colors';
 
@@ -30,11 +36,15 @@ export default function DashboardScreen() {
         <View style={styles.balanceRow}>
           <View style={styles.balanceItem}>
             <Text style={styles.balanceItemLabel}>Ingresos</Text>
-            <Text style={[styles.balanceItemAmount, styles.income]}>+$0.00</Text>
+            <Text style={[styles.balanceItemAmount, styles.income]}>
+              +$0.00
+            </Text>
           </View>
           <View style={styles.balanceItem}>
             <Text style={styles.balanceItemLabel}>Gastos</Text>
-            <Text style={[styles.balanceItemAmount, styles.expense]}>-$0.00</Text>
+            <Text style={[styles.balanceItemAmount, styles.expense]}>
+              -$0.00
+            </Text>
           </View>
         </View>
       </View>

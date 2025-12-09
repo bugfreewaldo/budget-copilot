@@ -11,13 +11,17 @@ export async function GET(request: NextRequest) {
   try {
     const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
+    console.log('[auth/me] Checking session...');
+
     if (!sessionToken) {
+      console.log('[auth/me] No session token found');
       return errorJson('VALIDATION_ERROR', 'Not authenticated', 401);
     }
 
     const user = await validateSession(sessionToken);
 
     if (!user) {
+      console.log('[auth/me] Session invalid or expired');
       const response = errorJson(
         'VALIDATION_ERROR',
         'Session expired or invalid',
@@ -26,6 +30,12 @@ export async function GET(request: NextRequest) {
       response.cookies.delete(SESSION_COOKIE_NAME);
       return response;
     }
+
+    console.log('[auth/me] User found:', {
+      id: user.id,
+      email: user.email,
+      emailVerified: user.emailVerified,
+    });
 
     return NextResponse.json({ user });
   } catch (error) {

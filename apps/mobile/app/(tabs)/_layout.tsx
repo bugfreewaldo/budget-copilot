@@ -36,7 +36,11 @@ export default function TabsLayout() {
         options={{
           title: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={'home-outline' as IconName} size={size} color={color} />
+            <Ionicons
+              name={'home-outline' as IconName}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -45,7 +49,11 @@ export default function TabsLayout() {
         options={{
           title: 'Movimientos',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={'list-outline' as IconName} size={size} color={color} />
+            <Ionicons
+              name={'list-outline' as IconName}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -54,7 +62,11 @@ export default function TabsLayout() {
         options={{
           title: 'Presupuestos',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={'wallet-outline' as IconName} size={size} color={color} />
+            <Ionicons
+              name={'wallet-outline' as IconName}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -63,7 +75,11 @@ export default function TabsLayout() {
         options={{
           title: 'Ajustes',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name={'settings-outline' as IconName} size={size} color={color} />
+            <Ionicons
+              name={'settings-outline' as IconName}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
