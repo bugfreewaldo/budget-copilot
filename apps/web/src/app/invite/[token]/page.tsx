@@ -65,6 +65,7 @@ export default function InvitePage() {
     try {
       const res = await fetch(`/api/v1/households/invite/${token}`, {
         method: 'POST',
+        credentials: 'include',
       });
       const data = await res.json();
 
