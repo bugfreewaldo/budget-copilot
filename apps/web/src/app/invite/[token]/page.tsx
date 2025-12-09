@@ -61,6 +61,7 @@ export default function InvitePage() {
   const handleAccept = async () => {
     setIsAccepting(true);
     setError(null);
+    let shouldResetAccepting = true;
 
     try {
       const res = await fetch(`/api/v1/households/invite/${token}`, {
@@ -71,6 +72,9 @@ export default function InvitePage() {
 
       if (!res.ok) {
         if (res.status === 401) {
+          // Don't reset isAccepting - we're transitioning to a different view
+          // This avoids a React DOM reconciliation error from rapid state changes
+          shouldResetAccepting = false;
           setNeedsAuth(true);
           return;
         }
@@ -84,7 +88,9 @@ export default function InvitePage() {
         err instanceof Error ? err.message : 'Error al aceptar la invitación'
       );
     } finally {
-      setIsAccepting(false);
+      if (shouldResetAccepting) {
+        setIsAccepting(false);
+      }
     }
   };
 
