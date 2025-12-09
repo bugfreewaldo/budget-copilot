@@ -1,4 +1,8 @@
-import type { Transaction, MonthlyVariance, ProjectionResult } from './types.js';
+import type {
+  Transaction,
+  MonthlyVariance,
+  ProjectionResult,
+} from './types.js';
 
 /**
  * Budget projections and variance analysis

@@ -417,7 +417,10 @@ export async function verifyEmail(token: string): Promise<boolean> {
     return false;
   }
 
-  console.log('[verifyEmail] Token valid, updating user:', verificationToken.userId);
+  console.log(
+    '[verifyEmail] Token valid, updating user:',
+    verificationToken.userId
+  );
 
   // Mark email as verified
   await db
@@ -437,7 +440,10 @@ export async function verifyEmail(token: string): Promise<boolean> {
     .from(users)
     .where(eq(users.id, verificationToken.userId));
 
-  console.log('[verifyEmail] User emailVerified after update:', updatedUser?.emailVerified);
+  console.log(
+    '[verifyEmail] User emailVerified after update:',
+    updatedUser?.emailVerified
+  );
 
   return true;
 }

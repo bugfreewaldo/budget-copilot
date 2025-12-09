@@ -86,7 +86,9 @@ function UserRow({
     <tr className="border-b border-gray-100 hover:bg-gray-50">
       <td className="py-3 px-4">
         <div>
-          <p className="font-medium text-gray-900">{user.name || 'Sin nombre'}</p>
+          <p className="font-medium text-gray-900">
+            {user.name || 'Sin nombre'}
+          </p>
           <p className="text-sm text-gray-500">{user.email}</p>
         </div>
       </td>
@@ -115,7 +117,9 @@ function UserRow({
         {new Date(user.createdAt).toLocaleDateString()}
       </td>
       <td className="py-3 px-4 text-sm text-gray-500">
-        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Nunca'}
+        {user.lastLoginAt
+          ? new Date(user.lastLoginAt).toLocaleDateString()
+          : 'Nunca'}
       </td>
       <td className="py-3 px-4">
         <div className="flex gap-2">
@@ -185,12 +189,16 @@ function EditUserModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Editar Usuario</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Editar Usuario
+        </h3>
         <p className="text-sm text-blue-600 mb-4">{user.email}</p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
             <input
               type="text"
               value={name}
@@ -200,7 +208,9 @@ function EditUserModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Estado
+            </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as User['status'])}
@@ -213,7 +223,9 @@ function EditUserModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rol
+            </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as User['role'])}
@@ -226,7 +238,9 @@ function EditUserModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Plan</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Plan
+            </label>
             <select
               value={plan}
               onChange={(e) => setPlan(e.target.value as User['plan'])}
@@ -285,16 +299,19 @@ function ConfirmDeleteModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold text-red-600 mb-2">Desactivar Usuario</h3>
+        <h3 className="text-lg font-semibold text-red-600 mb-2">
+          Desactivar Usuario
+        </h3>
         <p className="text-gray-600 mb-4">
           Esta accion cambiara el estado del usuario{' '}
-          <strong>{user.email}</strong> a &quot;eliminado&quot;. El usuario no podra
-          acceder a su cuenta.
+          <strong>{user.email}</strong> a &quot;eliminado&quot;. El usuario no
+          podra acceder a su cuenta.
         </p>
 
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
           <p className="text-sm text-amber-700">
-            Los datos del usuario se conservan y pueden restaurarse cambiando su estado desde el panel de edicion.
+            Los datos del usuario se conservan y pueden restaurarse cambiando su
+            estado desde el panel de edicion.
           </p>
         </div>
 
@@ -335,7 +352,9 @@ export default function AdminPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/admin/stats', { credentials: 'include' });
+      const res = await fetch('/api/v1/admin/stats', {
+        credentials: 'include',
+      });
       if (res.status === 403) {
         router.push('/dashboard');
         return;
@@ -435,7 +454,10 @@ export default function AdminPage() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
       router.push('/login');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -465,282 +487,24 @@ export default function AdminPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Panel de Administracion</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Panel de Administracion
+            </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Gestiona usuarios, planes y monitorea la actividad de la plataforma
+              Gestiona usuarios, planes y monitorea la actividad de la
+              plataforma
             </p>
           </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              fetchStats();
-              fetchUsers();
-            }}
-            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 text-gray-700"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            Actualizar
-          </button>
-          <button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="px-4 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            {loggingOut ? 'Saliendo...' : 'Cerrar Sesion'}
-          </button>
-        </div>
-      </div>
-
-      {/* Overview Stats */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Users Overview */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-500">Usuarios</h3>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg
-                  className="w-5 h-5 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900">{stats.users.total}</p>
-            <div className="mt-2 flex items-center gap-3 text-sm">
-              <span className="text-green-600">{stats.users.active} activos</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-yellow-600">{stats.users.suspended} suspendidos</span>
-            </div>
-          </div>
-
-          {/* New Users */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-500">Crecimiento</h3>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <svg
-                  className="w-5 h-5 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
-              </div>
-            </div>
-            <p className="text-3xl font-bold text-gray-900">+{stats.users.newThisMonth}</p>
-            <p className="text-sm text-gray-500 mt-1">Nuevos este mes</p>
-            <div className="mt-2 flex items-center gap-3 text-sm">
-              <span className="text-blue-600">+{stats.users.newThisWeek} semana</span>
-              <span className="text-gray-300">|</span>
-              <span className="text-purple-600">+{stats.users.newToday} hoy</span>
-            </div>
-          </div>
-
-          {/* Plans Distribution */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-500">Planes</h3>
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <svg
-                  className="w-5 h-5 text-amber-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Free</span>
-                <span className="text-sm font-medium text-gray-900">{stats.users.byPlan.free}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-600">Pro</span>
-                <span className="text-sm font-medium text-gray-900">{stats.users.byPlan.pro}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-amber-600">Premium</span>
-                <span className="text-sm font-medium text-gray-900">{stats.users.byPlan.premium}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Activity */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-500">Actividad</h3>
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <svg
-                  className="w-5 h-5 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Transacciones</span>
-                <span className="text-sm font-medium text-gray-900">{stats.transactions.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Cuentas</span>
-                <span className="text-sm font-medium text-gray-900">{stats.accounts.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Sesiones activas</span>
-                <span className="text-sm font-medium text-gray-900">{stats.sessions.active}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* User Management Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Gestion de Usuarios</h2>
-            <span className="text-sm text-gray-500">{users.length} usuarios</span>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            <input
-              type="text"
-              placeholder="Buscar por email o nombre..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
-            >
-              <option value="">Activos y suspendidos</option>
-              <option value="active">Solo activos</option>
-              <option value="suspended">Solo suspendidos</option>
-              <option value="deleted">Ver eliminados</option>
-            </select>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
-            >
-              <option value="">Todos los roles</option>
-              <option value="user">Usuarios</option>
-              <option value="admin">Admins</option>
-              <option value="superadmin">Superadmins</option>
-            </select>
-            <select
-              value={planFilter}
-              onChange={(e) => setPlanFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
-            >
-              <option value="">Todos los planes</option>
-              <option value="free">Free</option>
-              <option value="pro">Pro</option>
-              <option value="premium">Premium</option>
-            </select>
+          <div className="flex items-center gap-2">
             <button
-              onClick={fetchUsers}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+              onClick={() => {
+                fetchStats();
+                fetchUsers();
+              }}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 text-gray-700"
             >
-              Buscar
-            </button>
-          </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Usuario
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Rol
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Plan
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Registro
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ultimo acceso
-                </th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {users.map((user) => (
-                <UserRow
-                  key={user.id}
-                  user={user}
-                  onEdit={setEditingUser}
-                  onStatusChange={handleStatusChange}
-                  onDelete={setDeletingUser}
-                />
-              ))}
-            </tbody>
-          </table>
-
-          {users.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
               <svg
-                className="w-12 h-12 mx-auto text-gray-300 mb-4"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -749,33 +513,338 @@ export default function AdminPage() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              <p>No se encontraron usuarios</p>
-              <p className="text-sm mt-1">Intenta ajustar los filtros de busqueda</p>
-            </div>
-          )}
+              Actualizar
+            </button>
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="px-4 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center gap-2 disabled:opacity-50"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              {loggingOut ? 'Saliendo...' : 'Cerrar Sesion'}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Edit Modal */}
-      {editingUser && (
-        <EditUserModal
-          user={editingUser}
-          onClose={() => setEditingUser(null)}
-          onSave={handleSaveUser}
-        />
-      )}
+        {/* Overview Stats */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Users Overview */}
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-500">Usuarios</h3>
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <svg
+                    className="w-5 h-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                {stats.users.total}
+              </p>
+              <div className="mt-2 flex items-center gap-3 text-sm">
+                <span className="text-green-600">
+                  {stats.users.active} activos
+                </span>
+                <span className="text-gray-300">|</span>
+                <span className="text-yellow-600">
+                  {stats.users.suspended} suspendidos
+                </span>
+              </div>
+            </div>
 
-      {/* Delete Confirmation Modal */}
-      {deletingUser && (
-        <ConfirmDeleteModal
-          user={deletingUser}
-          onClose={() => setDeletingUser(null)}
-          onConfirm={handleDeleteUser}
-        />
-      )}
+            {/* New Users */}
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-500">
+                  Crecimiento
+                </h3>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <svg
+                    className="w-5 h-5 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-gray-900">
+                +{stats.users.newThisMonth}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">Nuevos este mes</p>
+              <div className="mt-2 flex items-center gap-3 text-sm">
+                <span className="text-blue-600">
+                  +{stats.users.newThisWeek} semana
+                </span>
+                <span className="text-gray-300">|</span>
+                <span className="text-purple-600">
+                  +{stats.users.newToday} hoy
+                </span>
+              </div>
+            </div>
+
+            {/* Plans Distribution */}
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-500">Planes</h3>
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <svg
+                    className="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Free</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.users.byPlan.free}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-blue-600">Pro</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.users.byPlan.pro}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-amber-600">Premium</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.users.byPlan.premium}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Activity */}
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-500">Actividad</h3>
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <svg
+                    className="w-5 h-5 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Transacciones</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.transactions.total}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Cuentas</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.accounts.total}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    Sesiones activas
+                  </span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {stats.sessions.active}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* User Management Section */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Gestion de Usuarios
+              </h2>
+              <span className="text-sm text-gray-500">
+                {users.length} usuarios
+              </span>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              <input
+                type="text"
+                placeholder="Buscar por email o nombre..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-64"
+              />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
+              >
+                <option value="">Activos y suspendidos</option>
+                <option value="active">Solo activos</option>
+                <option value="suspended">Solo suspendidos</option>
+                <option value="deleted">Ver eliminados</option>
+              </select>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
+              >
+                <option value="">Todos los roles</option>
+                <option value="user">Usuarios</option>
+                <option value="admin">Admins</option>
+                <option value="superadmin">Superadmins</option>
+              </select>
+              <select
+                value={planFilter}
+                onChange={(e) => setPlanFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm text-gray-900 bg-white"
+              >
+                <option value="">Todos los planes</option>
+                <option value="free">Free</option>
+                <option value="pro">Pro</option>
+                <option value="premium">Premium</option>
+              </select>
+              <button
+                onClick={fetchUsers}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+              >
+                Buscar
+              </button>
+            </div>
+          </div>
+
+          {/* Users Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Plan
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Registro
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ultimo acceso
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.map((user) => (
+                  <UserRow
+                    key={user.id}
+                    user={user}
+                    onEdit={setEditingUser}
+                    onStatusChange={handleStatusChange}
+                    onDelete={setDeletingUser}
+                  />
+                ))}
+              </tbody>
+            </table>
+
+            {users.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <svg
+                  className="w-12 h-12 mx-auto text-gray-300 mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                <p>No se encontraron usuarios</p>
+                <p className="text-sm mt-1">
+                  Intenta ajustar los filtros de busqueda
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Edit Modal */}
+        {editingUser && (
+          <EditUserModal
+            user={editingUser}
+            onClose={() => setEditingUser(null)}
+            onSave={handleSaveUser}
+          />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deletingUser && (
+          <ConfirmDeleteModal
+            user={deletingUser}
+            onClose={() => setDeletingUser(null)}
+            onConfirm={handleDeleteUser}
+          />
+        )}
       </div>
     </div>
   );

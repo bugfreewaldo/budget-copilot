@@ -154,7 +154,11 @@ export async function PATCH(
     }
 
     // Prevent demoting/changing the last superadmin
-    if (updates.role && updates.role !== 'superadmin' && existing.role === 'superadmin') {
+    if (
+      updates.role &&
+      updates.role !== 'superadmin' &&
+      existing.role === 'superadmin'
+    ) {
       const [superadminCount = { count: 0 }] = await db
         .select({ count: sql<number>`count(*)` })
         .from(users)

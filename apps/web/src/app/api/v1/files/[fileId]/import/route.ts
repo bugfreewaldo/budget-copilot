@@ -185,7 +185,8 @@ export async function POST(
       const amountCents = Math.round(Math.abs(item.amount) * 100);
 
       // For expenses, amount should be negative in our system
-      const finalAmountCents = txType === 'expense' ? -amountCents : amountCents;
+      const finalAmountCents =
+        txType === 'expense' ? -amountCents : amountCents;
 
       // Use the parsed date from the document, fall back to period start or today
       const periodFrom = isBankStatement(parsedSummary)

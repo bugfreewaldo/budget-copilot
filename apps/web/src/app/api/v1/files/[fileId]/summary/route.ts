@@ -60,7 +60,11 @@ export async function GET(
     }
 
     if (file.status === 'stored') {
-      return errorJson('INVALID_STATE', 'File has not been processed yet.', 404);
+      return errorJson(
+        'INVALID_STATE',
+        'File has not been processed yet.',
+        404
+      );
     }
 
     // Get the latest summary

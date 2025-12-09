@@ -48,10 +48,7 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       conditions.push(
-        or(
-          like(users.email, `%${search}%`),
-          like(users.name, `%${search}%`)
-        )
+        or(like(users.email, `%${search}%`), like(users.name, `%${search}%`))
       );
     }
 
