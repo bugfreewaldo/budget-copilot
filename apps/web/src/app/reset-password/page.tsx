@@ -240,7 +240,7 @@ function ResetPasswordFallback() {
   );
 }
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated background blobs */}

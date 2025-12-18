@@ -56,7 +56,7 @@ function getProgressColor(percent: number): string {
   return 'bg-emerald-500';
 }
 
-export default function PresupuestoPage() {
+export default function PresupuestoPage(): React.ReactElement {
   const [categories, setCategories] = useState<Category[]>([]);
   const [envelopes, setEnvelopes] = useState<Envelope[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());

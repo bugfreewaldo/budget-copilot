@@ -81,7 +81,7 @@ const FREQUENCIES = [
 // COMPONENT
 // ============================================================================
 
-export default function RecurrentesPage() {
+export default function RecurrentesPage(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<'bills' | 'income'>('bills');
   const [bills, setBills] = useState<ScheduledBill[]>([]);
   const [incomes, setIncomes] = useState<ScheduledIncomeItem[]>([]);

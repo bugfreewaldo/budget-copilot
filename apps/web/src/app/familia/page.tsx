@@ -39,7 +39,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   viewer: { label: 'Solo lectura', color: 'bg-gray-500/20 text-gray-400' },
 };
 
-export default function FamiliaPage() {
+export default function FamiliaPage(): React.ReactElement {
   const [households, setHouseholds] = useState<Household[]>([]);
   const [selectedHousehold, setSelectedHousehold] = useState<Household | null>(
     null

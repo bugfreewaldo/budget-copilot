@@ -25,7 +25,7 @@ const ROLE_LABELS: Record<string, string> = {
   viewer: 'Solo lectura',
 };
 
-export default function InvitePage() {
+export default function InvitePage(): React.ReactElement {
   const params = useParams<{ token: string }>();
   const token = params.token;
   const router = useRouter();

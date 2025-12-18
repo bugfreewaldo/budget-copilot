@@ -50,7 +50,7 @@ const PLAN_INFO = {
   },
 };
 
-export default function PerfilPage() {
+export default function PerfilPage(): React.ReactElement {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);

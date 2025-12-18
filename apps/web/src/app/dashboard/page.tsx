@@ -40,7 +40,7 @@ interface SelectedCategory {
   color: string;
 }
 
-export default function DashboardPage() {
+export default function DashboardPage(): React.ReactElement {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionType, setTransactionType] = useState<'income' | 'expense'>(
     'expense'

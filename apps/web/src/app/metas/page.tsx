@@ -63,7 +63,7 @@ function getDaysRemaining(targetDate: string | null): string {
   return `${Math.floor(diff / 365)} años`;
 }
 
-export default function MetasPage() {
+export default function MetasPage(): React.ReactElement {
   const { goals, summary, isLoading, error, refresh } = useGoals();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState<Goal | null>(

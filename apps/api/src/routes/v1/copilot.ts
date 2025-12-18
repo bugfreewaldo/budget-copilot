@@ -59,11 +59,17 @@ const copilotRoutes: FastifyPluginAsync = async (fastify) => {
         // Get user ID from auth context
         const userId = request.user!.id;
 
+        // Map conversation history to ensure correct types
+        const history = (conversationHistory ?? []).map((msg) => ({
+          role: msg.role as 'system' | 'user' | 'assistant',
+          content: msg.content as string,
+        }));
+
         // Process message through copilot service
         const response = await copilotService.processMessage(
           userId,
           message,
-          conversationHistory
+          history
         );
 
         return reply.send({

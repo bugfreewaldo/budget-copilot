@@ -23,7 +23,7 @@ function getFutureDate(): string {
   return '2099-12-31';
 }
 
-export default function TransaccionesPage() {
+export default function TransaccionesPage(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>(
     'all'

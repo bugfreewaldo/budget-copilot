@@ -9,7 +9,7 @@ import { EditCategoryModal } from '@/components/categories/EditCategoryModal';
 import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
 import { Sidebar } from '@/components/layout';
 
-export default function CategoriesPage() {
+export default function CategoriesPage(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);

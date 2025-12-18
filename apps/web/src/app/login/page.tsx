@@ -241,7 +241,7 @@ function RegisterLink() {
   );
 }
 
-export default function LoginPage() {
+export default function LoginPage(): React.ReactElement {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated background blobs */}

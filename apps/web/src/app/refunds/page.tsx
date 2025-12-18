@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-export default function RefundsPage() {
+export default function RefundsPage(): React.ReactElement {
   const [lang, setLang] = useState<'es' | 'en'>('es');
 
   const content = {

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage(): React.ReactElement {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);

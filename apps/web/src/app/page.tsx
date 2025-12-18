@@ -104,7 +104,7 @@ function MobileMenu({
 /**
  * Budget Copilot - Página de Inicio con IA Financiera
  */
-export default function HomePage() {
+export default function HomePage(): React.ReactElement {
   const [currentWeather, setCurrentWeather] = useState(0);
   const [typedText, setTypedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
