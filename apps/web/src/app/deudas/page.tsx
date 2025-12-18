@@ -351,7 +351,11 @@ export default function DeudasPage(): React.JSX.Element {
     const setForm = target === 'new' ? setNewDebt : setEditDebt;
 
     const principal = form.original_balance_cents;
-    const monthlyPayment = form.minimum_payment_cents;
+    // Calculate effective monthly payment based on type
+    const monthlyPayment =
+      form.minimum_payment_type === 'percent'
+        ? (form.current_balance_cents * form.minimum_payment_percent) / 100
+        : form.minimum_payment_cents;
     const termMonths = form.term_months;
 
     if (!termMonths || principal <= 0 || monthlyPayment <= 0) {
@@ -380,14 +384,14 @@ export default function DeudasPage(): React.JSX.Element {
         minimum_payment_cents:
           newDebt.minimum_payment_type === 'fixed'
             ? Math.round(newDebt.minimum_payment_cents * 100)
-            : null,
+            : undefined,
         minimum_payment_type: newDebt.minimum_payment_type,
         minimum_payment_percent:
           newDebt.minimum_payment_type === 'percent'
             ? newDebt.minimum_payment_percent
-            : null,
+            : undefined,
         term_months: newDebt.term_months,
-        start_date: newDebt.start_date || null,
+        start_date: newDebt.start_date || undefined,
         due_day: newDebt.due_day,
       });
       setShowAddModal(false);
