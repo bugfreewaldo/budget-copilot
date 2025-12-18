@@ -703,7 +703,18 @@ export async function createDebt(input: {
     headers: {
       'Idempotency-Key': crypto.randomUUID(),
     },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      name: input.name,
+      type: input.type,
+      originalBalanceCents: input.original_balance_cents,
+      currentBalanceCents: input.current_balance_cents,
+      aprPercent: input.apr_percent,
+      minimumPaymentCents: input.minimum_payment_cents,
+      termMonths: input.term_months,
+      startDate: input.start_date,
+      dueDay: input.due_day,
+      accountId: input.account_id,
+    }),
   });
   return response.data;
 }
@@ -727,7 +738,17 @@ export async function updateDebt(
     headers: {
       'Idempotency-Key': crypto.randomUUID(),
     },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      name: input.name,
+      type: input.type,
+      currentBalanceCents: input.current_balance_cents,
+      aprPercent: input.apr_percent,
+      minimumPaymentCents: input.minimum_payment_cents,
+      termMonths: input.term_months,
+      startDate: input.start_date,
+      dueDay: input.due_day,
+      status: input.status,
+    }),
   });
   return response.data;
 }
@@ -748,7 +769,10 @@ export async function recordDebtPayment(
       headers: {
         'Idempotency-Key': crypto.randomUUID(),
       },
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        amountCents: input.amount_cents,
+        date: input.payment_date,
+      }),
     }
   );
   return response.data;

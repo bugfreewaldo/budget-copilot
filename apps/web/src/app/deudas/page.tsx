@@ -32,12 +32,12 @@ const STATUS_LABELS: Record<DebtStatus, { label: string; color: string }> = {
   deferred: { label: 'Diferida', color: 'bg-yellow-500/20 text-yellow-400' },
 };
 
-function formatCurrency(cents: number): string {
+function formatCurrency(cents: number, showDecimals = true): string {
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: 'MXN',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: showDecimals ? 2 : 0,
+    maximumFractionDigits: showDecimals ? 2 : 0,
   }).format(cents / 100);
 }
 
@@ -96,10 +96,14 @@ function calculateTotalInterest(
 // Calculate freedom date from debts
 function calculateFreedomDate(
   debts: Debt[],
-  strategy: PaymentStrategy
+  strategy: PaymentStrategy,
+  excludedIds: Set<string> = new Set()
 ): { date: Date | null; months: number } {
   const activeDebts = debts.filter(
-    (d) => d.status === 'active' && d.currentBalanceCents > 0
+    (d) =>
+      d.status === 'active' &&
+      d.currentBalanceCents > 0 &&
+      !excludedIds.has(d.id)
   );
   if (activeDebts.length === 0) return { date: null, months: 0 };
 
@@ -171,6 +175,7 @@ export default function DeudasPage() {
   const { debts, summary, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<Debt | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState<Debt | null>(null);
   const [showCalculator, setShowCalculator] = useState<Debt | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Debt | null>(null);
@@ -188,6 +193,60 @@ export default function DeudasPage() {
       return 'avalanche';
     }
   );
+
+  // Track which debts are excluded from strategy (mortgages excluded by default)
+  const [excludedFromStrategy, setExcludedFromStrategy] = useState<Set<string>>(
+    () => {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('debt-strategy-excluded');
+        if (saved) {
+          try {
+            return new Set(JSON.parse(saved));
+          } catch {
+            return new Set();
+          }
+        }
+      }
+      return new Set();
+    }
+  );
+
+  // Initialize mortgage exclusions when debts load
+  const [initializedExclusions, setInitializedExclusions] = useState(false);
+  if (!initializedExclusions && debts.length > 0) {
+    const saved = localStorage.getItem('debt-strategy-excluded');
+    if (!saved) {
+      // First time: exclude mortgages by default
+      const mortgageIds = debts
+        .filter((d) => d.type === 'mortgage')
+        .map((d) => d.id);
+      if (mortgageIds.length > 0) {
+        const newExcluded = new Set(mortgageIds);
+        setExcludedFromStrategy(newExcluded);
+        localStorage.setItem(
+          'debt-strategy-excluded',
+          JSON.stringify([...newExcluded])
+        );
+      }
+    }
+    setInitializedExclusions(true);
+  }
+
+  const toggleDebtInStrategy = (debtId: string) => {
+    setExcludedFromStrategy((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(debtId)) {
+        newSet.delete(debtId);
+      } else {
+        newSet.add(debtId);
+      }
+      localStorage.setItem(
+        'debt-strategy-excluded',
+        JSON.stringify([...newSet])
+      );
+      return newSet;
+    });
+  };
 
   // Save strategy selection to localStorage
   const handleSelectStrategy = (strategy: PaymentStrategy) => {
@@ -212,6 +271,19 @@ export default function DeudasPage() {
   const [payment, setPayment] = useState({
     amount: '',
     date: new Date().toISOString().split('T')[0]!,
+  });
+
+  // Form state for editing debt
+  const [editDebt, setEditDebt] = useState({
+    name: '',
+    type: 'credit_card' as DebtType,
+    original_balance_cents: 0,
+    current_balance_cents: 0,
+    apr_percent: 0,
+    minimum_payment_cents: 0,
+    term_months: null as number | null,
+    start_date: '' as string,
+    due_day: 1,
   });
 
   const handleAddDebt = async (e: React.FormEvent) => {
@@ -249,6 +321,46 @@ export default function DeudasPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditDebt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showEditModal) return;
+
+    setIsSubmitting(true);
+    try {
+      await updateDebt(showEditModal.id, {
+        name: editDebt.name,
+        type: editDebt.type,
+        current_balance_cents: Math.round(editDebt.current_balance_cents * 100),
+        apr_percent: editDebt.apr_percent,
+        minimum_payment_cents: Math.round(editDebt.minimum_payment_cents * 100),
+        term_months: editDebt.term_months,
+        start_date: editDebt.start_date || null,
+        due_day: editDebt.due_day,
+      });
+      setShowEditModal(null);
+      refresh();
+    } catch (err) {
+      console.error('Failed to edit debt:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const openEditModal = (debt: Debt) => {
+    setEditDebt({
+      name: debt.name,
+      type: debt.type,
+      original_balance_cents: debt.originalBalanceCents / 100,
+      current_balance_cents: debt.currentBalanceCents / 100,
+      apr_percent: debt.aprPercent,
+      minimum_payment_cents: (debt.minimumPaymentCents || 0) / 100,
+      term_months: debt.termMonths,
+      start_date: debt.startDate || '',
+      due_day: debt.dueDay || 1,
+    });
+    setShowEditModal(debt);
   };
 
   const handleRecordPayment = async (e: React.FormEvent) => {
@@ -436,7 +548,8 @@ export default function DeudasPage() {
                   {(() => {
                     const freedom = calculateFreedomDate(
                       debts,
-                      selectedStrategy
+                      selectedStrategy,
+                      excludedFromStrategy
                     );
                     if (!freedom.date) {
                       return (
@@ -539,7 +652,8 @@ export default function DeudasPage() {
                           {(() => {
                             const freedom = calculateFreedomDate(
                               debts,
-                              'avalanche'
+                              'avalanche',
+                              excludedFromStrategy
                             );
                             return freedom.months > 0 &&
                               freedom.months !== Infinity
@@ -598,7 +712,8 @@ export default function DeudasPage() {
                           {(() => {
                             const freedom = calculateFreedomDate(
                               debts,
-                              'snowball'
+                              'snowball',
+                              excludedFromStrategy
                             );
                             return freedom.months > 0 &&
                               freedom.months !== Infinity
@@ -638,11 +753,15 @@ export default function DeudasPage() {
                       ? 'Enfoca tus pagos extra en la deuda con mayor interés primero'
                       : 'Enfoca tus pagos extra en la deuda más pequeña primero'}
                   </p>
+
+                  {/* Active debts in strategy */}
                   <div className="space-y-2">
                     {[...debts]
                       .filter(
                         (d) =>
-                          d.status === 'active' && d.currentBalanceCents > 0
+                          d.status === 'active' &&
+                          d.currentBalanceCents > 0 &&
+                          !excludedFromStrategy.has(d.id)
                       )
                       .sort((a, b) =>
                         selectedStrategy === 'avalanche'
@@ -681,9 +800,94 @@ export default function DeudasPage() {
                               🎯 Prioridad
                             </span>
                           )}
+                          <button
+                            onClick={() => toggleDebtInStrategy(debt.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                            title="Excluir de la estrategia"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                              />
+                            </svg>
+                          </button>
                         </div>
                       ))}
                   </div>
+
+                  {/* Excluded debts section */}
+                  {debts.filter(
+                    (d) =>
+                      d.status === 'active' &&
+                      d.currentBalanceCents > 0 &&
+                      excludedFromStrategy.has(d.id)
+                  ).length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-700">
+                      <p className="text-sm text-gray-500 mb-2">
+                        Excluidas de la estrategia:
+                      </p>
+                      <div className="space-y-2">
+                        {debts
+                          .filter(
+                            (d) =>
+                              d.status === 'active' &&
+                              d.currentBalanceCents > 0 &&
+                              excludedFromStrategy.has(d.id)
+                          )
+                          .map((debt) => (
+                            <div
+                              key={debt.id}
+                              className="flex items-center gap-3 p-3 rounded-lg border border-gray-700/50 bg-gray-800/20 opacity-60"
+                            >
+                              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-700/50 text-gray-500">
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-400 truncate">
+                                  {debt.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {formatCurrency(debt.currentBalanceCents)} •{' '}
+                                  {debt.aprPercent}% APR
+                                  {debt.type === 'mortgage' && ' • Hipoteca'}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => toggleDebtInStrategy(debt.id)}
+                                className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                                title="Incluir en la estrategia"
+                              >
+                                Incluir
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Las hipotecas se excluyen por defecto (son a largo
+                        plazo)
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -713,6 +917,25 @@ export default function DeudasPage() {
                         >
                           {STATUS_LABELS[debt.status]?.label}
                         </span>
+                        <button
+                          onClick={() => openEditModal(debt)}
+                          className="p-2 text-gray-400 hover:text-cyan-400 transition-colors"
+                          title="Editar"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
                         <button
                           onClick={() => setDeleteConfirm(debt)}
                           className="p-2 text-gray-400 hover:text-red-400 transition-colors"
@@ -809,7 +1032,17 @@ export default function DeudasPage() {
                     {debt.status === 'active' && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setShowPaymentModal(debt)}
+                          onClick={() => {
+                            // Pre-populate with minimum payment amount (with decimals)
+                            const minPayment = debt.minimumPaymentCents
+                              ? (debt.minimumPaymentCents / 100).toFixed(2)
+                              : '';
+                            setPayment({
+                              amount: minPayment,
+                              date: new Date().toISOString().split('T')[0]!,
+                            });
+                            setShowPaymentModal(debt);
+                          }}
                           className="flex-1 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
                         >
                           Registrar Pago
@@ -993,7 +1226,7 @@ export default function DeudasPage() {
                           className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
                           placeholder="Ej: 48 meses"
                           min="1"
-                          max="360"
+                          max="480"
                         />
                         {newDebt.term_months && (
                           <span className="text-sm text-gray-500">
@@ -1064,6 +1297,225 @@ export default function DeudasPage() {
                     className="flex-1 py-3 bg-red-600 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {isSubmitting ? 'Guardando...' : 'Agregar Deuda'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Debt Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-800">
+                <h2 className="text-xl font-bold">Editar Deuda</h2>
+                <p className="text-sm text-gray-400">{showEditModal.name}</p>
+              </div>
+              <form onSubmit={handleEditDebt} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    value={editDebt.name}
+                    onChange={(e) =>
+                      setEditDebt({ ...editDebt, name: e.target.value })
+                    }
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                    placeholder="Ej: Tarjeta BBVA"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Tipo
+                  </label>
+                  <select
+                    value={editDebt.type}
+                    onChange={(e) =>
+                      setEditDebt({
+                        ...editDebt,
+                        type: e.target.value as DebtType,
+                      })
+                    }
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                  >
+                    {Object.entries(DEBT_TYPE_LABELS).map(
+                      ([key, { label, emoji }]) => (
+                        <option key={key} value={key}>
+                          {emoji} {label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Saldo Original
+                    </label>
+                    <input
+                      type="number"
+                      value={editDebt.original_balance_cents || ''}
+                      disabled
+                      className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-500 cursor-not-allowed"
+                      title="El saldo original no se puede modificar"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Saldo Actual
+                    </label>
+                    <input
+                      type="number"
+                      value={editDebt.current_balance_cents || ''}
+                      onChange={(e) =>
+                        setEditDebt({
+                          ...editDebt,
+                          current_balance_cents:
+                            parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                      placeholder="35000"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      APR (%)
+                    </label>
+                    <input
+                      type="number"
+                      value={editDebt.apr_percent || ''}
+                      onChange={(e) =>
+                        setEditDebt({
+                          ...editDebt,
+                          apr_percent: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                      placeholder="28.9"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">
+                      Pago Mínimo
+                    </label>
+                    <input
+                      type="number"
+                      value={editDebt.minimum_payment_cents || ''}
+                      onChange={(e) =>
+                        setEditDebt({
+                          ...editDebt,
+                          minimum_payment_cents:
+                            parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                      placeholder="1500.00"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                {/* Term duration - only for fixed-term loans */}
+                {editDebt.type !== 'credit_card' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">
+                        Duración del préstamo (meses)
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          value={editDebt.term_months || ''}
+                          onChange={(e) =>
+                            setEditDebt({
+                              ...editDebt,
+                              term_months: e.target.value
+                                ? parseInt(e.target.value)
+                                : null,
+                            })
+                          }
+                          className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                          placeholder="Ej: 48 meses"
+                          min="1"
+                          max="480"
+                        />
+                        {editDebt.term_months && (
+                          <span className="text-sm text-gray-500">
+                            ({(editDebt.term_months / 12).toFixed(1)} años)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Start date - shown when term is entered */}
+                    {editDebt.term_months && (
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Fecha de inicio del préstamo
+                        </label>
+                        <input
+                          type="date"
+                          value={editDebt.start_date}
+                          onChange={(e) =>
+                            setEditDebt({
+                              ...editDebt,
+                              start_date: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">
+                    Día de Corte
+                  </label>
+                  <input
+                    type="number"
+                    value={editDebt.due_day}
+                    onChange={(e) =>
+                      setEditDebt({
+                        ...editDebt,
+                        due_day: parseInt(e.target.value) || 1,
+                      })
+                    }
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                    min="1"
+                    max="31"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(null)}
+                    className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
                   </button>
                 </div>
               </form>

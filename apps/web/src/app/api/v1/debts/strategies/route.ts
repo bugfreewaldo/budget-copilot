@@ -40,12 +40,18 @@ export async function GET(request: NextRequest) {
     if (activeDebts.length === 0) {
       return NextResponse.json({
         data: {
-          avalanche: [],
-          snowball: [],
-          summary: {
-            totalDebtCents: 0,
-            totalMinimumPaymentCents: 0,
+          avalanche: {
+            totalInterestCents: 0,
+            monthsToPayoff: 0,
+            order: [],
           },
+          snowball: {
+            totalInterestCents: 0,
+            monthsToPayoff: 0,
+            order: [],
+          },
+          recommendation: 'avalanche' as const,
+          savingsWithAvalanche: 0,
         },
       });
     }
@@ -72,8 +78,8 @@ export async function GET(request: NextRequest) {
       let months = 0;
       let totalInterest = 0;
 
-      // Simple amortization calculation
-      while (balance > 0 && months < 360) {
+      // Simple amortization calculation (max 480 months = 40 years for long mortgages)
+      while (balance > 0 && months < 480) {
         const interest = Math.round(balance * monthlyRate);
         totalInterest += interest;
         balance = balance + interest - minPayment;
@@ -92,36 +98,66 @@ export async function GET(request: NextRequest) {
       };
     };
 
-    const avalanche = avalancheOrder.map((d, i) => calculatePayoffInfo(d, i));
-    const snowball = snowballOrder.map((d, i) => calculatePayoffInfo(d, i));
+    const avalancheResults = avalancheOrder.map((d, i) =>
+      calculatePayoffInfo(d, i)
+    );
+    const snowballResults = snowballOrder.map((d, i) =>
+      calculatePayoffInfo(d, i)
+    );
 
-    const totalDebtCents = activeDebts.reduce(
-      (sum, d) => sum + d.currentBalanceCents,
+    const avalancheTotalInterestCents = avalancheResults.reduce(
+      (sum, d) => sum + d.totalInterestCents,
       0
     );
-    const totalMinimumPaymentCents = activeDebts.reduce(
-      (sum, d) =>
-        sum +
-        (d.minimumPaymentCents || Math.ceil(d.currentBalanceCents * 0.02)),
+    const snowballTotalInterestCents = snowballResults.reduce(
+      (sum, d) => sum + d.totalInterestCents,
       0
+    );
+
+    const avalancheMonthsToPayoff = Math.max(
+      ...avalancheResults.map((d) => d.monthsToPayoff),
+      0
+    );
+    const snowballMonthsToPayoff = Math.max(
+      ...snowballResults.map((d) => d.monthsToPayoff),
+      0
+    );
+
+    // Recommend avalanche if it saves significant interest, otherwise snowball for motivation
+    const recommendation: 'avalanche' | 'snowball' =
+      avalancheTotalInterestCents < snowballTotalInterestCents
+        ? 'avalanche'
+        : 'snowball';
+
+    const savingsWithAvalanche = Math.max(
+      0,
+      snowballTotalInterestCents - avalancheTotalInterestCents
     );
 
     return NextResponse.json({
       data: {
-        avalanche,
-        snowball,
-        summary: {
-          totalDebtCents,
-          totalMinimumPaymentCents,
-          avalancheTotalInterestCents: avalanche.reduce(
-            (sum, d) => sum + d.totalInterestCents,
-            0
-          ),
-          snowballTotalInterestCents: snowball.reduce(
-            (sum, d) => sum + d.totalInterestCents,
-            0
-          ),
+        avalanche: {
+          totalInterestCents: avalancheTotalInterestCents,
+          monthsToPayoff: avalancheMonthsToPayoff,
+          order: avalancheResults.map((d) => ({
+            id: d.id,
+            name: d.name,
+            balance: d.currentBalanceCents,
+            apr: d.aprPercent,
+          })),
         },
+        snowball: {
+          totalInterestCents: snowballTotalInterestCents,
+          monthsToPayoff: snowballMonthsToPayoff,
+          order: snowballResults.map((d) => ({
+            id: d.id,
+            name: d.name,
+            balance: d.currentBalanceCents,
+            apr: d.aprPercent,
+          })),
+        },
+        recommendation,
+        savingsWithAvalanche,
       },
     });
   } catch (error) {

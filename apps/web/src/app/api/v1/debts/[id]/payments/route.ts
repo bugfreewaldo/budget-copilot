@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 import { getDb } from '@/lib/db/client';
-import { debts } from '@/lib/db/schema';
+import { debts, transactions, accounts } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import {
   json,
@@ -68,6 +69,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const now = Date.now();
+    const paymentDate =
+      validation.data.date || new Date().toISOString().split('T')[0]!;
     const newBalance = Math.max(
       0,
       debt.currentBalanceCents - validation.data.amountCents
@@ -85,6 +88,34 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       })
       .where(eq(debts.id, idValidation.data));
 
+    // Create a transaction record for the payment
+    // Find the user's first account to associate with the transaction
+    const userAccounts = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, auth.user.id));
+
+    let transactionId: string | null = null;
+    if (userAccounts.length > 0) {
+      // Use the debt's linked account if available, otherwise the first account
+      const accountId = debt.accountId || userAccounts[0]!.id;
+      transactionId = nanoid();
+
+      await db.insert(transactions).values({
+        id: transactionId,
+        userId: auth.user.id,
+        date: paymentDate,
+        description: `Pago de deuda: ${debt.name}`,
+        amountCents: validation.data.amountCents,
+        type: 'expense',
+        accountId,
+        cleared: true,
+        notes: `Pago automático registrado desde Copiloto de Deudas`,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
     const [updated] = await db
       .select()
       .from(debts)
@@ -97,6 +128,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         previousBalanceCents: debt.currentBalanceCents,
         newBalanceCents: newBalance,
         debtPaidOff: status === 'paid_off',
+        transactionId,
       },
     });
   } catch (error) {
