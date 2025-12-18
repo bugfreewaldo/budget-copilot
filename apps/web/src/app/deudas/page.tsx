@@ -226,7 +226,7 @@ function calculateFreedomDate(
   return { date: freedomDate, months: totalMonths };
 }
 
-export default function DeudasPage() {
+export default function DeudasPage(): React.JSX.Element {
   const { debts, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1270,6 +1270,25 @@ export default function DeudasPage() {
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
                       APR (%)
+                      {newDebt.type !== 'credit_card' && (
+                        <span className="ml-2 text-cyan-400">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const result = handleEstimateApr('new');
+                              if (result === null) {
+                                alert(
+                                  'Para calcular el APR, primero ingresa:\n• Saldo Original\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                                );
+                              }
+                            }}
+                            className="text-xs hover:underline"
+                            title="Calcular APR automáticamente"
+                          >
+                            🧮 Calcular APR
+                          </button>
+                        </span>
+                      )}
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -1286,24 +1305,11 @@ export default function DeudasPage() {
                         step="0.1"
                         required
                       />
-                      {newDebt.type !== 'credit_card' &&
-                        newDebt.original_balance_cents > 0 &&
-                        newDebt.minimum_payment_cents > 0 &&
-                        newDebt.term_months &&
-                        newDebt.term_months > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleEstimateApr('new')}
-                            className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
-                            title="Calcular APR basado en monto, pago mensual y plazo"
-                          >
-                            Estimar
-                          </button>
-                        )}
                     </div>
                     {newDebt.type !== 'credit_card' && (
                       <p className="text-xs text-gray-500 mt-1">
-                        No lo sabes? Ingresa monto, pago y plazo para estimarlo
+                        Ingresa monto original, pago mensual y plazo, luego haz
+                        clic en &quot;Calcular APR&quot;
                       </p>
                     )}
                   </div>
@@ -1516,6 +1522,25 @@ export default function DeudasPage() {
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
                       APR (%)
+                      {editDebt.type !== 'credit_card' && (
+                        <span className="ml-2 text-cyan-400">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const result = handleEstimateApr('edit');
+                              if (result === null) {
+                                alert(
+                                  'Para calcular el APR, primero ingresa:\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                                );
+                              }
+                            }}
+                            className="text-xs hover:underline"
+                            title="Calcular APR automáticamente"
+                          >
+                            🧮 Calcular APR
+                          </button>
+                        </span>
+                      )}
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -1532,24 +1557,11 @@ export default function DeudasPage() {
                         step="0.01"
                         required
                       />
-                      {editDebt.type !== 'credit_card' &&
-                        editDebt.original_balance_cents > 0 &&
-                        editDebt.minimum_payment_cents > 0 &&
-                        editDebt.term_months &&
-                        editDebt.term_months > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => handleEstimateApr('edit')}
-                            className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
-                            title="Calcular APR basado en monto, pago mensual y plazo"
-                          >
-                            Estimar
-                          </button>
-                        )}
                     </div>
                     {editDebt.type !== 'credit_card' && (
                       <p className="text-xs text-gray-500 mt-1">
-                        No lo sabes? Ingresa pago y plazo para estimarlo
+                        Ingresa pago mensual y plazo, luego haz clic en
+                        &quot;Calcular APR&quot;
                       </p>
                     )}
                   </div>
