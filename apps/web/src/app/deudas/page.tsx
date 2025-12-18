@@ -93,6 +93,61 @@ function calculateTotalInterest(
   return totalPaid - principal;
 }
 
+/**
+ * Estimate APR from loan parameters using bisection method
+ * Given: principal, monthly payment, term months
+ * Returns: estimated APR (0-100) or null if cannot calculate
+ */
+function estimateAPR(
+  principal: number,
+  monthlyPayment: number,
+  termMonths: number
+): number | null {
+  if (principal <= 0 || monthlyPayment <= 0 || termMonths <= 0) {
+    return null;
+  }
+
+  // Check if payment is too low to ever pay off (interest-only or less)
+  const totalPaid = monthlyPayment * termMonths;
+  if (totalPaid <= principal) {
+    // No interest case or impossible scenario
+    return totalPaid === principal ? 0 : null;
+  }
+
+  // Bisection method to find the rate
+  // M = P * [r(1+r)^n] / [(1+r)^n - 1]
+  let low = 0;
+  let high = 1; // 100% monthly rate (1200% APR) - more than enough
+  const tolerance = 0.00001;
+  const maxIterations = 100;
+
+  const calculatePayment = (monthlyRate: number): number => {
+    if (monthlyRate === 0) return principal / termMonths;
+    const factor = Math.pow(1 + monthlyRate, termMonths);
+    return (principal * monthlyRate * factor) / (factor - 1);
+  };
+
+  for (let i = 0; i < maxIterations; i++) {
+    const mid = (low + high) / 2;
+    const calculatedPayment = calculatePayment(mid);
+
+    if (Math.abs(calculatedPayment - monthlyPayment) < tolerance) {
+      // Convert monthly rate to APR percentage
+      return Math.round(mid * 12 * 100 * 100) / 100; // Round to 2 decimals
+    }
+
+    if (calculatedPayment < monthlyPayment) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  // Return best estimate after max iterations
+  const finalRate = (low + high) / 2;
+  return Math.round(finalRate * 12 * 100 * 100) / 100;
+}
+
 // Calculate freedom date from debts
 function calculateFreedomDate(
   debts: Debt[],
@@ -172,7 +227,7 @@ function calculateFreedomDate(
 }
 
 export default function DeudasPage() {
-  const { debts, summary, isLoading, error, refresh } = useDebts();
+  const { debts, isLoading, error, refresh } = useDebts();
   const { strategies } = useDebtStrategies();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState<Debt | null>(null);
@@ -285,6 +340,26 @@ export default function DeudasPage() {
     start_date: '' as string,
     due_day: 1,
   });
+
+  // Function to estimate and apply APR
+  const handleEstimateApr = (target: 'new' | 'edit') => {
+    const form = target === 'new' ? newDebt : editDebt;
+    const setForm = target === 'new' ? setNewDebt : setEditDebt;
+
+    const principal = form.original_balance_cents;
+    const monthlyPayment = form.minimum_payment_cents;
+    const termMonths = form.term_months;
+
+    if (!termMonths || principal <= 0 || monthlyPayment <= 0) {
+      return null;
+    }
+
+    const estimatedApr = estimateAPR(principal, monthlyPayment, termMonths);
+    if (estimatedApr !== null) {
+      setForm((prev) => ({ ...prev, apr_percent: estimatedApr }));
+    }
+    return estimatedApr;
+  };
 
   const handleAddDebt = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,84 +592,112 @@ export default function DeudasPage() {
             </div>
           ) : (
             <>
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Deuda Total</p>
-                  <p className="text-3xl font-bold text-red-400">
-                    {summary ? formatCurrency(summary.totalDebtCents) : '$0'}
-                  </p>
-                </div>
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">
-                    Pago Mensual Mínimo
-                  </p>
-                  <p className="text-3xl font-bold text-orange-400">
-                    {summary
-                      ? formatCurrency(summary.totalMinPaymentCents)
-                      : '$0'}
-                  </p>
-                </div>
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Deudas Activas</p>
-                  <p className="text-3xl font-bold text-cyan-400">
-                    {summary?.activeCount ?? 0}
-                  </p>
-                </div>
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">
-                    Fecha de Libertad
-                  </p>
-                  {(() => {
-                    const freedom = calculateFreedomDate(
-                      debts,
-                      selectedStrategy,
-                      excludedFromStrategy
-                    );
-                    if (!freedom.date) {
-                      return (
-                        <>
-                          <p className="text-xl font-bold text-gray-500">
-                            Sin datos
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Agrega pagos mínimos
-                          </p>
-                        </>
-                      );
-                    }
-                    if (freedom.months === Infinity) {
-                      return (
-                        <>
-                          <p className="text-xl font-bold text-red-400">
-                            ⚠️ Nunca
-                          </p>
-                          <p className="text-xs text-red-400">
-                            Pago mínimo muy bajo
-                          </p>
-                        </>
-                      );
-                    }
-                    return (
-                      <>
-                        <p className="text-xl font-bold text-green-400">
-                          {freedom.date.toLocaleDateString('es-PA', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+              {/* Summary Cards - Calculate locally to respect exclusions */}
+              {(() => {
+                const includedDebts = debts.filter(
+                  (d) =>
+                    d.status === 'active' && !excludedFromStrategy.has(d.id)
+                );
+                const totalDebtCents = includedDebts.reduce(
+                  (sum, d) => sum + d.currentBalanceCents,
+                  0
+                );
+                const totalMinPaymentCents = includedDebts.reduce(
+                  (sum, d) => sum + (d.minimumPaymentCents || 0),
+                  0
+                );
+                const activeCount = includedDebts.length;
+                const excludedCount = debts.filter(
+                  (d) => d.status === 'active' && excludedFromStrategy.has(d.id)
+                ).length;
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+                      <p className="text-gray-400 text-sm mb-1">
+                        Deuda en Estrategia
+                      </p>
+                      <p className="text-3xl font-bold text-red-400">
+                        {formatCurrency(totalDebtCents)}
+                      </p>
+                      {excludedCount > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {excludedCount} deuda(s) excluida(s)
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {freedom.months} meses •{' '}
-                          {selectedStrategy === 'avalanche'
-                            ? 'Avalancha'
-                            : 'Bola de Nieve'}
-                        </p>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
+                      )}
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+                      <p className="text-gray-400 text-sm mb-1">
+                        Pago Mensual Mínimo
+                      </p>
+                      <p className="text-3xl font-bold text-orange-400">
+                        {formatCurrency(totalMinPaymentCents)}
+                      </p>
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+                      <p className="text-gray-400 text-sm mb-1">
+                        Deudas en Estrategia
+                      </p>
+                      <p className="text-3xl font-bold text-cyan-400">
+                        {activeCount}
+                      </p>
+                    </div>
+                    <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+                      <p className="text-gray-400 text-sm mb-1">
+                        Fecha de Libertad
+                      </p>
+                      {(() => {
+                        const freedom = calculateFreedomDate(
+                          debts,
+                          selectedStrategy,
+                          excludedFromStrategy
+                        );
+                        if (!freedom.date) {
+                          return (
+                            <>
+                              <p className="text-xl font-bold text-gray-500">
+                                Sin datos
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Agrega pagos mínimos
+                              </p>
+                            </>
+                          );
+                        }
+                        if (freedom.months === Infinity) {
+                          return (
+                            <>
+                              <p className="text-xl font-bold text-red-400">
+                                ⚠️ Nunca
+                              </p>
+                              <p className="text-xs text-red-400">
+                                Pago mínimo muy bajo
+                              </p>
+                            </>
+                          );
+                        }
+                        return (
+                          <>
+                            <p className="text-xl font-bold text-green-400">
+                              {freedom.date.toLocaleDateString('es-PA', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {freedom.months} meses •{' '}
+                              {selectedStrategy === 'avalanche'
+                                ? 'Avalancha'
+                                : 'Bola de Nieve'}
+                            </p>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Strategy Comparison - Global */}
               <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
@@ -1168,20 +1271,41 @@ export default function DeudasPage() {
                     <label className="block text-sm text-gray-400 mb-1">
                       APR (%)
                     </label>
-                    <input
-                      type="number"
-                      value={newDebt.apr_percent || ''}
-                      onChange={(e) =>
-                        setNewDebt({
-                          ...newDebt,
-                          apr_percent: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                      placeholder="28.9"
-                      step="0.1"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={newDebt.apr_percent || ''}
+                        onChange={(e) =>
+                          setNewDebt({
+                            ...newDebt,
+                            apr_percent: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                        placeholder="28.9"
+                        step="0.1"
+                        required
+                      />
+                      {newDebt.type !== 'credit_card' &&
+                        newDebt.original_balance_cents > 0 &&
+                        newDebt.minimum_payment_cents > 0 &&
+                        newDebt.term_months &&
+                        newDebt.term_months > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleEstimateApr('new')}
+                            className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                            title="Calcular APR basado en monto, pago mensual y plazo"
+                          >
+                            Estimar
+                          </button>
+                        )}
+                    </div>
+                    {newDebt.type !== 'credit_card' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        No lo sabes? Ingresa monto, pago y plazo para estimarlo
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
@@ -1393,20 +1517,41 @@ export default function DeudasPage() {
                     <label className="block text-sm text-gray-400 mb-1">
                       APR (%)
                     </label>
-                    <input
-                      type="number"
-                      value={editDebt.apr_percent || ''}
-                      onChange={(e) =>
-                        setEditDebt({
-                          ...editDebt,
-                          apr_percent: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                      placeholder="28.9"
-                      step="0.01"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        value={editDebt.apr_percent || ''}
+                        onChange={(e) =>
+                          setEditDebt({
+                            ...editDebt,
+                            apr_percent: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                        placeholder="28.9"
+                        step="0.01"
+                        required
+                      />
+                      {editDebt.type !== 'credit_card' &&
+                        editDebt.original_balance_cents > 0 &&
+                        editDebt.minimum_payment_cents > 0 &&
+                        editDebt.term_months &&
+                        editDebt.term_months > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleEstimateApr('edit')}
+                            className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                            title="Calcular APR basado en monto, pago mensual y plazo"
+                          >
+                            Estimar
+                          </button>
+                        )}
+                    </div>
+                    {editDebt.type !== 'credit_card' && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        No lo sabes? Ingresa pago y plazo para estimarlo
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
