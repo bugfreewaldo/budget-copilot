@@ -317,6 +317,8 @@ export default function DeudasPage(): React.JSX.Element {
     current_balance_cents: 0,
     apr_percent: 0,
     minimum_payment_cents: 0,
+    minimum_payment_type: 'fixed' as 'fixed' | 'percent',
+    minimum_payment_percent: 2,
     term_months: null as number | null,
     start_date: '' as string,
     due_day: 1,
@@ -336,6 +338,8 @@ export default function DeudasPage(): React.JSX.Element {
     current_balance_cents: 0,
     apr_percent: 0,
     minimum_payment_cents: 0,
+    minimum_payment_type: 'fixed' as 'fixed' | 'percent',
+    minimum_payment_percent: 2,
     term_months: null as number | null,
     start_date: '' as string,
     due_day: 1,
@@ -373,7 +377,15 @@ export default function DeudasPage(): React.JSX.Element {
         ),
         current_balance_cents: Math.round(newDebt.current_balance_cents * 100),
         apr_percent: newDebt.apr_percent,
-        minimum_payment_cents: Math.round(newDebt.minimum_payment_cents * 100),
+        minimum_payment_cents:
+          newDebt.minimum_payment_type === 'fixed'
+            ? Math.round(newDebt.minimum_payment_cents * 100)
+            : null,
+        minimum_payment_type: newDebt.minimum_payment_type,
+        minimum_payment_percent:
+          newDebt.minimum_payment_type === 'percent'
+            ? newDebt.minimum_payment_percent
+            : null,
         term_months: newDebt.term_months,
         start_date: newDebt.start_date || null,
         due_day: newDebt.due_day,
@@ -386,6 +398,8 @@ export default function DeudasPage(): React.JSX.Element {
         current_balance_cents: 0,
         apr_percent: 0,
         minimum_payment_cents: 0,
+        minimum_payment_type: 'fixed',
+        minimum_payment_percent: 2,
         term_months: null,
         start_date: '',
         due_day: 1,
@@ -409,7 +423,15 @@ export default function DeudasPage(): React.JSX.Element {
         type: editDebt.type,
         current_balance_cents: Math.round(editDebt.current_balance_cents * 100),
         apr_percent: editDebt.apr_percent,
-        minimum_payment_cents: Math.round(editDebt.minimum_payment_cents * 100),
+        minimum_payment_cents:
+          editDebt.minimum_payment_type === 'fixed'
+            ? Math.round(editDebt.minimum_payment_cents * 100)
+            : null,
+        minimum_payment_type: editDebt.minimum_payment_type,
+        minimum_payment_percent:
+          editDebt.minimum_payment_type === 'percent'
+            ? editDebt.minimum_payment_percent
+            : null,
         term_months: editDebt.term_months,
         start_date: editDebt.start_date || null,
         due_day: editDebt.due_day,
@@ -431,6 +453,8 @@ export default function DeudasPage(): React.JSX.Element {
       current_balance_cents: debt.currentBalanceCents / 100,
       apr_percent: debt.aprPercent,
       minimum_payment_cents: (debt.minimumPaymentCents || 0) / 100,
+      minimum_payment_type: debt.minimumPaymentType || 'fixed',
+      minimum_payment_percent: debt.minimumPaymentPercent || 2,
       term_months: debt.termMonths,
       start_date: debt.startDate || '',
       due_day: debt.dueDay || 1,
@@ -1317,20 +1341,88 @@ export default function DeudasPage(): React.JSX.Element {
                     <label className="block text-sm text-gray-400 mb-1">
                       Pago Mínimo
                     </label>
-                    <input
-                      type="number"
-                      value={newDebt.minimum_payment_cents || ''}
-                      onChange={(e) =>
-                        setNewDebt({
-                          ...newDebt,
-                          minimum_payment_cents:
-                            parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                      placeholder="1500"
-                      step="0.01"
-                    />
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewDebt({
+                            ...newDebt,
+                            minimum_payment_type: 'fixed',
+                          })
+                        }
+                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          newDebt.minimum_payment_type === 'fixed'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        Monto Fijo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewDebt({
+                            ...newDebt,
+                            minimum_payment_type: 'percent',
+                          })
+                        }
+                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          newDebt.minimum_payment_type === 'percent'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        % del Saldo
+                      </button>
+                    </div>
+                    {newDebt.minimum_payment_type === 'fixed' ? (
+                      <input
+                        type="number"
+                        value={newDebt.minimum_payment_cents || ''}
+                        onChange={(e) =>
+                          setNewDebt({
+                            ...newDebt,
+                            minimum_payment_cents:
+                              parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                        placeholder="1500"
+                        step="0.01"
+                      />
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={newDebt.minimum_payment_percent}
+                            onChange={(e) =>
+                              setNewDebt({
+                                ...newDebt,
+                                minimum_payment_percent:
+                                  parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                            placeholder="2"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                          />
+                          <span className="text-gray-400">%</span>
+                        </div>
+                        {newDebt.current_balance_cents > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Pago estimado: $
+                            {(
+                              (newDebt.current_balance_cents *
+                                newDebt.minimum_payment_percent) /
+                              100
+                            ).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1569,20 +1661,88 @@ export default function DeudasPage(): React.JSX.Element {
                     <label className="block text-sm text-gray-400 mb-1">
                       Pago Mínimo
                     </label>
-                    <input
-                      type="number"
-                      value={editDebt.minimum_payment_cents || ''}
-                      onChange={(e) =>
-                        setEditDebt({
-                          ...editDebt,
-                          minimum_payment_cents:
-                            parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                      placeholder="1500.00"
-                      step="0.01"
-                    />
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditDebt({
+                            ...editDebt,
+                            minimum_payment_type: 'fixed',
+                          })
+                        }
+                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          editDebt.minimum_payment_type === 'fixed'
+                            ? 'bg-cyan-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        Monto Fijo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditDebt({
+                            ...editDebt,
+                            minimum_payment_type: 'percent',
+                          })
+                        }
+                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                          editDebt.minimum_payment_type === 'percent'
+                            ? 'bg-cyan-600 text-white'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        % del Saldo
+                      </button>
+                    </div>
+                    {editDebt.minimum_payment_type === 'fixed' ? (
+                      <input
+                        type="number"
+                        value={editDebt.minimum_payment_cents || ''}
+                        onChange={(e) =>
+                          setEditDebt({
+                            ...editDebt,
+                            minimum_payment_cents:
+                              parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                        placeholder="1500.00"
+                        step="0.01"
+                      />
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editDebt.minimum_payment_percent}
+                            onChange={(e) =>
+                              setEditDebt({
+                                ...editDebt,
+                                minimum_payment_percent:
+                                  parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                            placeholder="2"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                          />
+                          <span className="text-gray-400">%</span>
+                        </div>
+                        {editDebt.current_balance_cents > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Pago estimado: $
+                            {(
+                              (editDebt.current_balance_cents *
+                                editDebt.minimum_payment_percent) /
+                              100
+                            ).toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

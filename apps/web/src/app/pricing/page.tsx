@@ -73,7 +73,7 @@ function MobileMenu({
   );
 }
 
-export default function PricingPage(): React.ReactElement {
+export default function PricingPage(): React.ReactElement | null {
   const [lang, setLang] = useState<'es' | 'en'>('es');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
     'monthly'
