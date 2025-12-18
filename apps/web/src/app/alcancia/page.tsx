@@ -270,7 +270,7 @@ const PIGGY_COLORS = [
   { name: 'Naranja', class: 'text-orange-400', bg: 'bg-orange-400' },
 ];
 
-export default function AlcanciaPage() {
+export default function AlcanciaPage(): React.JSX.Element {
   const [piggies, setPiggies] = useState<PiggyBank[]>([]);
   const [selectedPiggy, setSelectedPiggy] = useState<PiggyBank | null>(null);
   const [deposits, setDeposits] = useState<Deposit[]>([]);
