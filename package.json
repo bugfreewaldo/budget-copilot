@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "AI-powered budget copilot - intelligent financial management",
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^18.2.45",
+      "@types/react-dom": "^18.2.18"
+    }
+  },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
