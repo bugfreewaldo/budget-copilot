@@ -36,6 +36,8 @@ const updateDebtSchema = z.object({
   currentBalanceCents: centsSchema.optional(),
   aprPercent: z.number().min(0).max(100).optional(),
   minimumPaymentCents: centsSchema.nullable().optional(),
+  minimumPaymentType: z.enum(['fixed', 'percent']).optional(),
+  minimumPaymentPercent: z.number().min(0).max(100).nullable().optional(),
   termMonths: z.number().int().positive().nullable().optional(),
   startDate: z.string().nullable().optional(),
   dueDay: z.number().int().min(1).max(31).nullable().optional(),

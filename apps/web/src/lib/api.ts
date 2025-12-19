@@ -606,6 +606,7 @@ export type DebtType =
   | 'medical'
   | 'other';
 export type DebtStatus = 'active' | 'paid_off' | 'defaulted' | 'deferred';
+export type MinimumPaymentType = 'fixed' | 'percent';
 
 export interface Debt {
   id: string;
@@ -617,6 +618,9 @@ export interface Debt {
   currentBalanceCents: number;
   aprPercent: number;
   minimumPaymentCents: number | null;
+  minimumPaymentType: MinimumPaymentType | null;
+  minimumPaymentPercent: number | null;
+  effectiveMinimumPaymentCents: number | null;
   termMonths: number | null;
   startDate: string | null;
   dueDay: number | null;
@@ -692,7 +696,9 @@ export async function createDebt(input: {
   original_balance_cents: number;
   current_balance_cents: number;
   apr_percent: number;
-  minimum_payment_cents?: number;
+  minimum_payment_cents?: number | null;
+  minimum_payment_type?: MinimumPaymentType;
+  minimum_payment_percent?: number | null;
   term_months?: number | null;
   start_date?: string | null;
   due_day?: number;
@@ -710,6 +716,8 @@ export async function createDebt(input: {
       currentBalanceCents: input.current_balance_cents,
       aprPercent: input.apr_percent,
       minimumPaymentCents: input.minimum_payment_cents,
+      minimumPaymentType: input.minimum_payment_type,
+      minimumPaymentPercent: input.minimum_payment_percent,
       termMonths: input.term_months,
       startDate: input.start_date,
       dueDay: input.due_day,
@@ -726,7 +734,9 @@ export async function updateDebt(
     type?: DebtType;
     current_balance_cents?: number;
     apr_percent?: number;
-    minimum_payment_cents?: number;
+    minimum_payment_cents?: number | null;
+    minimum_payment_type?: MinimumPaymentType;
+    minimum_payment_percent?: number | null;
     term_months?: number | null;
     start_date?: string | null;
     due_day?: number;
@@ -744,6 +754,8 @@ export async function updateDebt(
       currentBalanceCents: input.current_balance_cents,
       aprPercent: input.apr_percent,
       minimumPaymentCents: input.minimum_payment_cents,
+      minimumPaymentType: input.minimum_payment_type,
+      minimumPaymentPercent: input.minimum_payment_percent,
       termMonths: input.term_months,
       startDate: input.start_date,
       dueDay: input.due_day,

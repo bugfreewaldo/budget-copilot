@@ -62,6 +62,22 @@ function calculateDeathDate(monthsToPayoff: number): string | null {
 }
 
 /**
+ * Get effective minimum payment in cents
+ * Calculates from percentage if type is 'percent', otherwise returns fixed amount
+ */
+function getEffectiveMinimumPayment(
+  minimumPaymentCents: number | null,
+  minimumPaymentType: string | null,
+  minimumPaymentPercent: number | null,
+  currentBalanceCents: number
+): number | null {
+  if (minimumPaymentType === 'percent' && minimumPaymentPercent !== null) {
+    return Math.ceil(currentBalanceCents * (minimumPaymentPercent / 100));
+  }
+  return minimumPaymentCents;
+}
+
+/**
  * Get danger multiplier based on debt type
  * Some debts (like mortgages) are investments/necessities, not purely negative
  */
@@ -148,13 +164,15 @@ function calculateDangerScore(
 }
 
 /**
- * Enrich a debt with calculated fields (deathDate, dangerScore, totalInterestProjectedCents)
+ * Enrich a debt with calculated fields (deathDate, dangerScore, totalInterestProjectedCents, effectiveMinimumPaymentCents)
  */
 function enrichDebt(debt: {
   currentBalanceCents: number;
   originalBalanceCents: number;
   aprPercent: number;
   minimumPaymentCents: number | null;
+  minimumPaymentType: string | null;
+  minimumPaymentPercent: number | null;
   termMonths: number | null;
   startDate: string | null;
   status: string;
@@ -164,9 +182,17 @@ function enrichDebt(debt: {
   totalInterestProjectedCents: number | null;
   [key: string]: unknown;
 }) {
+  const effectiveMinPayment = getEffectiveMinimumPayment(
+    debt.minimumPaymentCents,
+    debt.minimumPaymentType,
+    debt.minimumPaymentPercent,
+    debt.currentBalanceCents
+  );
+
   if (debt.status !== 'active' || debt.currentBalanceCents <= 0) {
     return {
       ...debt,
+      effectiveMinimumPaymentCents: effectiveMinPayment,
       deathDate: null,
       dangerScore: null,
       totalInterestProjectedCents: null,
@@ -196,8 +222,8 @@ function enrichDebt(debt: {
     monthsToPayoff = remainingMonths;
 
     // Estimate total interest based on fixed term amortization
-    if (debt.minimumPaymentCents && debt.termMonths > 0) {
-      const totalPayments = debt.minimumPaymentCents * debt.termMonths;
+    if (effectiveMinPayment && debt.termMonths > 0) {
+      const totalPayments = effectiveMinPayment * debt.termMonths;
       totalInterestCents = Math.max(
         0,
         totalPayments - debt.originalBalanceCents
@@ -208,7 +234,7 @@ function enrichDebt(debt: {
     const payoff = calculatePayoff(
       debt.currentBalanceCents,
       debt.aprPercent,
-      debt.minimumPaymentCents
+      effectiveMinPayment
     );
     monthsToPayoff = payoff.monthsToPayoff;
     totalInterestCents = payoff.totalInterestCents;
@@ -217,11 +243,12 @@ function enrichDebt(debt: {
 
   return {
     ...debt,
+    effectiveMinimumPaymentCents: effectiveMinPayment,
     deathDate,
     dangerScore: calculateDangerScore(
       debt.currentBalanceCents,
       debt.aprPercent,
-      debt.minimumPaymentCents,
+      effectiveMinPayment,
       monthsToPayoff,
       debt.type
     ),
@@ -246,6 +273,8 @@ const createDebtSchema = z.object({
   currentBalanceCents: centsSchema,
   aprPercent: z.number().min(0).max(100),
   minimumPaymentCents: centsSchema.nullable().optional(),
+  minimumPaymentType: z.enum(['fixed', 'percent']).optional().default('fixed'),
+  minimumPaymentPercent: z.number().min(0).max(100).nullable().optional(),
   termMonths: z.number().int().positive().max(480).nullable().optional(), // max 40 years for mortgages
   startDate: z.string().nullable().optional(),
   dueDay: z.number().int().min(1).max(31).nullable().optional(),
@@ -282,10 +311,15 @@ export async function GET(request: NextRequest) {
         (sum, d) => sum + d.currentBalanceCents,
         0
       ),
-      totalMinPaymentCents: activeDebts.reduce(
-        (sum, d) => sum + (d.minimumPaymentCents || 0),
-        0
-      ),
+      totalMinPaymentCents: activeDebts.reduce((sum, d) => {
+        const effectiveMin = getEffectiveMinimumPayment(
+          d.minimumPaymentCents,
+          d.minimumPaymentType,
+          d.minimumPaymentPercent,
+          d.currentBalanceCents
+        );
+        return sum + (effectiveMin || 0);
+      }, 0),
       activeCount: activeDebts.length,
     };
 
@@ -330,6 +364,8 @@ export async function POST(request: NextRequest) {
       currentBalanceCents: data.currentBalanceCents,
       aprPercent: data.aprPercent,
       minimumPaymentCents: data.minimumPaymentCents || null,
+      minimumPaymentType: data.minimumPaymentType,
+      minimumPaymentPercent: data.minimumPaymentPercent || null,
       termMonths: data.termMonths || null,
       startDate: data.startDate || null,
       dueDay: data.dueDay || null,

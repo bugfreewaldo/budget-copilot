@@ -1294,139 +1294,132 @@ export default function DeudasPage(): React.JSX.Element {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      APR (%)
-                      {newDebt.type !== 'credit_card' && (
-                        <span className="ml-2 text-cyan-400">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const result = handleEstimateApr('new');
-                              if (result === null) {
-                                alert(
-                                  'Para calcular el APR, primero ingresa:\n• Saldo Original\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
-                                );
-                              }
-                            }}
-                            className="text-xs hover:underline"
-                            title="Calcular APR automáticamente"
-                          >
-                            🧮 Calcular APR
-                          </button>
-                        </span>
-                      )}
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        value={newDebt.apr_percent || ''}
-                        onChange={(e) =>
-                          setNewDebt({
-                            ...newDebt,
-                            apr_percent: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                        placeholder="28.9"
-                        step="0.1"
-                        required
-                      />
-                    </div>
-                    {newDebt.type !== 'credit_card' && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Ingresa monto original, pago mensual y plazo, luego haz
-                        clic en &quot;Calcular APR&quot;
-                      </p>
-                    )}
+                {/* Pago Mínimo - full width */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Pago Mínimo
+                  </label>
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewDebt({
+                          ...newDebt,
+                          minimum_payment_type: 'fixed',
+                        })
+                      }
+                      className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                        newDebt.minimum_payment_type === 'fixed'
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      $ Monto Fijo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewDebt({
+                          ...newDebt,
+                          minimum_payment_type: 'percent',
+                        })
+                      }
+                      className={`px-4 py-2 text-sm rounded-lg transition-colors ${
+                        newDebt.minimum_payment_type === 'percent'
+                          ? 'bg-red-600 text-white'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      % del Saldo
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1">
-                      Pago Mínimo
-                    </label>
-                    <div className="flex gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setNewDebt({
-                            ...newDebt,
-                            minimum_payment_type: 'fixed',
-                          })
-                        }
-                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                          newDebt.minimum_payment_type === 'fixed'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                        }`}
-                      >
-                        Monto Fijo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setNewDebt({
-                            ...newDebt,
-                            minimum_payment_type: 'percent',
-                          })
-                        }
-                        className={`flex-1 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                          newDebt.minimum_payment_type === 'percent'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                        }`}
-                      >
-                        % del Saldo
-                      </button>
-                    </div>
-                    {newDebt.minimum_payment_type === 'fixed' ? (
+                  {newDebt.minimum_payment_type === 'fixed' ? (
+                    <input
+                      type="number"
+                      value={newDebt.minimum_payment_cents || ''}
+                      onChange={(e) =>
+                        setNewDebt({
+                          ...newDebt,
+                          minimum_payment_cents:
+                            parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                      placeholder="1500"
+                      step="0.01"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3">
                       <input
                         type="number"
-                        value={newDebt.minimum_payment_cents || ''}
+                        value={newDebt.minimum_payment_percent}
                         onChange={(e) =>
                           setNewDebt({
                             ...newDebt,
-                            minimum_payment_cents:
+                            minimum_payment_percent:
                               parseFloat(e.target.value) || 0,
                           })
                         }
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                        placeholder="1500"
-                        step="0.01"
+                        className="w-24 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                        placeholder="2"
+                        step="0.1"
+                        min="0"
+                        max="100"
                       />
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={newDebt.minimum_payment_percent}
-                            onChange={(e) =>
-                              setNewDebt({
-                                ...newDebt,
-                                minimum_payment_percent:
-                                  parseFloat(e.target.value) || 0,
-                              })
-                            }
-                            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                            placeholder="2"
-                            step="0.1"
-                            min="0"
-                            max="100"
-                          />
-                          <span className="text-gray-400">%</span>
-                        </div>
-                        {newDebt.current_balance_cents > 0 && (
-                          <p className="text-xs text-gray-500">
-                            Pago estimado: $
-                            {(
-                              (newDebt.current_balance_cents *
-                                newDebt.minimum_payment_percent) /
-                              100
-                            ).toFixed(2)}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                      <span className="text-gray-400">%</span>
+                      {newDebt.current_balance_cents > 0 && (
+                        <span className="text-sm text-gray-500">
+                          = $
+                          {(
+                            (newDebt.current_balance_cents *
+                              newDebt.minimum_payment_percent) /
+                            100
+                          ).toFixed(2)}{' '}
+                          /mes
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* APR - full width */}
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    APR (%)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number"
+                      value={newDebt.apr_percent || ''}
+                      onChange={(e) =>
+                        setNewDebt({
+                          ...newDebt,
+                          apr_percent: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                      className="w-32 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                      placeholder="28.9"
+                      step="0.1"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const result = handleEstimateApr('new');
+                        if (result === null) {
+                          alert(
+                            'Para calcular el APR, primero ingresa:\n• Saldo Original\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                          );
+                        }
+                      }}
+                      className="px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-cyan-400 rounded-lg transition-colors"
+                      title="Calcular APR automáticamente"
+                    >
+                      🧮 Calcular
+                    </button>
+                    <span className="text-xs text-gray-500">
+                      Requiere plazo y pago mensual
+                    </span>
                   </div>
                 </div>
 
@@ -1618,25 +1611,23 @@ export default function DeudasPage(): React.JSX.Element {
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
                       APR (%)
-                      {editDebt.type !== 'credit_card' && (
-                        <span className="ml-2 text-cyan-400">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const result = handleEstimateApr('edit');
-                              if (result === null) {
-                                alert(
-                                  'Para calcular el APR, primero ingresa:\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
-                                );
-                              }
-                            }}
-                            className="text-xs hover:underline"
-                            title="Calcular APR automáticamente"
-                          >
-                            🧮 Calcular APR
-                          </button>
-                        </span>
-                      )}
+                      <span className="ml-2 text-cyan-400">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const result = handleEstimateApr('edit');
+                            if (result === null) {
+                              alert(
+                                'Para calcular el APR, primero ingresa:\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                              );
+                            }
+                          }}
+                          className="text-xs hover:underline"
+                          title="Calcular APR automáticamente"
+                        >
+                          🧮 Calcular APR
+                        </button>
+                      </span>
                     </label>
                     <div className="flex gap-2">
                       <input

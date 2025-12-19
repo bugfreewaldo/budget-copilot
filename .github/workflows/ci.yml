@@ -92,10 +92,9 @@ jobs:
           pnpm --filter @budget-copilot/ui type-check
 
       - name: Type check apps
-        continue-on-error: true
         run: |
           pnpm --filter web type-check
-          pnpm --filter api type-check || echo "API type-check failed - TODO: fix TypeScript errors"
+          pnpm --filter api type-check
 
   test:
     name: Test
@@ -179,7 +178,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all packages and apps
-        continue-on-error: true
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: true

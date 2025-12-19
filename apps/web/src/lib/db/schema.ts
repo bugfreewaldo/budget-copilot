@@ -355,6 +355,10 @@ export const debts = sqliteTable(
     currentBalanceCents: integer('current_balance_cents').notNull(),
     aprPercent: real('apr_percent').notNull(),
     minimumPaymentCents: integer('minimum_payment_cents'),
+    minimumPaymentType: text('minimum_payment_type', {
+      enum: ['fixed', 'percent'],
+    }).default('fixed'),
+    minimumPaymentPercent: real('minimum_payment_percent'),
     termMonths: integer('term_months'), // Loan duration in months (null for revolving credit)
     startDate: text('start_date'), // ISO date when loan was originated (optional)
     dueDay: integer('due_day'),

@@ -30,7 +30,7 @@
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
     "@commitlint/config-conventional": "^18.4.3",
-    "drizzle-kit": "0.30.0",
+    "drizzle-kit": "0.31.8",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
     "prettier": "^3.1.1",
@@ -39,6 +39,6 @@
   },
   "packageManager": "pnpm@8.15.1",
   "dependencies": {
-    "drizzle-orm": "0.40.0"
+    "drizzle-orm": "0.45.1"
   }
 }
