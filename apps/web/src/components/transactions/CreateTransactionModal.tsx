@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   createTransaction,
+  updateTransaction,
   createAccount,
   listCategories,
   getAccounts,
   getToday,
   type Category,
+  type Transaction,
 } from '@/lib/api';
 import { useToast } from '@/components/ui/toast';
 
@@ -16,6 +18,7 @@ interface CreateTransactionModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultType?: 'income' | 'expense';
+  editingTransaction?: Transaction | null;
 }
 
 export function CreateTransactionModal({
@@ -23,6 +26,7 @@ export function CreateTransactionModal({
   onClose,
   onSuccess,
   defaultType = 'expense',
+  editingTransaction,
 }: CreateTransactionModalProps) {
   const [type, setType] = useState<'income' | 'expense'>(defaultType);
   const [amount, setAmount] = useState('');
@@ -35,14 +39,25 @@ export function CreateTransactionModal({
   const { showToast } = useToast();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
+  const isEditing = !!editingTransaction;
+
   // Reset form and load data when modal opens
   useEffect(() => {
     if (isOpen) {
-      setType(defaultType);
-      setAmount('');
-      setDescription('');
-      setCategoryId('');
-      setDate(getToday());
+      // If editing, populate form with existing values
+      if (editingTransaction) {
+        setType(editingTransaction.type);
+        setAmount((editingTransaction.amountCents / 100).toString());
+        setDescription(editingTransaction.description);
+        setCategoryId(editingTransaction.categoryId || '');
+        setDate(editingTransaction.date);
+      } else {
+        setType(defaultType);
+        setAmount('');
+        setDescription('');
+        setCategoryId('');
+        setDate(getToday());
+      }
 
       // Load categories
       listCategories({ limit: 100 })
@@ -72,7 +87,7 @@ export function CreateTransactionModal({
       // Focus amount input when modal opens
       setTimeout(() => amountInputRef.current?.focus(), 100);
     }
-  }, [isOpen, defaultType]);
+  }, [isOpen, defaultType, editingTransaction]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,25 +114,39 @@ export function CreateTransactionModal({
     setLoading(true);
 
     try {
-      await createTransaction({
-        date,
-        description: description.trim(),
-        amountCents: Math.round(amountNum * 100),
-        type,
-        categoryId: categoryId || undefined,
-        accountId,
-        cleared: true,
-      });
-
-      showToast(
-        type === 'income' ? 'Ingreso registrado' : 'Gasto registrado',
-        'success'
-      );
+      if (isEditing && editingTransaction) {
+        await updateTransaction(editingTransaction.id, {
+          date,
+          description: description.trim(),
+          amountCents: Math.round(amountNum * 100),
+          type,
+          categoryId: categoryId || null,
+        });
+        showToast('Transacción actualizada', 'success');
+      } else {
+        await createTransaction({
+          date,
+          description: description.trim(),
+          amountCents: Math.round(amountNum * 100),
+          type,
+          categoryId: categoryId || undefined,
+          accountId,
+          cleared: true,
+        });
+        showToast(
+          type === 'income' ? 'Ingreso registrado' : 'Gasto registrado',
+          'success'
+        );
+      }
       onSuccess();
       onClose();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Error al crear transacción';
+        error instanceof Error
+          ? error.message
+          : isEditing
+            ? 'Error al actualizar transacción'
+            : 'Error al crear transacción';
       showToast(message, 'error');
     } finally {
       setLoading(false);
@@ -159,7 +188,11 @@ export function CreateTransactionModal({
             className="text-xl font-semibold text-white mb-4 flex items-center gap-2"
           >
             <span>{isExpense ? '💸' : '💰'}</span>
-            {isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}
+            {isEditing
+              ? 'Editar Transacción'
+              : isExpense
+                ? 'Agregar Gasto'
+                : 'Agregar Ingreso'}
           </h2>
 
           {/* Type Toggle */}
@@ -305,7 +338,9 @@ export function CreateTransactionModal({
               >
                 {loading
                   ? 'Guardando...'
-                  : `✓ ${isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}`}
+                  : isEditing
+                    ? '✓ Guardar Cambios'
+                    : `✓ ${isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}`}
               </button>
             </div>
           </form>

@@ -35,7 +35,7 @@ export default function TransaccionesPage(): React.ReactElement {
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Transaction | null>(null);
-  const [_editingTransaction, setEditingTransaction] =
+  const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
   const currentMonth = getCurrentMonth();
@@ -108,6 +108,12 @@ export default function TransaccionesPage(): React.ReactElement {
   const openIncomeModal = () => {
     setTransactionType('income');
     setEditingTransaction(null);
+    setShowTransactionModal(true);
+  };
+
+  const openEditModal = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setTransactionType(transaction.type);
     setShowTransactionModal(true);
   };
 
@@ -335,6 +341,25 @@ export default function TransaccionesPage(): React.ReactElement {
                     {/* Actions */}
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
+                        onClick={() => openEditModal(tx)}
+                        className="p-2 flex items-center justify-center text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
+                        title="Editar"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
                         onClick={() => setDeleteConfirm(tx)}
                         disabled={deletingId === tx.id}
                         className="p-2 flex items-center justify-center text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
@@ -378,6 +403,7 @@ export default function TransaccionesPage(): React.ReactElement {
           }}
           onSuccess={handleTransactionCreated}
           defaultType={transactionType}
+          editingTransaction={editingTransaction}
         />
 
         {/* Delete Confirmation Modal */}
