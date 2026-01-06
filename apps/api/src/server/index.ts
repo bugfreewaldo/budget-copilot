@@ -26,6 +26,8 @@ import authRoutes from '../routes/v1/auth.js';
 import copilotRoutes from '../routes/v1/copilot.js';
 import debtsRoutes from '../routes/v1/debts.js';
 import goalsRoutes from '../routes/v1/goals.js';
+import decisionRoutes from '../routes/v1/decision.js';
+import interviewRoutes from '../routes/v1/interview.js';
 import { uploadRoutes } from './routes/uploads.js';
 import { filesRoutes } from './routes/files.js';
 import { cronRoutes } from './routes/cron.js';
@@ -85,6 +87,8 @@ async function buildServer() {
   await server.register(copilotRoutes, { prefix: '/v1' });
   await server.register(debtsRoutes, { prefix: '/v1' });
   await server.register(goalsRoutes, { prefix: '/v1' });
+  await server.register(decisionRoutes, { prefix: '/v1' });
+  await server.register(interviewRoutes, { prefix: '/v1' });
 
   // File upload routes
   await server.register(uploadRoutes, { prefix: '/v1' });

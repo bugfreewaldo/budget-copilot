@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId');
     const type = searchParams.get('type');
     const search = searchParams.get('q');
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    // Default to 10000 to effectively get all transactions for date range
+    const limit = parseInt(searchParams.get('limit') || '10000', 10);
 
     // Build conditions
     const conditions = [eq(transactions.userId, auth.user.id)];

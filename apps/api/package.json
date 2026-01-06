@@ -21,7 +21,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0",
+    "@anthropic-ai/sdk": "^0.71.2",
     "@aws-sdk/client-s3": "^3.699.0",
     "@aws-sdk/s3-request-presigner": "^3.699.0",
     "@budget-copilot/ai": "workspace:*",
@@ -50,7 +50,7 @@
     "@types/node": "^20.10.6",
     "@types/sql.js": "^1.4.9",
     "cross-env": "^7.0.3",
-    "drizzle-kit": "^0.20.9",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^8.56.0",
     "prettier": "^3.1.1",
     "ts-node": "^10.9.2",

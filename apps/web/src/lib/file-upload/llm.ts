@@ -176,17 +176,34 @@ function mapMimeTypeForClaude(
 }
 
 export function extractJsonFromResponse(text: string): string {
-  const jsonBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (jsonBlockMatch && jsonBlockMatch[1]) {
-    return jsonBlockMatch[1].trim();
+  let content = text.trim();
+
+  // Remove opening code fence (```json or ```)
+  if (content.startsWith('```')) {
+    const firstNewline = content.indexOf('\n');
+    if (firstNewline !== -1) {
+      content = content.slice(firstNewline + 1);
+    } else {
+      // No newline, just strip the fence
+      content = content.slice(3);
+    }
   }
 
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  // Remove closing code fence
+  const closingFenceIndex = content.lastIndexOf('```');
+  if (closingFenceIndex !== -1) {
+    content = content.slice(0, closingFenceIndex);
+  }
+
+  content = content.trim();
+
+  // Find JSON object (greedy match for the full object)
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     return jsonMatch[0];
   }
 
-  return text;
+  return content;
 }
 
 export function safeParseJson<T>(text: string): T | null {

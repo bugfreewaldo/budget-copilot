@@ -661,3 +661,213 @@ export type FileParsedSummary = typeof fileParsedSummaries.$inferSelect;
 export type NewFileParsedSummary = typeof fileParsedSummaries.$inferInsert;
 export type FileImportedItem = typeof fileImportedItems.$inferSelect;
 export type NewFileImportedItem = typeof fileImportedItems.$inferInsert;
+
+// ============================================================================
+// INTERVIEW SESSIONS - AI-powered financial interview for onboarding
+// ============================================================================
+
+export const interviewSessions = sqliteTable(
+  'interview_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+
+    // Interview state
+    status: text('status', {
+      enum: ['in_progress', 'completed', 'abandoned'],
+    })
+      .notNull()
+      .default('in_progress'),
+    currentStep: text('current_step', {
+      enum: [
+        'cash',
+        'income',
+        'bills',
+        'debts',
+        'spending',
+        'ant_expenses',
+        'savings',
+        'complete',
+      ],
+    })
+      .notNull()
+      .default('cash'),
+
+    // Conversation history (JSON array of messages)
+    conversationHistory: text('conversation_history'), // JSON: ChatMessage[]
+
+    // Extracted data (JSON)
+    extractedData: text('extracted_data'), // JSON: { cash: {...}, income: {...}, bills: [...], debts: [...], spending: {...}, ant_expenses: {...}, savings: {...} }
+
+    // Insight flags for decision wall personalization
+    insightFlags: text('insight_flags'), // JSON: ['overspend', 'no_buffer', 'ant_expenses_high', 'no_savings']
+
+    // Uploaded files during interview
+    uploadedFileIds: text('uploaded_file_ids'), // JSON: string[]
+
+    // Timestamps
+    startedAt: integer('started_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    completedAt: integer('completed_at'),
+    lastActivityAt: integer('last_activity_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: uniqueIndex('interview_session_user_idx').on(table.userId),
+    statusIdx: index('interview_session_status_idx').on(table.status),
+  })
+);
+
+export type InterviewSession = typeof interviewSessions.$inferSelect;
+export type NewInterviewSession = typeof interviewSessions.$inferInsert;
+
+// ============================================================================
+// DECISION ENGINE - The core product
+// ============================================================================
+
+export const decisionState = sqliteTable(
+  'decision_state',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    decisionVersion: text('decision_version').notNull(),
+    riskLevel: text('risk_level', {
+      enum: ['safe', 'caution', 'warning', 'danger', 'critical'],
+    }).notNull(),
+    primaryCommandType: text('primary_command_type', {
+      enum: ['pay', 'save', 'spend', 'freeze', 'wait'],
+    }).notNull(),
+    primaryCommandText: text('primary_command_text').notNull(),
+    primaryCommandAmount: integer('primary_command_amount_cents'),
+    primaryCommandTarget: text('primary_command_target'),
+    primaryCommandDate: text('primary_command_date'),
+    warning1: text('warning_1'),
+    warning2: text('warning_2'),
+    nextActionText: text('next_action_text').notNull(),
+    nextActionUrl: text('next_action_url').notNull(),
+    decisionBasisJson: text('decision_basis_json'),
+    computedAt: integer('computed_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    expiresAt: integer('expires_at').notNull(),
+    isLocked: integer('is_locked', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    acknowledgedAt: integer('acknowledged_at'),
+  },
+  (table) => ({
+    userIdx: index('decision_state_user_idx').on(table.userId),
+    expiresIdx: index('decision_state_expires_idx').on(table.expiresAt),
+  })
+);
+
+export type DecisionState = typeof decisionState.$inferSelect;
+export type NewDecisionState = typeof decisionState.$inferInsert;
+
+// ============================================================================
+// SUBSCRIPTIONS - Payment history and subscription management
+// ============================================================================
+
+export const subscriptions = sqliteTable(
+  'subscriptions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+
+    // Plan details
+    plan: text('plan', {
+      enum: ['pro', 'premium'],
+    }).notNull(),
+    billingPeriod: text('billing_period', {
+      enum: ['monthly', 'yearly'],
+    }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull().default('USD'),
+
+    // Payment gateway info
+    provider: text('provider', {
+      enum: ['tilopay', 'stripe', 'manual'],
+    })
+      .notNull()
+      .default('tilopay'),
+    providerOrderNumber: text('provider_order_number'),
+    providerTransactionId: text('provider_transaction_id'),
+    providerAuth: text('provider_auth'),
+
+    // Status
+    status: text('status', {
+      enum: ['pending', 'active', 'cancelled', 'expired', 'failed'],
+    })
+      .notNull()
+      .default('pending'),
+
+    // Dates
+    startDate: integer('start_date'),
+    endDate: integer('end_date'),
+    cancelledAt: integer('cancelled_at'),
+
+    // Timestamps
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: integer('updated_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('subscription_user_idx').on(table.userId),
+    statusIdx: index('subscription_status_idx').on(table.status),
+    providerOrderIdx: index('subscription_provider_order_idx').on(
+      table.providerOrderNumber
+    ),
+  })
+);
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
+
+// ============================================================================
+// ADVISOR SESSIONS - Financial advisor consultation history
+// ============================================================================
+
+export const advisorSessions = sqliteTable(
+  'advisor_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+
+    // Session state
+    status: text('status', {
+      enum: ['active', 'archived'],
+    })
+      .notNull()
+      .default('active'),
+
+    // Conversation history (JSON array of messages)
+    conversationHistory: text('conversation_history'), // JSON: AdvisorMessage[]
+
+    // Pending changes awaiting user confirmation (JSON)
+    pendingChanges: text('pending_changes'), // JSON: PendingChange[]
+
+    // Audit trail
+    lastConfirmedAt: integer('last_confirmed_at'),
+    lastDecisionRecompute: integer('last_decision_recompute'),
+
+    // Timestamps
+    createdAt: integer('created_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    lastActivityAt: integer('last_activity_at')
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => ({
+    userIdx: index('advisor_session_user_idx').on(table.userId),
+    statusIdx: index('advisor_session_status_idx').on(table.status),
+  })
+);
+
+export type AdvisorSession = typeof advisorSessions.$inferSelect;
+export type NewAdvisorSession = typeof advisorSessions.$inferInsert;

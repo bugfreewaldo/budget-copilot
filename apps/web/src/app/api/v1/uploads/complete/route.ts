@@ -8,7 +8,6 @@ import { uploadedFiles, type NewUploadedFile } from '@/lib/db/schema';
 import {
   validateStorageKeyOwnership,
   FILE_UPLOAD_CONFIG,
-  isImageMimeType,
   parseFile,
 } from '@/lib/file-upload';
 
@@ -96,29 +95,31 @@ export async function POST(request: NextRequest) {
       `[uploads/complete] Registered ${records.length} files for user ${userId}`
     );
 
-    // Parse files based on type:
-    // - Images: Parse synchronously (fast, ~5-15s)
-    // - PDFs/Excel: Leave for background processing
+    // Parse all files synchronously
+    // Images use vision parsing, PDFs/Excel currently return unsupported error
     const fileIds = records.map((f) => f.id);
     const parsedFileIds: string[] = [];
-    const queuedFileIds: string[] = [];
+    const failedFileIds: string[] = [];
 
     for (const record of records) {
-      if (isImageMimeType(record.mimeType)) {
-        try {
-          await parseFile(record.id);
+      try {
+        const result = await parseFile(record.id);
+        if (result.success) {
           parsedFileIds.push(record.id);
-          console.log(`[uploads/complete] Image parsed: ${record.id}`);
-        } catch (error) {
-          console.error(
-            `[uploads/complete] Image parsing failed: ${record.id}`,
-            error
+          console.log(`[uploads/complete] File parsed: ${record.id}`);
+        } else {
+          failedFileIds.push(record.id);
+          console.log(
+            `[uploads/complete] File parse failed: ${record.id} - ${result.error}`
           );
-          // File status will be set to 'failed' by parseFile
         }
-      } else {
-        queuedFileIds.push(record.id);
-        console.log(`[uploads/complete] File queued: ${record.id}`);
+      } catch (error) {
+        failedFileIds.push(record.id);
+        console.error(
+          `[uploads/complete] File parsing failed: ${record.id}`,
+          error
+        );
+        // File status will be set to 'failed' by parseFile
       }
     }
 
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       fileIds,
       parsed: parsedFileIds,
-      queued: queuedFileIds,
+      failed: failedFileIds,
     });
   } catch (error) {
     console.error('Failed to complete upload:', error);

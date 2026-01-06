@@ -19,6 +19,8 @@ import type {
   GoalSummary,
   UploadedFile,
   FileSummaryResponse,
+  DecisionResponse,
+  InterviewState,
 } from './api';
 
 const API_BASE_URL = '/api';
@@ -260,6 +262,63 @@ export function useFileSummary(fileId: string | null) {
     summary: data ?? null,
     isLoading,
     isProcessing: !data && !error,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching the current decision
+ * The core product - refreshes automatically at midnight
+ */
+export function useDecision() {
+  const { data, error, isLoading, mutate } = useSWR<{ data: DecisionResponse }>(
+    '/v1/decision',
+    fetcher,
+    {
+      ...swrConfig,
+      // Refresh every minute to update countdown
+      refreshInterval: 60000,
+    }
+  );
+
+  // Force recompute decision (bypasses server-side cache)
+  const forceRefresh = async () => {
+    const res = await fetch(`${API_BASE_URL}/v1/decision?refresh=true`, {
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const newData = await res.json();
+      mutate(newData, false);
+    }
+  };
+
+  return {
+    decision: data?.data ?? null,
+    isLoading,
+    error,
+    refresh: mutate,
+    forceRefresh,
+  };
+}
+
+/**
+ * Hook for fetching interview state
+ * Used in onboarding flow
+ */
+export function useInterview() {
+  const { data, error, isLoading, mutate } = useSWR<{ data: InterviewState }>(
+    '/v1/interview',
+    fetcher,
+    {
+      ...swrConfig,
+      revalidateOnFocus: true, // Re-check when returning to tab
+    }
+  );
+
+  return {
+    interview: data?.data ?? null,
+    isLoading,
     error,
     refresh: mutate,
   };

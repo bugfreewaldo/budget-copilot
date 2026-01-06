@@ -237,6 +237,7 @@ export default function DeudasPage(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [calculatorYears, setCalculatorYears] = useState(1);
+  const [customPaymentAmount, setCustomPaymentAmount] = useState<string>('');
   const [selectedStrategy, setSelectedStrategy] = useState<PaymentStrategy>(
     () => {
       if (typeof window !== 'undefined') {
@@ -1946,8 +1947,10 @@ export default function DeudasPage(): React.JSX.Element {
                     <div>
                       <p className="text-gray-400">Pago Mínimo</p>
                       <p className="text-lg font-semibold">
-                        {showCalculator.minimumPaymentCents
-                          ? formatCurrency(showCalculator.minimumPaymentCents)
+                        {showCalculator.effectiveMinimumPaymentCents
+                          ? formatCurrency(
+                              showCalculator.effectiveMinimumPaymentCents
+                            )
                           : 'No definido'}
                       </p>
                     </div>
@@ -1971,18 +1974,19 @@ export default function DeudasPage(): React.JSX.Element {
                   <label className="block text-sm text-gray-400 mb-3">
                     ¿En cuánto tiempo quieres pagar esta deuda?
                   </label>
-                  <div className="grid grid-cols-5 gap-2 mb-3">
-                    {[0.5, 1, 2, 3, 5].map((years) => (
+                  {/* Month presets */}
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {[3, 6, 9, 12, 18, 24, 36, 60].map((months) => (
                       <button
-                        key={years}
-                        onClick={() => setCalculatorYears(years)}
-                        className={`py-3 rounded-lg text-sm font-medium transition-all ${
-                          calculatorYears === years
+                        key={months}
+                        onClick={() => setCalculatorYears(months / 12)}
+                        className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                          Math.round(calculatorYears * 12) === months
                             ? 'bg-cyan-600 text-white'
                             : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                         }`}
                       >
-                        {years < 1 ? '6m' : `${years}a`}
+                        {months < 12 ? `${months}m` : `${months / 12}a`}
                       </button>
                     ))}
                   </div>
@@ -1993,22 +1997,24 @@ export default function DeudasPage(): React.JSX.Element {
                     <div className="flex items-center gap-2 flex-1">
                       <input
                         type="number"
-                        min="0.5"
-                        max="30"
-                        step="0.5"
-                        value={calculatorYears}
+                        min="1"
+                        max="360"
+                        step="1"
+                        value={Math.round(calculatorYears * 12)}
                         onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          if (!isNaN(val) && val >= 0.5 && val <= 30) {
-                            setCalculatorYears(val);
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val) && val >= 1 && val <= 360) {
+                            setCalculatorYears(val / 12);
                           }
                         }}
                         className="w-20 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-center text-white focus:outline-none focus:border-cyan-500"
                       />
-                      <span className="text-gray-400">años</span>
-                      <span className="text-gray-500 text-sm">
-                        ({Math.round(calculatorYears * 12)} meses)
-                      </span>
+                      <span className="text-gray-400">meses</span>
+                      {calculatorYears >= 1 && (
+                        <span className="text-gray-500 text-sm">
+                          ({calculatorYears.toFixed(1)} años)
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2027,9 +2033,10 @@ export default function DeudasPage(): React.JSX.Element {
                     monthlyPayment,
                     months
                   );
-                  const minimumPayment = showCalculator.minimumPaymentCents
-                    ? showCalculator.minimumPaymentCents / 100
-                    : 0;
+                  const minimumPayment =
+                    showCalculator.effectiveMinimumPaymentCents
+                      ? showCalculator.effectiveMinimumPaymentCents / 100
+                      : 0;
                   const extraPayment = Math.max(
                     0,
                     monthlyPayment - minimumPayment
@@ -2094,7 +2101,7 @@ export default function DeudasPage(): React.JSX.Element {
                           <p className="text-sm text-gray-400 mt-1">
                             Adicional al pago mínimo de{' '}
                             {formatCurrency(
-                              showCalculator.minimumPaymentCents || 0
+                              showCalculator.effectiveMinimumPaymentCents || 0
                             )}
                           </p>
                         </div>
@@ -2178,11 +2185,141 @@ export default function DeudasPage(): React.JSX.Element {
                     </div>
                   );
                 })()}
+
+                {/* What if I pay $X monthly? */}
+                <div className="border-t border-gray-700 pt-6">
+                  <label className="block text-sm text-gray-400 mb-3">
+                    ¿Qué pasa si pago esta cantidad al mes?
+                  </label>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-gray-400">$</span>
+                    <input
+                      type="number"
+                      min="1"
+                      step="100"
+                      value={customPaymentAmount}
+                      onChange={(e) => setCustomPaymentAmount(e.target.value)}
+                      placeholder="Ej: 5000"
+                      className="w-32 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                    />
+                    <span className="text-gray-400">/mes</span>
+                  </div>
+
+                  {/* Custom payment results */}
+                  {(() => {
+                    const customPayment = parseFloat(customPaymentAmount);
+                    if (!customPayment || customPayment <= 0) return null;
+
+                    const balanceDollars =
+                      showCalculator.currentBalanceCents / 100;
+                    const monthlyRate = showCalculator.aprPercent / 100 / 12;
+                    const monthlyInterest = balanceDollars * monthlyRate;
+
+                    // Check if payment covers at least the interest
+                    if (customPayment <= monthlyInterest) {
+                      return (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚠️</span>
+                            <p className="text-sm text-red-400">
+                              Este pago (${customPayment.toLocaleString()}) no
+                              cubre ni el interés mensual ($
+                              {monthlyInterest.toFixed(2)}). La deuda seguiría
+                              creciendo.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Calculate months to pay off
+                    let balance = balanceDollars;
+                    let monthCount = 0;
+                    let totalInterestPaid = 0;
+
+                    while (balance > 0 && monthCount < 600) {
+                      const interest = balance * monthlyRate;
+                      totalInterestPaid += interest;
+                      balance = balance + interest - customPayment;
+                      monthCount++;
+                    }
+
+                    if (monthCount >= 600) {
+                      return (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚠️</span>
+                            <p className="text-sm text-red-400">
+                              Con ${customPayment.toLocaleString()}/mes,
+                              tardarías más de 50 años en pagar.
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    const totalPaid = customPayment * monthCount;
+                    const payoffDate = new Date();
+                    payoffDate.setMonth(payoffDate.getMonth() + monthCount);
+
+                    return (
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">🎯</span>
+                          <p className="font-semibold text-purple-400">
+                            Pagando ${customPayment.toLocaleString()}/mes
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-400">
+                              Tiempo para liquidar
+                            </p>
+                            <p className="text-xl font-bold text-white">
+                              {monthCount} meses
+                              {monthCount >= 12 && (
+                                <span className="text-sm font-normal text-gray-400 ml-1">
+                                  ({(monthCount / 12).toFixed(1)} años)
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Fecha de libertad</p>
+                            <p className="text-xl font-bold text-cyan-400">
+                              {payoffDate.toLocaleDateString('es-MX', {
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Interés total</p>
+                            <p className="text-lg font-semibold text-orange-400">
+                              {formatCurrency(
+                                Math.round(totalInterestPaid * 100)
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400">Total a pagar</p>
+                            <p className="text-lg font-semibold">
+                              {formatCurrency(Math.round(totalPaid * 100))}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
 
               <div className="p-6 border-t border-gray-800">
                 <button
-                  onClick={() => setShowCalculator(null)}
+                  onClick={() => {
+                    setShowCalculator(null);
+                    setCustomPaymentAmount('');
+                  }}
                   className="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   Cerrar

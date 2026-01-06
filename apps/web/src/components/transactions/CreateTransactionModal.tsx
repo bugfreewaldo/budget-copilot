@@ -59,8 +59,8 @@ export function CreateTransactionModal({
         setDate(getToday());
       }
 
-      // Load categories
-      listCategories({ limit: 100 })
+      // Load categories (flat=true to get all including subcategories)
+      listCategories({ limit: 500, flat: true })
         .then((result) => setCategories(result.data))
         .catch(() => setCategories([]));
 
@@ -93,7 +93,7 @@ export function CreateTransactionModal({
     e.preventDefault();
 
     const amountNum = parseFloat(amount);
-    if (!amount.trim() || isNaN(amountNum) || amountNum <= 0) {
+    if (!amount.trim() || isNaN(amountNum) || amountNum === 0) {
       showToast('Ingresa un monto válido', 'error');
       return;
     }
@@ -239,7 +239,6 @@ export function CreateTransactionModal({
                   id="amount"
                   type="number"
                   step="0.01"
-                  min="0"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   disabled={loading}

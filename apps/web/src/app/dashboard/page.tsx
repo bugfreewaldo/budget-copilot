@@ -3,419 +3,498 @@
 import { useState } from 'react';
 import { Button } from '@budget-copilot/ui/button';
 import Link from 'next/link';
-import {
-  getCurrentMonth,
-  getFirstDayOfMonth,
-  formatCents,
-  deleteTransaction,
-} from '@/lib/api';
-import { useDashboardData } from '@/lib/hooks';
-
+import { useDecision } from '@/lib/hooks';
+import { acknowledgeDecision, formatCents } from '@/lib/api';
+import type { RiskLevel } from '@/lib/api';
 import { Sidebar } from '@/components/layout';
-import { TransactionCopilot } from '@/components/copilot/TransactionCopilot';
-import {
-  SpendingByCategory,
-  // BudgetProgress, // TODO: Temporarily hidden - re-enable when presupuesto is ready
-  IncomeVsExpenses,
-  FinancialWeather,
-  CategoryDetailModal,
-  SpenderPersonality,
-} from '@/components/charts';
-import { CreateTransactionModal } from '@/components/transactions';
 
-// Get last day of current month
-function getLastDayOfMonth(): string {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return lastDay.toISOString().split('T')[0]!;
+// Risk level configuration - small chips, no emojis for paid users
+const RISK_CONFIG: Record<
+  RiskLevel,
+  { label: string; color: string; bgColor: string; borderColor: string }
+> = {
+  safe: {
+    label: 'Bajo',
+    color: 'text-green-400',
+    bgColor: 'bg-green-500/10',
+    borderColor: 'border-green-500/30',
+  },
+  caution: {
+    label: 'Moderado',
+    color: 'text-yellow-400',
+    bgColor: 'bg-yellow-500/10',
+    borderColor: 'border-yellow-500/30',
+  },
+  warning: {
+    label: 'Elevado',
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-amber-500/30',
+  },
+  danger: {
+    label: 'Alto',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/30',
+  },
+  critical: {
+    label: 'Crítico',
+    color: 'text-red-500',
+    bgColor: 'bg-red-600/10',
+    borderColor: 'border-red-600/30',
+  },
+};
+
+/**
+ * Format a date as "20 ene" style
+ */
+function formatShortDate(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
 }
 
 /**
- * Dashboard page - protected (placeholder for auth)
+ * Decision Screen - The Core Product
+ * BudgetCopilot decides. Not calculates.
  */
-interface SelectedCategory {
-  id: string;
-  name: string;
-  emoji: string;
-  color: string;
-}
-
 export default function DashboardPage(): React.ReactElement {
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [transactionType, setTransactionType] = useState<'income' | 'expense'>(
-    'expense'
-  );
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] =
-    useState<SelectedCategory | null>(null);
+  const { decision, isLoading, error, forceRefresh } = useDecision();
+  const [acknowledging, setAcknowledging] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
-  const currentMonth = getCurrentMonth();
-  const from = getFirstDayOfMonth();
-  const to = getLastDayOfMonth();
+  // Debug: log decision data
+  console.log('[Dashboard] decision:', decision);
+  console.log('[Dashboard] suggestions:', decision?.suggestions);
 
-  // Use SWR for cached data fetching - instant navigation!
-  const {
-    categories,
-    transactions,
-    envelopes,
-    isLoading: loading,
-    error: fetchError,
-    refresh,
-  } = useDashboardData(currentMonth, from, to);
-  const error = fetchError
-    ? 'Failed to load dashboard data. Is the API server running?'
-    : null;
+  // Handle action button click - now confirms the decision
+  const handleAction = async () => {
+    if (!decision || acknowledging || confirmed) return;
 
-  const handleTransactionCreated = () => {
-    // Refresh data when a new transaction is created via copilot
-    refresh();
-  };
-
-  const openExpenseModal = () => {
-    setTransactionType('expense');
-    setShowTransactionModal(true);
-  };
-
-  const openIncomeModal = () => {
-    setTransactionType('income');
-    setShowTransactionModal(true);
-  };
-
-  const handleDeleteTransaction = async (id: string) => {
-    if (deletingId) return;
-    setDeletingId(id);
+    setAcknowledging(true);
     try {
-      await deleteTransaction(id);
-      refresh();
-    } catch (error) {
-      console.error('Failed to delete transaction:', error);
+      await acknowledgeDecision(decision.id);
+      setConfirmed(true);
+    } catch (err) {
+      console.error('Failed to acknowledge decision:', err);
     } finally {
-      setDeletingId(null);
+      setAcknowledging(false);
     }
   };
 
-  return (
-    <Sidebar>
-      <div className="min-h-screen bg-gray-950">
-        {/* Animated Background */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-          <div className="absolute top-0 -right-40 w-96 h-96 bg-cyan-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-40 left-40 w-96 h-96 bg-pink-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+  // Loading state
+  if (isLoading) {
+    return (
+      <Sidebar>
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">
+              Analizando tu situación financiera...
+            </p>
+          </div>
         </div>
+      </Sidebar>
+    );
+  }
 
-        {/* Main Content */}
-        <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
-          {/* Page Header */}
-          <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">
-                Dashboard
-              </h1>
-              <p className="text-sm lg:text-base text-gray-400">
-                ¡Bienvenido de vuelta! Aquí está tu resumen financiero.
+  // Error state
+  if (error || !decision) {
+    return (
+      <Sidebar>
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto px-4">
+            <div className="text-6xl mb-6">🤖</div>
+            <h1 className="text-2xl font-bold text-white mb-3">
+              Motor de Decisiones Sin Conexión
+            </h1>
+            <p className="text-gray-400 mb-6">
+              No pudimos calcular tu instrucción. Asegúrate de tener cuentas y
+              transacciones configuradas.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={() => forceRefresh()}
+                className="bg-cyan-600 hover:bg-cyan-700"
+              >
+                Reintentar
+              </Button>
+              <Link href="/transacciones">
+                <Button variant="outline" className="border-gray-600">
+                  Agregar Transacciones
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </Sidebar>
+    );
+  }
+
+  const riskConfig = RISK_CONFIG[decision.riskLevel];
+
+  // Extract context values for display
+  const cashAvailable = decision.context?.cashAvailable ?? 0;
+  const upcomingBills = decision.context?.upcomingBillsTotal ?? 0;
+  const runwayDays = decision.context?.runwayDays ?? 0;
+  const nextBillDate = decision.context?.nextBillDate ?? null;
+  const nextBillAmount = decision.context?.nextBillAmount ?? 0;
+  const dailyBudget = decision.context?.dailyBudget ?? 0;
+  const flexibleBudget = Math.max(0, cashAvailable - upcomingBills);
+
+  // FREE USER: Decision wall (authority, no answers)
+  if (!decision.isPaid) {
+    return (
+      <Sidebar>
+        <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-6">
+          {/* Background effects */}
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10 max-w-md w-full text-center">
+            {/* Risk chip - small */}
+            <div
+              className={`inline-flex items-center gap-2 ${riskConfig.bgColor} ${riskConfig.borderColor} border rounded-full px-4 py-2 mb-8`}
+            >
+              <span className={`text-sm font-medium ${riskConfig.color}`}>
+                Riesgo: {riskConfig.label}
+              </span>
+            </div>
+
+            {/* The authority headline */}
+            <h1 className="text-2xl font-bold text-white mb-6">
+              Hoy se requiere una acción financiera.
+            </h1>
+
+            {/* Vague warnings - teaser signals without specifics */}
+            <div className="space-y-3 mb-8">
+              {decision.warnings.map((warning, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-amber-400 text-sm justify-center"
+                >
+                  <span>⚠️</span>
+                  <span>{warning}</span>
+                </div>
+              ))}
+              {decision.warnings.length === 0 && (
+                <p className="text-gray-400">
+                  Tu situación financiera requiere atención.
+                </p>
+              )}
+            </div>
+
+            {/* The authority line - divider */}
+            <div className="border-t border-gray-800 my-6"></div>
+
+            {/* Teaser */}
+            <div className="mb-8">
+              <p className="text-lg text-gray-300">
+                Ya hemos determinado el siguiente paso correcto para hoy.
               </p>
             </div>
-            <div className="flex gap-2 lg:gap-3">
-              <button
-                onClick={openIncomeModal}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
+
+            {/* Expired decision notice */}
+            {decision.hasExpiredDecision && (
+              <p className="text-gray-500 text-sm mb-6">
+                La recomendación de ayer expiró.
+              </p>
+            )}
+
+            {/* CTA - Authority copy */}
+            <Link href="/pricing">
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-lg py-6"
               >
-                <span>↑</span> <span className="hidden sm:inline">Agregar</span>{' '}
-                Ingreso
-              </button>
-              <button
-                onClick={openExpenseModal}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
+                Ver exactamente qué hacer
+              </Button>
+            </Link>
+            <p className="text-gray-500 text-xs mt-3">
+              Decisión válida solo por hoy.
+            </p>
+          </div>
+        </div>
+      </Sidebar>
+    );
+  }
+
+  // PAID USER: New decision layout
+  return (
+    <Sidebar>
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-xl">
+          {/* ============================================================ */}
+          {/* TOP: Status Strip */}
+          {/* ============================================================ */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+            {/* Risk chip */}
+            <div
+              className={`inline-flex items-center gap-1.5 ${riskConfig.bgColor} ${riskConfig.borderColor} border rounded-full px-3 py-1`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${riskConfig.color.replace('text-', 'bg-')}`}
+              ></span>
+              <span className={`text-xs font-medium ${riskConfig.color}`}>
+                Riesgo: {riskConfig.label}
+              </span>
+            </div>
+
+            {/* Runway chip */}
+            <div className="inline-flex items-center gap-1.5 bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+              <span className="text-xs text-gray-400">Margen:</span>
+              <span
+                className={`text-xs font-medium ${runwayDays <= 3 ? 'text-red-400' : runwayDays <= 7 ? 'text-amber-400' : 'text-gray-200'}`}
               >
-                <span>↓</span> <span className="hidden sm:inline">Agregar</span>{' '}
-                Gasto
-              </button>
+                {runwayDays} días
+              </span>
+            </div>
+
+            {/* Next bill chip */}
+            {nextBillDate && nextBillAmount > 0 && (
+              <div className="inline-flex items-center gap-1.5 bg-gray-800/50 border border-gray-700/50 rounded-full px-3 py-1">
+                <span className="text-xs text-gray-400">Próximo:</span>
+                <span className="text-xs font-medium text-gray-200">
+                  {formatCents(nextBillAmount)} el{' '}
+                  {formatShortDate(nextBillDate)}
+                </span>
+              </div>
+            )}
+
+            {/* Refresh button */}
+            <button
+              onClick={() => forceRefresh()}
+              className="inline-flex items-center justify-center w-7 h-7 bg-gray-800/50 border border-gray-700/50 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all"
+              title="Actualizar datos"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* ============================================================ */}
+          {/* MIDDLE: Decision Card */}
+          {/* ============================================================ */}
+          <div className="bg-gray-900/60 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 sm:p-8 mb-6">
+            {/* Title */}
+            <p className="text-gray-400 text-sm text-center mb-2">
+              Tu gasto flexible recomendado hoy
+            </p>
+
+            {/* The big number */}
+            <div className="text-center mb-4">
+              <span
+                className={`text-5xl sm:text-6xl font-bold ${dailyBudget > 0 ? 'text-white' : 'text-gray-400'}`}
+              >
+                {formatCents(dailyBudget)}
+              </span>
+            </div>
+
+            {/* Subtext */}
+            <p className="text-gray-500 text-sm text-center mb-6">
+              {nextBillDate ? (
+                <>
+                  Este es tu presupuesto flexible hasta el{' '}
+                  {formatShortDate(nextBillDate)}.
+                </>
+              ) : (
+                <>Este es tu presupuesto flexible diario.</>
+              )}
+            </p>
+
+            {/* Soft warning if $0 */}
+            {dailyBudget === 0 && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-6">
+                <p className="text-amber-400 text-sm text-center">
+                  Si gastas más, podrías quedarte corto para pagar tus gastos
+                  fijos
+                  {nextBillDate && <> del {formatShortDate(nextBillDate)}</>}.
+                </p>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-3">
+              <Button
+                size="lg"
+                onClick={handleAction}
+                disabled={acknowledging || confirmed}
+                className={`w-full py-4 text-base border-0 transition-all ${
+                  confirmed
+                    ? 'bg-gray-700 cursor-default'
+                    : 'bg-cyan-600 hover:bg-cyan-700'
+                }`}
+              >
+                {acknowledging ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Procesando...
+                  </span>
+                ) : confirmed ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Plan confirmado
+                  </span>
+                ) : (
+                  'Entendido'
+                )}
+              </Button>
+            </div>
+
+            {/* Confirmation message or expiration */}
+            <div className="text-center mt-4">
+              {confirmed ? (
+                <p className="text-gray-500 text-xs">
+                  Plan activo hasta que cambien tus finanzas.
+                </p>
+              ) : (
+                <p className="text-gray-600 text-xs">
+                  Válido por {decision.hoursRemaining} hora
+                  {decision.hoursRemaining !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Error State */}
-          {error && (
-            <div className="mb-6 lg:mb-8 p-4 bg-red-900/30 border border-red-500/50 rounded-lg backdrop-blur-sm">
-              <p className="text-red-400 font-medium">Error</p>
-              <p className="text-red-300 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* Loading State */}
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/50 rounded-xl border border-gray-800">
-                <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-400">Cargando dashboard...</p>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Top Row: Weather + Personality */}
-              <div className="grid md:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
-                {/* Financial Weather Widget */}
-                <div className="md:col-span-2">
-                  <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
-                    <span>🌤️</span> Tu Clima Financiero
-                  </h3>
-                  <FinancialWeather
-                    transactions={transactions}
-                    envelopes={envelopes}
-                  />
-                </div>
-
-                {/* Spender Personality */}
-                <div>
-                  <div className="flex items-center justify-between mb-3 lg:mb-4">
-                    <h3 className="text-base lg:text-lg font-semibold text-white flex items-center gap-2">
-                      <span>🎭</span> Tu Perfil
-                    </h3>
-                    <Link
-                      href="/perfil"
-                      className="text-xs text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
-                    >
-                      Ver cuenta <span>→</span>
-                    </Link>
-                  </div>
-                  <SpenderPersonality
-                    transactions={transactions}
-                    categories={categories}
-                  />
-                </div>
-              </div>
-
-              {/* Charts Grid */}
-              <div className="grid md:grid-cols-2 gap-4 lg:gap-6 mb-6 lg:mb-8">
-                {/* Income vs Expenses */}
-                <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-4 lg:p-6 hover:border-cyan-500/30 transition-all">
-                  <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
-                    <span>💰</span> Ingresos vs Gastos
-                  </h3>
-                  <IncomeVsExpenses transactions={transactions} />
-                </div>
-
-                {/* Spending by Category */}
-                <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-4 lg:p-6 hover:border-purple-500/30 transition-all">
-                  <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
-                    <span>📊</span> Gastos por Categoría
-                  </h3>
-                  <SpendingByCategory
-                    transactions={transactions}
-                    categories={categories}
-                    onCategoryClick={setSelectedCategory}
-                  />
-                </div>
-              </div>
-
-              {/* TODO: Temporarily hidden - re-enable when presupuesto is ready */}
-              {/* Budget Progress Section */}
-              {/* <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-4 lg:p-6 mb-6 lg:mb-8 hover:border-amber-500/30 transition-all">
-                <h3 className="text-base lg:text-lg font-semibold text-white mb-3 lg:mb-4 flex items-center gap-2">
-                  <span>📈</span> Progreso del Presupuesto - {currentMonth}
-                </h3>
-                <BudgetProgress envelopes={envelopes} categories={categories} />
-              </div> */}
-
-              {/* Recent Transactions Section */}
-              <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 overflow-hidden mb-6 lg:mb-8">
-                <div className="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between">
-                  <h3 className="text-lg lg:text-xl font-semibold text-white flex items-center gap-2">
-                    <span>💸</span> Transacciones Recientes
-                  </h3>
-                </div>
-                {transactions.length === 0 ? (
-                  <div className="p-6 lg:p-8 text-center">
-                    <span className="text-5xl lg:text-6xl mb-4 lg:mb-6 block">
-                      🤖
+          {/* ============================================================ */}
+          {/* BOTTOM: Why (breakdown bullets) */}
+          {/* ============================================================ */}
+          <div className="bg-gray-900/40 border border-gray-800/50 rounded-xl p-5">
+            <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">
+              Desglose
+            </p>
+            <ul className="space-y-2">
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Efectivo disponible</span>
+                <span className="text-white font-medium">
+                  {formatCents(cashAvailable)}
+                </span>
+              </li>
+              <li className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">
+                  Gastos fijos pendientes
+                  {nextBillDate && (
+                    <span className="text-gray-600">
+                      {' '}
+                      (hasta {formatShortDate(nextBillDate)})
                     </span>
-                    <h4 className="text-lg lg:text-xl font-semibold text-white mb-2 lg:mb-3">
-                      ¡Comienza a registrar tus finanzas!
-                    </h4>
-                    <p className="text-gray-400 mb-4 max-w-md mx-auto text-sm lg:text-base">
-                      Usa el asistente inteligente en la esquina inferior
-                      derecha para agregar tus ingresos y gastos de forma
-                      natural.
-                    </p>
-                    <p className="text-cyan-400 text-sm font-medium mb-2">
-                      Prueba decir:
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2 text-xs lg:text-sm">
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
-                        "Recibí mi salario de $3,500"
-                      </span>
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
-                        "Gasté $50 en Uber"
-                      </span>
-                      <span className="px-3 py-1 bg-gray-800 rounded-full text-gray-300">
-                        "Pagué $120 de luz"
-                      </span>
-                    </div>
-                  </div>
+                  )}
+                </span>
+                {upcomingBills > 0 ? (
+                  <span className="text-red-400 font-medium">
+                    −{formatCents(upcomingBills)}
+                  </span>
                 ) : (
-                  <div className="p-4 lg:p-6">
-                    <div className="space-y-2 lg:space-y-3">
-                      {transactions.slice(0, 5).map((tx) => {
-                        const category = categories.find(
-                          (c) => c.id === tx.categoryId
-                        );
-                        return (
-                          <div
-                            key={tx.id}
-                            className="flex items-center justify-between p-3 bg-gray-800/50 border border-gray-700/50 rounded-xl"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div
-                                className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                  tx.type === 'expense'
-                                    ? 'bg-red-500/20 text-red-400'
-                                    : 'bg-green-500/20 text-green-400'
-                                }`}
-                              >
-                                {tx.type === 'expense' ? '↓' : '↑'}
-                              </div>
-                              <div className="min-w-0">
-                                <div className="font-medium text-white text-sm lg:text-base truncate">
-                                  {tx.description}
-                                </div>
-                                <div className="text-xs lg:text-sm text-gray-500 truncate">
-                                  {category?.name || 'Sin categoría'} •{' '}
-                                  {tx.date}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0 ml-2">
-                              <div
-                                className={`font-semibold text-sm lg:text-base ${
-                                  tx.type === 'expense'
-                                    ? 'text-red-400'
-                                    : 'text-green-400'
-                                }`}
-                              >
-                                {formatCents(tx.amountCents)}
-                              </div>
-                              <button
-                                onClick={() => handleDeleteTransaction(tx.id)}
-                                disabled={deletingId === tx.id}
-                                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
-                                title="Eliminar transacción"
-                              >
-                                {deletingId === tx.id ? (
-                                  <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                  </svg>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Categories Section */}
-              <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 overflow-hidden">
-                <div className="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between">
-                  <h3 className="text-lg lg:text-xl font-semibold text-white flex items-center gap-2">
-                    <span>🏷️</span> Tus Categorías
-                  </h3>
-                  <Link href="/categories">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-cyan-500/50 text-xs lg:text-sm"
-                    >
-                      Manejar
-                    </Button>
+                  <Link
+                    href="/advisor"
+                    className="text-amber-400 text-xs hover:text-amber-300"
+                  >
+                    + Agregar gastos fijos
                   </Link>
-                </div>
-                {categories.length === 0 ? (
-                  <div className="p-6 lg:p-8 text-center">
-                    <span className="text-3xl lg:text-4xl mb-3 lg:mb-4 block">
-                      📭
-                    </span>
-                    <p className="text-gray-400 mb-4 text-sm lg:text-base">
-                      No hay categorías aún. ¡Crea algunas para empezar!
-                    </p>
-                    <Link href="/categories">
-                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-sm lg:text-base">
-                        ➕ Crear Categorías
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="p-4 lg:p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-4">
-                      {categories.slice(0, 9).map((category) => (
-                        <div
-                          key={category.id}
-                          className="p-3 lg:p-4 bg-gray-800/50 border border-gray-700/50 rounded-xl hover:bg-gray-800 hover:border-cyan-500/30 transition-all cursor-pointer group"
-                        >
-                          <div className="flex items-center gap-2">
-                            {category.emoji && (
-                              <span className="text-lg lg:text-xl">
-                                {category.emoji}
-                              </span>
-                            )}
-                            <span className="font-medium text-white group-hover:text-cyan-400 transition-colors text-sm lg:text-base truncate">
-                              {category.name}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {categories.length > 9 && (
-                      <div className="mt-4 lg:mt-6 text-center">
-                        <Link href="/categories">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-700 text-gray-300 hover:bg-gray-800 text-xs lg:text-sm"
-                          >
-                            Ver Todas las {categories.length} Categorías →
-                          </Button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
                 )}
+              </li>
+              <li className="flex items-center justify-between text-sm pt-2 border-t border-gray-800">
+                <span className="text-gray-300">Presupuesto flexible</span>
+                <span
+                  className={`font-bold ${flexibleBudget > 0 ? 'text-cyan-400' : 'text-gray-400'}`}
+                >
+                  {formatCents(flexibleBudget)}
+                </span>
+              </li>
+            </ul>
+
+            {/* Optional: Suggestion/lever */}
+            {decision.suggestions && decision.suggestions.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-cyan-400 mt-0.5">💡</span>
+                  <p className="text-gray-400">{decision.suggestions[0]}</p>
+                </div>
               </div>
-            </>
+            )}
+          </div>
+
+          {/* ============================================================ */}
+          {/* ADVISOR CTA - Prominent button to talk to financial advisor */}
+          {/* ============================================================ */}
+          <Link href="/advisor" className="block mt-6">
+            <div className="bg-gradient-to-r from-purple-600/20 to-cyan-600/20 border border-purple-500/30 rounded-xl p-4 hover:from-purple-600/30 hover:to-cyan-600/30 transition-all cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">
+                      Hablar con tu Asesor Financiero
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Ajusta datos, importa archivos, o pide consejos
+                      personalizados
+                    </p>
+                  </div>
+                </div>
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </Link>
+
+          {/* Expired decision notice */}
+          {decision.hasExpiredDecision && (
+            <p className="text-gray-600 text-xs text-center mt-4">
+              La recomendación de ayer expiró.
+            </p>
           )}
-        </main>
-
-        {/* Transaction Copilot */}
-        <TransactionCopilot onTransactionCreated={handleTransactionCreated} />
-
-        {/* Manual Transaction Modal */}
-        <CreateTransactionModal
-          isOpen={showTransactionModal}
-          onClose={() => setShowTransactionModal(false)}
-          onSuccess={handleTransactionCreated}
-          defaultType={transactionType}
-        />
-
-        {/* Category Detail Modal */}
-        <CategoryDetailModal
-          isOpen={selectedCategory !== null}
-          onClose={() => setSelectedCategory(null)}
-          category={selectedCategory}
-          transactions={transactions}
-        />
+        </div>
       </div>
     </Sidebar>
   );

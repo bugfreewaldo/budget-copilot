@@ -13,14 +13,67 @@ import {
 } from '@/lib/api';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
-// No date limit - fetch all transactions
-function getAllTimeStart(): string {
-  return '2020-01-01';
+// Date range presets
+type DatePreset =
+  | 'this-month'
+  | 'last-month'
+  | 'this-year'
+  | 'last-3-months'
+  | 'all-time'
+  | 'custom';
+
+function getDatePresetRange(preset: DatePreset): { from: string; to: string } {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  switch (preset) {
+    case 'this-month': {
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      return {
+        from: firstDay.toISOString().split('T')[0]!,
+        to: lastDay.toISOString().split('T')[0]!,
+      };
+    }
+    case 'last-month': {
+      const firstDay = new Date(year, month - 1, 1);
+      const lastDay = new Date(year, month, 0);
+      return {
+        from: firstDay.toISOString().split('T')[0]!,
+        to: lastDay.toISOString().split('T')[0]!,
+      };
+    }
+    case 'last-3-months': {
+      const firstDay = new Date(year, month - 2, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      return {
+        from: firstDay.toISOString().split('T')[0]!,
+        to: lastDay.toISOString().split('T')[0]!,
+      };
+    }
+    case 'this-year': {
+      return {
+        from: `${year}-01-01`,
+        to: `${year}-12-31`,
+      };
+    }
+    case 'all-time':
+    default:
+      return {
+        from: '2020-01-01',
+        to: '2099-12-31',
+      };
+  }
 }
 
-// Future date to include everything
-function getFutureDate(): string {
-  return '2099-12-31';
+function formatDateForDisplay(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  return date.toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 export default function TransaccionesPage(): React.ReactElement {
@@ -38,9 +91,21 @@ export default function TransaccionesPage(): React.ReactElement {
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
+  // Date range state - default to current month
+  const [datePreset, setDatePreset] = useState<DatePreset>('this-month');
+  const [customFromDate, setCustomFromDate] = useState<string>('');
+  const [customToDate, setCustomToDate] = useState<string>('');
+
+  // Calculate actual date range based on preset or custom
+  const dateRange = useMemo(() => {
+    if (datePreset === 'custom' && customFromDate && customToDate) {
+      return { from: customFromDate, to: customToDate };
+    }
+    return getDatePresetRange(datePreset);
+  }, [datePreset, customFromDate, customToDate]);
+
   const currentMonth = getCurrentMonth();
-  const from = getAllTimeStart();
-  const to = getFutureDate();
+  const { from, to } = dateRange;
 
   const {
     categories,
@@ -210,7 +275,72 @@ export default function TransaccionesPage(): React.ReactElement {
           </div>
 
           {/* Search and Filters */}
-          <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-4 mb-6">
+          <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-4 mb-6 space-y-4">
+            {/* Date Range Filter */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-gray-400">Período:</span>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { key: 'this-month', label: 'Este mes' },
+                    { key: 'last-month', label: 'Mes pasado' },
+                    { key: 'last-3-months', label: 'Últimos 3 meses' },
+                    { key: 'this-year', label: 'Este año' },
+                    { key: 'all-time', label: 'Todo' },
+                    { key: 'custom', label: 'Personalizado' },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setDatePreset(key as DatePreset)}
+                      className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
+                        datePreset === key
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Date Range */}
+              {datePreset === 'custom' && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">Desde:</span>
+                    <input
+                      type="date"
+                      value={customFromDate}
+                      onChange={(e) => setCustomFromDate(e.target.value)}
+                      className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">Hasta:</span>
+                    <input
+                      type="date"
+                      value={customToDate}
+                      onChange={(e) => setCustomToDate(e.target.value)}
+                      className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Show current date range */}
+              {datePreset !== 'all-time' && (
+                <p className="text-xs text-gray-500">
+                  Mostrando: {formatDateForDisplay(from)} -{' '}
+                  {formatDateForDisplay(to)}
+                </p>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-800" />
+
+            {/* Search and other filters */}
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search Input */}
               <div className="flex-1 relative">

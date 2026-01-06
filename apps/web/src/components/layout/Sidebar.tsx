@@ -9,6 +9,11 @@ interface NavItem {
   label: string;
   emoji: string;
   description?: string;
+  requiresPro?: boolean;
+}
+
+interface UserPlan {
+  plan: 'free' | 'pro' | 'premium';
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -67,6 +72,13 @@ const NAV_ITEMS: NavItem[] = [
     emoji: '👨‍👩‍👧‍👦',
     description: 'Comparte con tu familia',
   },
+  {
+    href: '/advisor',
+    label: 'Asesor Financiero',
+    emoji: '🧠',
+    description: 'Actualiza tu situación',
+    requiresPro: true,
+  },
 ];
 
 interface SidebarProps {
@@ -77,10 +89,11 @@ export function Sidebar({ children }: SidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [userPlan, setUserPlan] = useState<UserPlan['plan']>('free');
   const pathname = usePathname();
   const router = useRouter();
 
-  // Check authentication
+  // Check authentication and get user plan
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -88,6 +101,10 @@ export function Sidebar({ children }: SidebarProps) {
         if (!res.ok) {
           router.push('/login');
           return;
+        }
+        const data = await res.json();
+        if (data.user?.plan) {
+          setUserPlan(data.user.plan);
         }
         setAuthChecked(true);
       } catch {
@@ -228,6 +245,7 @@ export function Sidebar({ children }: SidebarProps) {
             <ul className="space-y-2">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
+                const isLocked = item.requiresPro && userPlan === 'free';
                 return (
                   <li key={item.href}>
                     <Link
@@ -240,8 +258,13 @@ export function Sidebar({ children }: SidebarProps) {
                       }`}
                     >
                       <span className="text-xl">{item.emoji}</span>
-                      <div>
-                        <div className="font-medium">{item.label}</div>
+                      <div className="flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          {item.label}
+                          {isLocked && (
+                            <span className="text-yellow-500 text-sm">🔒</span>
+                          )}
+                        </div>
                         {item.description && (
                           <div className="text-xs text-gray-500">
                             {item.description}
@@ -313,11 +336,16 @@ export function Sidebar({ children }: SidebarProps) {
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
+              const isLocked = item.requiresPro && userPlan === 'free';
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    title={isCollapsed ? item.label : undefined}
+                    title={
+                      isCollapsed
+                        ? `${item.label}${isLocked ? ' 🔒' : ''}`
+                        : undefined
+                    }
                     className={`flex items-center gap-3 rounded-lg transition-all group ${
                       isCollapsed ? 'px-3 py-2.5 justify-center' : 'px-3 py-2.5'
                     } ${
@@ -332,7 +360,12 @@ export function Sidebar({ children }: SidebarProps) {
                       {item.emoji}
                     </span>
                     {!isCollapsed && (
-                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="font-medium text-sm flex items-center gap-2">
+                        {item.label}
+                        {isLocked && (
+                          <span className="text-yellow-500 text-xs">🔒</span>
+                        )}
+                      </span>
                     )}
                   </Link>
                 </li>

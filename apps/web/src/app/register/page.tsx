@@ -52,7 +52,8 @@ function getPasswordStrength(password: string): {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  // Default to onboarding flow, unless redirect is specified
+  const redirectTo = searchParams.get('redirect') || '/onboarding';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -526,7 +527,7 @@ function LoginLink() {
     : '/login';
 
   return (
-    <p className="mt-2 text-center text-sm text-gray-400">
+    <p className="mt-4 text-center text-sm text-gray-400">
       ¿Ya tienes cuenta?{' '}
       <Link
         href={loginHref}
@@ -555,12 +556,16 @@ export default function RegisterPage(): React.ReactElement | null {
             Budget Copilot
           </span>
         </Link>
-        <h2 className="text-center text-3xl font-bold text-white">
-          Crear Cuenta
+        <h2 className="text-center text-2xl font-bold text-white">
+          Tu instrucción financiera se está preparando.
         </h2>
+        <p className="mt-3 text-center text-sm text-gray-400 max-w-sm mx-auto">
+          Cuéntanos sobre tus ingresos, gastos y deudas. Nosotros nos encargamos
+          del resto.
+        </p>
         <Suspense
           fallback={
-            <p className="mt-2 text-center text-sm text-gray-400">
+            <p className="mt-4 text-center text-sm text-gray-400">
               ¿Ya tienes cuenta?{' '}
               <span className="text-cyan-400">Inicia sesión</span>
             </p>

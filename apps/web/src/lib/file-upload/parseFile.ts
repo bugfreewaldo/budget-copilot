@@ -12,13 +12,17 @@ import {
   fileParsedSummaries,
   type UploadedFile,
 } from '@/lib/db/schema';
-import { getFileBase64 } from './storage';
+import { getFileBase64, getFileBuffer } from './storage';
 import {
   isImageMimeType,
+  isPdfMimeType,
+  isSpreadsheetMimeType,
   FILE_UPLOAD_CONFIG,
   type ParsedSummary,
 } from './types';
 import { parseImageDocument } from './imageParser';
+import { parsePdfDocument } from './pdfParser';
+import { parseSpreadsheet } from './spreadsheetParser';
 
 export interface ParseFileResult {
   success: true;
@@ -157,15 +161,30 @@ type ParserOutput = ParserResult | ParserError;
 async function parseFileByType(file: UploadedFile): Promise<ParserOutput> {
   const { mimeType, storageKey, filename } = file;
 
+  // Image files (receipts, screenshots)
   if (isImageMimeType(mimeType)) {
+    console.log(`[parseFile] Parsing image: ${filename}`);
     const base64 = await getFileBase64(storageKey);
     return parseImageDocument(base64, { mimeType, filename });
   }
 
-  // PDF and Excel parsers can be added here in the future
+  // PDF files (bank statements, invoices)
+  if (isPdfMimeType(mimeType)) {
+    console.log(`[parseFile] Parsing PDF: ${filename}`);
+    const base64 = await getFileBase64(storageKey);
+    return parsePdfDocument(base64, { mimeType, filename });
+  }
+
+  // Spreadsheet files (Excel, CSV exports)
+  if (isSpreadsheetMimeType(mimeType)) {
+    console.log(`[parseFile] Parsing spreadsheet: ${filename}`);
+    const buffer = await getFileBuffer(storageKey);
+    return parseSpreadsheet(buffer, { mimeType, filename });
+  }
+
   return {
     success: false,
-    error: `Unsupported MIME type: ${mimeType}. Currently only images are supported.`,
+    error: `Unsupported MIME type: ${mimeType}. Supported: images, PDF, Excel, CSV.`,
   };
 }
 

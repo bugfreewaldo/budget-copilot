@@ -233,11 +233,13 @@ export async function listCategories(params?: {
   cursor?: string;
   limit?: number;
   q?: string;
+  flat?: boolean;
 }): Promise<Page<Category>> {
   const queryParams = new URLSearchParams();
   if (params?.cursor) queryParams.append('cursor', params.cursor);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.q) queryParams.append('q', params.q);
+  if (params?.flat) queryParams.append('flat', 'true');
 
   const query = queryParams.toString();
   return await fetchApi<Page<Category>>(
@@ -303,10 +305,11 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 /**
- * Get all categories (convenience wrapper around listCategories)
+ * Get all categories (includes ALL categories - parents and children)
+ * The API returns categories in a flat list ordered by name when flat=true
  */
 export async function getCategories(): Promise<Category[]> {
-  const result = await listCategories({ limit: 500 });
+  const result = await listCategories({ flat: true });
   return result.data;
 }
 
@@ -1083,13 +1086,13 @@ export async function completeUpload(
   ok: boolean;
   fileIds: string[];
   parsed: string[];
-  queued: string[];
+  failed: string[];
 }> {
   return await fetchApi<{
     ok: boolean;
     fileIds: string[];
     parsed: string[];
-    queued: string[];
+    failed: string[];
   }>('/v1/uploads/complete', {
     method: 'POST',
     headers: {
@@ -1163,4 +1166,550 @@ export async function uploadFileToS3(
   if (!response.ok) {
     throw new Error(`Upload failed: ${response.statusText}`);
   }
+}
+
+// ============================================================================
+// Decision Engine - The Core Product
+// ============================================================================
+
+export type RiskLevel = 'safe' | 'caution' | 'warning' | 'danger' | 'critical';
+export type CommandType = 'pay' | 'save' | 'spend' | 'freeze' | 'wait';
+
+export interface DecisionPrimaryCommand {
+  type: CommandType;
+  text: string;
+  amountCents?: number;
+  target?: string;
+  date?: string;
+}
+
+export interface DecisionContext {
+  cashAvailable: number;
+  daysUntilPay: number;
+  upcomingBillsTotal: number;
+  runwayDays: number;
+  nextBillDate: string | null;
+  nextBillAmount: number;
+  dailyBudget: number;
+}
+
+export interface DecisionResponse {
+  id: string;
+  isPaid: boolean;
+  riskLevel: RiskLevel;
+  // Paid users get the full command
+  primaryCommand?: DecisionPrimaryCommand;
+  warnings: string[];
+  suggestions?: string[];
+  nextAction?: {
+    text: string;
+    url: string;
+  };
+  hoursRemaining: number;
+  hasExpiredDecision: boolean;
+  computedAt?: number;
+  expiresAt?: number;
+  context?: DecisionContext;
+  // Free users get teaser only
+  teaser?: string;
+}
+
+/**
+ * Get current decision for the user
+ */
+export async function getDecision(): Promise<DecisionResponse> {
+  const response = await fetchApi<{ data: DecisionResponse }>('/v1/decision', {
+    credentials: 'include',
+  });
+  return response.data;
+}
+
+/**
+ * Acknowledge a decision (user clicked action button)
+ */
+export async function acknowledgeDecision(decisionId: string): Promise<void> {
+  await fetchApi<{ success: boolean }>('/v1/decision/acknowledge', {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+    body: JSON.stringify({ decisionId }),
+  });
+}
+
+// ============================================================================
+// Interview Engine - Onboarding Financial Interview
+// ============================================================================
+
+export type InterviewStep =
+  | 'cash'
+  | 'income'
+  | 'bills'
+  | 'debts'
+  | 'spending'
+  | 'ant_expenses'
+  | 'savings'
+  | 'complete';
+
+export type InsightFlag =
+  | 'overspend'
+  | 'no_buffer'
+  | 'ant_expenses_high'
+  | 'no_savings'
+  | 'debt_pressure';
+
+export interface InterviewChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+export interface InterviewExtractedData {
+  cash_available: { value: number | null; confidence: string } | null;
+  income_monthly: { value: number | null; confidence: string } | null;
+  bills: Array<{
+    name: string;
+    amount: number;
+    frequency: string;
+    confidence: string;
+  }> | null;
+  debts: Array<{
+    name: string;
+    balance: number;
+    minimum: number | null;
+    apr: number | null;
+    confidence: string;
+  }> | null;
+  variable_spending_estimate: {
+    value: number | null;
+    confidence: string;
+  } | null;
+  ant_expenses_estimate: { value: number | null; confidence: string } | null;
+  savings_monthly: { value: number | null; confidence: string } | null;
+}
+
+export interface InterviewState {
+  id: string;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  currentStep: InterviewStep;
+  conversationHistory: InterviewChatMessage[];
+  extractedData: InterviewExtractedData;
+  insightFlags: InsightFlag[];
+  isComplete: boolean;
+  initialMessage: string | null;
+}
+
+export interface InterviewMessageResponse {
+  message: string;
+  currentStep: InterviewStep;
+  isComplete: boolean;
+  insightFlags: InsightFlag[];
+  summary: string | null;
+}
+
+/**
+ * Get current interview state or create new session
+ */
+export async function getInterviewState(): Promise<InterviewState> {
+  const response = await fetchApi<{ data: InterviewState }>('/v1/interview', {
+    credentials: 'include',
+  });
+  return response.data;
+}
+
+/**
+ * Send a message to the interview agent
+ */
+export async function sendInterviewMessage(
+  message: string
+): Promise<InterviewMessageResponse> {
+  const response = await fetchApi<{ data: InterviewMessageResponse }>(
+    '/v1/interview/message',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ message }),
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Skip the interview and proceed without completing
+ */
+export async function skipInterview(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await fetchApi<{
+    data: { success: boolean; message: string };
+  }>('/v1/interview/skip', {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+  });
+  return response.data;
+}
+
+/**
+ * Manually complete the interview with current data
+ */
+export async function completeInterview(): Promise<{
+  success: boolean;
+  summary: string;
+  insightFlags: InsightFlag[];
+}> {
+  const response = await fetchApi<{
+    data: {
+      success: boolean;
+      summary: string;
+      insightFlags: InsightFlag[];
+    };
+  }>('/v1/interview/complete', {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+  });
+  return response.data;
+}
+
+/**
+ * Reset the interview session (start over)
+ */
+export async function resetInterview(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await fetchApi<{
+    data: { success: boolean; message: string };
+  }>('/v1/interview', {
+    method: 'DELETE',
+    headers: {
+      'Idempotency-Key': crypto.randomUUID(),
+    },
+  });
+  return response.data;
+}
+
+// ============================================================================
+// Checkout & Subscriptions
+// ============================================================================
+
+export interface CheckoutResponse {
+  paymentUrl: string;
+  orderNumber: string;
+  subscriptionId: string;
+}
+
+/**
+ * Initiate checkout for a subscription plan
+ */
+export async function initiateCheckout(
+  billingPeriod: 'monthly' | 'yearly'
+): Promise<CheckoutResponse> {
+  const response = await fetchApi<{ data: CheckoutResponse }>('/v1/checkout', {
+    method: 'POST',
+    body: JSON.stringify({ billingPeriod }),
+    credentials: 'include',
+  });
+  return response.data;
+}
+
+// ============================================================================
+// Asesor Financiero (Financial Advisor)
+// ============================================================================
+
+export interface AdvisorMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+  classification?: 'update' | 'question' | 'correction' | 'document';
+  hasPendingChanges?: boolean;
+}
+
+export interface AdvisorPendingChanges {
+  transactions?: Array<{
+    type: 'income' | 'expense';
+    amountCents: number;
+    description: string;
+    date: string;
+    categoryGuess?: string;
+  }>;
+  transactionUpdates?: Array<{
+    transactionId: string;
+    updates: {
+      amountCents?: number;
+      description?: string;
+      categoryId?: string;
+      date?: string;
+    };
+  }>;
+  transactionDeletions?: string[];
+  incomeChange?: {
+    type: 'monthly_salary' | 'one_time';
+    amountCents: number;
+    description?: string;
+  };
+  debtChanges?: Array<{
+    debtId?: string;
+    type?: string;
+    name?: string;
+    currentBalanceCents?: number;
+    minimumPaymentCents?: number;
+    aprPercent?: number;
+    dueDay?: number;
+  }>;
+  billChanges?: Array<{
+    billId?: string;
+    name?: string;
+    amountCents?: number;
+    dueDay?: number;
+    frequency?: string;
+    isActive?: boolean;
+  }>;
+  fileImport?: {
+    fileId: string;
+    itemIds: string[];
+    categoryOverrides?: Record<
+      string,
+      { categoryId: string | null; categoryName: string | null }
+    >;
+  };
+}
+
+/**
+ * Document context returned when a file is processed by the advisor
+ */
+export interface AdvisorDocumentContext {
+  fileId: string;
+  documentType: 'bank_statement' | 'receipt' | 'invoice';
+  accountName?: string | null;
+  period?: {
+    from: string | null;
+    to: string | null;
+  };
+  stats: {
+    totalCount: number;
+    incomeCount: number;
+    expenseCount: number;
+    transferCount: number;
+    uncategorizedCount: number;
+    lowConfidenceCount: number;
+    microFeeCount: number;
+    dateRange: {
+      from: string | null;
+      to: string | null;
+    };
+    amountRange: {
+      min: number;
+      max: number;
+    };
+    totalIncomeCents: number;
+    totalExpenseCents: number;
+  };
+  enrichment?: {
+    transactions: Array<{
+      id: string;
+      date: string | null;
+      description: string;
+      amount: number;
+      isCredit: boolean;
+      category: {
+        id: string | null;
+        name: string | null;
+        confidence: number;
+        source: 'pattern' | 'ai' | 'none';
+      };
+      isTransfer: boolean;
+      matchedTransferId?: string;
+    }>;
+    transferPairs: Array<{
+      creditId: string;
+      debitId: string;
+      amount: number;
+      confidence: number;
+    }>;
+    insights: {
+      spendingByCategory: Array<{
+        categoryName: string;
+        categoryId: string | null;
+        totalCents: number;
+        transactionCount: number;
+        percentage: number;
+      }>;
+      incomeByCategory: Array<{
+        categoryName: string;
+        categoryId: string | null;
+        totalCents: number;
+        transactionCount: number;
+        percentage: number;
+      }>;
+      largestExpenses: Array<{
+        id: string;
+        description: string;
+        amountCents: number;
+        date: string | null;
+        categoryName: string | null;
+      }>;
+      largestIncome: Array<{
+        id: string;
+        description: string;
+        amountCents: number;
+        date: string | null;
+        categoryName: string | null;
+      }>;
+      recurringPatterns: Array<{
+        description: string;
+        normalizedDescription: string;
+        avgAmountCents: number;
+        frequency: 'weekly' | 'biweekly' | 'monthly' | 'irregular';
+        occurrences: number;
+        dates: string[];
+        isExpense: boolean;
+      }>;
+      anomalies: Array<{
+        transactionId: string;
+        description: string;
+        amountCents: number;
+        date: string | null;
+        reason:
+          | 'unusually_high'
+          | 'unusually_low'
+          | 'round_number'
+          | 'potential_duplicate';
+        details?: string;
+      }>;
+    };
+  };
+}
+
+export interface AdvisorChatResponse {
+  reply: string;
+  classification: 'update' | 'question' | 'correction' | 'document';
+  pendingChanges: AdvisorPendingChanges | null;
+  requiresConfirmation: boolean;
+  confirmationPrompt: string | null;
+  suggestedNextAction:
+    | 'none'
+    | 'confirm_changes'
+    | 'upload_more'
+    | 'recompute_decision';
+  confidence: 'high' | 'medium' | 'low';
+  documentContext?: AdvisorDocumentContext;
+  showModeSelector?: boolean;
+}
+
+export interface AdvisorSessionResponse {
+  isPaid: boolean;
+  paywall?: {
+    title: string;
+    message: string;
+    ctaText: string;
+    ctaUrl: string;
+  };
+  session?: {
+    id: string;
+    conversationHistory: AdvisorMessage[];
+    pendingChanges: AdvisorPendingChanges | null;
+  };
+  welcomeMessage?: string;
+}
+
+export interface AdvisorConfirmResponse {
+  success: boolean;
+  changesApplied: string[];
+  decisionRecomputed: boolean;
+  message: string;
+  redirectTo: string | null;
+}
+
+/**
+ * Get advisor session state (includes paywall check)
+ */
+export async function getAdvisorSession(): Promise<AdvisorSessionResponse> {
+  const response = await fetchApi<{ data: AdvisorSessionResponse }>(
+    '/v1/advisor',
+    {
+      credentials: 'include',
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Send a message to the financial advisor
+ */
+export async function sendAdvisorMessage(
+  sessionId: string,
+  message: string,
+  fileContext?: { fileId: string; summary: string }
+): Promise<AdvisorChatResponse> {
+  const response = await fetchApi<{ data: AdvisorChatResponse }>(
+    '/v1/advisor/chat',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ sessionId, message, fileContext }),
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Confirm and apply pending changes from the advisor
+ * @param sessionId - The advisor session ID
+ * @param pendingChanges - Optional pending changes to apply (if not provided, uses session's pending changes)
+ */
+export async function confirmAdvisorChanges(
+  sessionId: string,
+  pendingChanges?: AdvisorPendingChanges
+): Promise<AdvisorConfirmResponse> {
+  const response = await fetchApi<{ data: AdvisorConfirmResponse }>(
+    '/v1/advisor/confirm',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ sessionId, pendingChanges }),
+    }
+  );
+  return response.data;
+}
+
+export interface AdvisorResetResponse {
+  success: boolean;
+  message: string;
+  session: {
+    id: string;
+    conversationHistory: AdvisorMessage[];
+    pendingChanges: AdvisorPendingChanges | null;
+  };
+  welcomeMessage: string;
+}
+
+/**
+ * Reset advisor session - clears conversation history and pending changes
+ */
+export async function resetAdvisorSession(
+  sessionId: string
+): Promise<AdvisorResetResponse> {
+  const response = await fetchApi<{ data: AdvisorResetResponse }>(
+    '/v1/advisor/reset',
+    {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ sessionId }),
+    }
+  );
+  return response.data;
 }
