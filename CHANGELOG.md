@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0](https://github.com/bugfreewaldo/budget-copilot/compare/v1.0.0...v1.1.0) (2026-01-06)
+
+
+### Features
+
+* Add AI advisor, decision engine, and major feature improvements ([65701a4](https://github.com/bugfreewaldo/budget-copilot/commit/65701a4d5d4351cf54d41be0f196d21ceb20edec))
+* Add edit transaction functionality and improve deudas layout ([356296d](https://github.com/bugfreewaldo/budget-copilot/commit/356296d3c6100a49fe506317f703fc3996426482))
+
+
+### Bug Fixes
+
+* Allow null returns for pages with conditional rendering ([bd78513](https://github.com/bugfreewaldo/budget-copilot/commit/bd7851303d9ac9e498f0b4d3dbaa88ea424ebcb2))
+* Use undefined instead of null for optional fields in deudas ([2054855](https://github.com/bugfreewaldo/budget-copilot/commit/20548556b874726361c5fb021d10eba05d79261f))
+* Vercel deployment fixes and CI hardening ([41c04b3](https://github.com/bugfreewaldo/budget-copilot/commit/41c04b36005f2bfe65466eac51368e58ced254f4))
+
 ## 1.0.0 (2025-12-18)
 
 ### Features
