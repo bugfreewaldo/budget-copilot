@@ -107,7 +107,7 @@ async function start() {
   const server = await buildServer();
 
   try {
-    const port = Number(process.env.PORT) || 4000;
+    const port = Number(process.env.PORT) || 4001;
     const host = process.env.HOST || '0.0.0.0';
 
     await server.listen({ port, host });
