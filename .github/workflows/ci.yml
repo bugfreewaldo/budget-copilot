@@ -1,4 +1,4 @@
-name: CI
+name: CI Budget Copilot Web App
 
 on:
   push:
@@ -85,16 +85,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check packages
-        run: |
-          pnpm --filter @budget-copilot/core type-check
-          pnpm --filter @budget-copilot/ai type-check
-          pnpm --filter @budget-copilot/ui type-check
-
-      - name: Type check apps
-        run: |
-          pnpm --filter web type-check
-          pnpm --filter api type-check
+      - name: Type check all packages and apps
+        run: pnpm exec turbo run type-check
 
   test:
     name: Test
