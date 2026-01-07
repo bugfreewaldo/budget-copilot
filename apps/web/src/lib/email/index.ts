@@ -1,6 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors when API key is not set
+let resendInstance: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+}
 
 const FROM_EMAIL = 'Budget Copilot <noreply@budgetcopilot.app>';
 const APP_NAME = 'Budget Copilot';
@@ -14,7 +22,7 @@ export interface SendEmailOptions {
 
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: options.to,
       subject: options.subject,
