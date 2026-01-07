@@ -15,7 +15,7 @@ import {
   advisorSessions,
   transactions,
   debts,
-  scheduledBills,
+  recurringTransactions,
   userProfiles,
   accounts,
   decisionState,
@@ -30,6 +30,60 @@ import {
 
 // Initialize Anthropic client
 const anthropic = new Anthropic();
+
+// Map AI debt types to database types
+function mapDebtType(
+  aiType?: string
+):
+  | 'credit_card'
+  | 'personal_loan'
+  | 'auto_loan'
+  | 'mortgage'
+  | 'student_loan'
+  | 'medical'
+  | 'other' {
+  switch (aiType) {
+    case 'credit_card':
+      return 'credit_card';
+    case 'loan':
+    case 'personal':
+    case 'personal_loan':
+      return 'personal_loan';
+    case 'auto_loan':
+      return 'auto_loan';
+    case 'mortgage':
+      return 'mortgage';
+    case 'student_loan':
+      return 'student_loan';
+    case 'medical':
+      return 'medical';
+    default:
+      return 'other';
+  }
+}
+
+// Map AI frequency to database frequency
+function mapFrequency(
+  aiFrequency?: string
+): 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'annually' {
+  switch (aiFrequency) {
+    case 'daily':
+      return 'daily';
+    case 'weekly':
+      return 'weekly';
+    case 'biweekly':
+      return 'biweekly';
+    case 'monthly':
+      return 'monthly';
+    case 'quarterly':
+      return 'quarterly';
+    case 'yearly':
+    case 'annually':
+      return 'annually';
+    default:
+      return 'monthly';
+  }
+}
 
 /**
  * Message in conversation history
@@ -47,7 +101,7 @@ export interface AdvisorMessage {
  * Get or create advisor session for user
  */
 export async function getOrCreateAdvisorSession(userId: string) {
-  const db = getDb();
+  const db = await getDb();
 
   // Check for existing active session
   const existing = await db
@@ -80,7 +134,7 @@ export async function getOrCreateAdvisorSession(userId: string) {
     userId,
     status: 'active' as const,
     conversationHistory: JSON.stringify([]),
-    pendingChanges: null,
+    pendingChanges: null as string | null,
     createdAt: Date.now(),
     lastActivityAt: Date.now(),
   };
@@ -99,7 +153,7 @@ export async function getOrCreateAdvisorSession(userId: string) {
  * Build user context for the AI
  */
 async function buildUserContext(userId: string): Promise<string> {
-  const db = getDb();
+  const db = await getDb();
 
   // Get user profile
   const profile = await db
@@ -131,11 +185,11 @@ async function buildUserContext(userId: string): Promise<string> {
     .where(eq(debts.userId, userId))
     .all();
 
-  // Get scheduled bills
+  // Get recurring transactions (scheduled bills)
   const bills = await db
     .select()
-    .from(scheduledBills)
-    .where(eq(scheduledBills.userId, userId))
+    .from(recurringTransactions)
+    .where(eq(recurringTransactions.userId, userId))
     .all();
 
   // Get current decision state
@@ -143,7 +197,7 @@ async function buildUserContext(userId: string): Promise<string> {
     .select()
     .from(decisionState)
     .where(eq(decisionState.userId, userId))
-    .orderBy(desc(decisionState.createdAt))
+    .orderBy(desc(decisionState.computedAt))
     .get();
 
   // Build context string
@@ -168,7 +222,7 @@ ${recentTxns.length > 10 ? `... y ${recentTxns.length - 10} más` : ''}
 
 Deudas: ${userDebts.length > 0 ? userDebts.map((d) => `${d.name}: $${(d.currentBalanceCents / 100).toFixed(2)}`).join(', ') : 'Ninguna'}
 
-Gastos fijos mensuales: ${bills.length > 0 ? bills.map((b) => `${b.name}: $${(b.amountCents / 100).toFixed(2)}`).join(', ') : 'Ninguno'}
+Gastos fijos mensuales: ${bills.length > 0 ? bills.map((b) => `${b.name}: $${(b.expectedAmountCents / 100).toFixed(2)}`).join(', ') : 'Ninguno'}
 
 Decisión actual: ${decision ? `${decision.riskLevel} - ${decision.primaryCommandText}` : 'No hay decisión activa'}
 `;
@@ -192,7 +246,7 @@ export async function processAdvisorMessage(
   confirmationPrompt: string | null;
   suggestedNextAction: AdvisorAIResponse['suggestedNextAction'];
 }> {
-  const db = getDb();
+  const db = await getDb();
 
   // Get session
   const session = await db
@@ -332,7 +386,7 @@ export async function confirmPendingChanges(
   decisionRecomputed: boolean;
   error?: string;
 }> {
-  const db = getDb();
+  const db = await getDb();
 
   // Get session
   const session = await db
@@ -459,7 +513,8 @@ export async function confirmPendingChanges(
             id: nanoid(),
             userId,
             name: debtChange.name || 'Nueva deuda',
-            type: debtChange.type || 'other',
+            type: mapDebtType(debtChange.type),
+            originalBalanceCents: debtChange.currentBalanceCents || 0,
             currentBalanceCents: debtChange.currentBalanceCents || 0,
             minimumPaymentCents: debtChange.minimumPaymentCents || 0,
             aprPercent: debtChange.aprPercent || 0,
@@ -471,36 +526,38 @@ export async function confirmPendingChanges(
       }
     }
 
-    // Apply bill changes
+    // Apply bill changes (recurring transactions)
     if (changes.billChanges) {
       for (const billChange of changes.billChanges) {
         if (billChange.billId) {
           await db
-            .update(scheduledBills)
+            .update(recurringTransactions)
             .set({
-              amountCents: billChange.amountCents,
-              dueDay: billChange.dueDay,
-              isActive: billChange.isActive,
+              expectedAmountCents: billChange.amountCents,
+              dayOfMonth: billChange.dueDay,
+              status: billChange.isActive ? 'active' : 'paused',
               updatedAt: Date.now(),
             })
             .where(
               and(
-                eq(scheduledBills.id, billChange.billId),
-                eq(scheduledBills.userId, userId)
+                eq(recurringTransactions.id, billChange.billId),
+                eq(recurringTransactions.userId, userId)
               )
             );
           changesApplied.push(
             `Gasto fijo actualizado: ${billChange.name || billChange.billId}`
           );
         } else {
-          await db.insert(scheduledBills).values({
+          await db.insert(recurringTransactions).values({
             id: nanoid(),
             userId,
             name: billChange.name || 'Nuevo gasto',
-            amountCents: billChange.amountCents || 0,
-            dueDay: billChange.dueDay || 1,
-            frequency: billChange.frequency || 'monthly',
-            isActive: true,
+            expectedAmountCents: billChange.amountCents || 0,
+            dayOfMonth: billChange.dueDay || 1,
+            frequency: mapFrequency(billChange.frequency),
+            type: 'expense',
+            detectionMethod: 'user_created',
+            status: 'active',
             createdAt: Date.now(),
             updatedAt: Date.now(),
           });
@@ -545,7 +602,7 @@ export async function confirmPendingChanges(
  * Clear pending changes (user cancelled)
  */
 export async function clearPendingChanges(sessionId: string): Promise<void> {
-  const db = getDb();
+  const db = await getDb();
 
   await db
     .update(advisorSessions)

@@ -638,6 +638,7 @@ export const recurringTransactions = sqliteTable(
   'recurring_transactions',
   {
     id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
 
     // Description
     name: text('name').notNull(), // "Netflix", "Rent", "Salary"
