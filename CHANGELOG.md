@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/bugfreewaldo/budget-copilot/compare/v1.0.0...v1.1.0) (2026-01-07)
+
+
+### Features
+
+* Add AI advisor, decision engine, and major feature improvements ([65701a4](https://github.com/bugfreewaldo/budget-copilot/commit/65701a4d5d4351cf54d41be0f196d21ceb20edec))
+* Add edit transaction functionality and improve deudas layout ([356296d](https://github.com/bugfreewaldo/budget-copilot/commit/356296d3c6100a49fe506317f703fc3996426482))
+
+
+### Bug Fixes
+
+* Add type-check to turbo pipeline for proper dependency handling ([93add09](https://github.com/bugfreewaldo/budget-copilot/commit/93add0998f3caa8b8ca9442f8deaa472c076f1cd))
+* Allow null returns for pages with conditional rendering ([bd78513](https://github.com/bugfreewaldo/budget-copilot/commit/bd7851303d9ac9e498f0b4d3dbaa88ea424ebcb2))
+* Lazy initialize Resend client to fix build-time errors ([a8ddef2](https://github.com/bugfreewaldo/budget-copilot/commit/a8ddef28a5287bd90dcd4fc618a5ab9c92854194))
+* Resolve CI type errors in advisor service ([03a1ec7](https://github.com/bugfreewaldo/budget-copilot/commit/03a1ec7cf60f649b85b9dae43497741330f5f199))
+* Use undefined instead of null for optional fields in deudas ([2054855](https://github.com/bugfreewaldo/budget-copilot/commit/20548556b874726361c5fb021d10eba05d79261f))
+* Vercel deployment fixes and CI hardening ([41c04b3](https://github.com/bugfreewaldo/budget-copilot/commit/41c04b36005f2bfe65466eac51368e58ced254f4))
+
 ## 1.0.0 (2025-12-18)
 
 ### Features
