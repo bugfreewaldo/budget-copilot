@@ -1,5 +1,5 @@
 /**
- * Create scheduled_bills and scheduled_income tables in Turso
+ * Create scheduled_bills and scheduled_income tables in libSQL
  */
 
 import { createClient } from '@libsql/client';
@@ -11,15 +11,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../.env.local') });
 
 async function main() {
-  const url = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+  const authToken = process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
 
-  if (!url || !authToken) {
-    console.error('Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN');
+  if (!url) {
+    console.error('Missing LIBSQL_URL environment variable');
     process.exit(1);
   }
 
-  console.log('🔄 Connecting to Turso...');
+  console.log('🔄 Connecting to libSQL...');
   const client = createClient({ url, authToken });
 
   console.log('📝 Creating scheduled_bills table...');

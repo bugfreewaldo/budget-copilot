@@ -130,12 +130,15 @@ signals.forEach((signal) => {
 });
 
 // Start if run directly (not in test environment)
-// On Windows, paths need special handling for import.meta.url comparison
+// On Windows with spaces in path, import.meta.url uses %20 encoding
+// while process.argv[1] uses literal spaces, so we normalize both
 const scriptPath = process.argv[1] ?? '';
+const normalizedScript = decodeURIComponent(scriptPath.replace(/\\/g, '/'));
+const normalizedMeta = decodeURIComponent(import.meta.url);
 const isDirectRun =
-  import.meta.url.includes(scriptPath.replace(/\\/g, '/')) ||
-  import.meta.url === `file://${scriptPath}` ||
-  import.meta.url === `file:///${scriptPath.replace(/\\/g, '/')}`;
+  normalizedMeta.includes(normalizedScript) ||
+  normalizedMeta.endsWith(normalizedScript) ||
+  normalizedMeta === `file:///${normalizedScript}`;
 
 if (isDirectRun && process.env.NODE_ENV !== 'test') {
   start();

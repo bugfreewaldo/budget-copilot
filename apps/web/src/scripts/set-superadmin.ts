@@ -23,11 +23,12 @@ async function main() {
     process.exit(1);
   }
 
-  const databaseUrl = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const databaseUrl = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+  const authToken =
+    process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
 
   if (!databaseUrl) {
-    console.error('Error: TURSO_DATABASE_URL environment variable is required');
+    console.error('Error: LIBSQL_URL environment variable is required');
     process.exit(1);
   }
 

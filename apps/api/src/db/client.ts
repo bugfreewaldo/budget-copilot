@@ -1,21 +1,13 @@
-import { createClient, type Client as LibSQLClient } from '@libsql/client';
-import { drizzle as drizzleLibSQL } from 'drizzle-orm/libsql';
 import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import type { LibSQLDatabase } from 'drizzle-orm/libsql';
+import * as fsSync from 'node:fs';
 import * as schema from './schema.js';
 
 /**
- * Database client that supports both Turso (production) and SQL.js (local dev)
- *
- * Priority:
- * 1. If TURSO_DATABASE_URL is set -> use Turso (remote LibSQL)
- * 2. Otherwise -> use SQL.js (local file-based SQLite)
+ * Database client using SQL.js (local file-based SQLite)
  */
 
-export type DatabaseInstance =
-  | BetterSQLite3Database<typeof schema>
-  | LibSQLDatabase<typeof schema>;
+export type DatabaseInstance = BetterSQLite3Database<typeof schema>;
 
 interface SqlJsDatabase {
   prepare: (sql: string) => SqlJsStatement;
@@ -39,17 +31,11 @@ interface SqlJsStatic {
 }
 
 let dbInstance: DatabaseInstance | null = null;
-let libsqlClient: LibSQLClient | null = null;
 let sqlJsDb: SqlJsDatabase | null = null;
 let SQL: SqlJsStatic | null = null;
 let isDirty = false;
 let saveTimer: NodeJS.Timeout | null = null;
 const SAVE_DEBOUNCE_MS = 150;
-
-// Check if we should use Turso
-function useTurso(): boolean {
-  return !!(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN);
-}
 
 /**
  * Initialize database connection
@@ -59,23 +45,8 @@ export async function initializeDatabase(): Promise<DatabaseInstance> {
     return dbInstance;
   }
 
-  if (useTurso()) {
-    // Use Turso (production)
-    console.log('🌐 Connecting to Turso database...');
-
-    libsqlClient = createClient({
-      url: process.env.TURSO_DATABASE_URL!,
-      authToken: process.env.TURSO_AUTH_TOKEN!,
-    });
-
-    dbInstance = drizzleLibSQL(libsqlClient, { schema });
-    console.log('✅ Connected to Turso database');
-  } else {
-    // Use SQL.js (local development)
-    console.log('📂 Using local SQL.js database...');
-    dbInstance = await initializeSqlJs();
-  }
-
+  console.log('📂 Using local SQL.js database...');
+  dbInstance = await initializeSqlJs();
   return dbInstance;
 }
 
@@ -176,12 +147,10 @@ export async function getDb(): Promise<DatabaseInstance> {
 }
 
 /**
- * Save database to disk (only for SQL.js)
+ * Save database to disk
  */
 export function saveDatabase(): void {
-  if (useTurso() || !sqlJsDb) {
-    return; // Turso handles persistence automatically
-  }
+  if (!sqlJsDb) return;
   queueSave();
 }
 
@@ -189,15 +158,10 @@ export function saveDatabase(): void {
  * Flush any pending save immediately
  */
 export async function flushSave(): Promise<void> {
-  if (useTurso()) {
-    return; // Turso handles persistence automatically
-  }
-
   if (saveTimer) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-
   flushSaveSync();
 }
 
@@ -210,10 +174,7 @@ export function closeDatabase(): void {
     saveTimer = null;
   }
 
-  if (useTurso() && libsqlClient) {
-    libsqlClient.close();
-    libsqlClient = null;
-  } else if (sqlJsDb) {
+  if (sqlJsDb) {
     flushSaveSync();
     sqlJsDb.close();
     sqlJsDb = null;
@@ -223,7 +184,7 @@ export function closeDatabase(): void {
 }
 
 // ============================================================================
-// SQL.js specific helpers (kept for local development)
+// SQL.js helpers
 // ============================================================================
 
 function queueSave(): void {
@@ -250,14 +211,12 @@ function flushSaveSync(): void {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('node:fs');
     const tmpPath = `${dbPath}.tmp`;
     const data = sqlJsDb.export();
     const buffer = Buffer.from(data);
 
-    fs.writeFileSync(tmpPath, buffer);
-    fs.renameSync(tmpPath, dbPath);
+    fsSync.writeFileSync(tmpPath, buffer);
+    fsSync.renameSync(tmpPath, dbPath);
 
     isDirty = false;
     console.log(`💾 Saved database to ${dbPath} (${buffer.length} bytes)`);

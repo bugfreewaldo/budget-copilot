@@ -5,9 +5,15 @@
 
 import { createClient } from '@libsql/client';
 
+const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+if (!url) {
+  console.error('Error: LIBSQL_URL environment variable is required');
+  process.exit(1);
+}
+
 const db = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url,
+  authToken: process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN,
 });
 
 const migrations = [

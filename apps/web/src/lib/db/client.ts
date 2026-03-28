@@ -5,7 +5,7 @@ import * as schema from './schema';
 
 /**
  * Database client for Vercel serverless environment
- * Uses Turso (LibSQL) for edge-optimized SQLite
+ * Connects to a libSQL server (self-hosted sqld or Turso-compatible)
  */
 
 export type DatabaseInstance = LibSQLDatabase<typeof schema>;
@@ -22,12 +22,13 @@ export function getDb(): DatabaseInstance {
     return dbInstance;
   }
 
-  const url = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+  const authToken =
+    process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
 
-  if (!url || !authToken) {
+  if (!url) {
     throw new Error(
-      'Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN environment variables'
+      'Missing LIBSQL_URL environment variable. Set it to your libSQL server URL (e.g. http://your-tunnel.example.com)'
     );
   }
 
