@@ -7,7 +7,7 @@ describe('Health Routes', () => {
 
   beforeAll(async () => {
     // Use in-memory database for tests
-    process.env.DATABASE_URL = ':memory:';
+    process.env.LIBSQL_URL = process.env.LIBSQL_URL || 'http://localhost:8080';
     server = await buildServer();
   });
 
@@ -25,7 +25,7 @@ describe('Health Routes', () => {
 
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty('status', 'ok');
-    expect(body).toHaveProperty('dbFile');
+    expect(body).toHaveProperty('dbUrl');
     expect(body).toHaveProperty('timestamp');
   });
 });

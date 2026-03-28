@@ -5,6 +5,6 @@ export default {
   out: './drizzle',
   dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.DATABASE_URL || './data/budget.db',
+    url: process.env.LIBSQL_URL || 'http://localhost:8080',
   },
 } satisfies Config;

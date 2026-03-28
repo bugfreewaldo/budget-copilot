@@ -8,7 +8,7 @@ export const healthRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/health', async (_request, reply) => {
     return reply.send({
       status: 'ok',
-      dbFile: config.databaseUrl,
+      dbUrl: config.libsqlUrl,
       timestamp: new Date().toISOString(),
     });
   });

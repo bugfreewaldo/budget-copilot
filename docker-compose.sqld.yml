@@ -1,0 +1,8 @@
+services:
+  sqld:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./apps/api/data:/data
+    command: sqld --db-path /data/budget.db --http-listen-addr 0.0.0.0:8080
