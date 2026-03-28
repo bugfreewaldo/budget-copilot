@@ -43,6 +43,9 @@ Thumbs.db
 # Turbo
 .turbo
 
+# TypeScript build info
+*.tsbuildinfo
+
 # Database
 *.db
 *.db-journal
