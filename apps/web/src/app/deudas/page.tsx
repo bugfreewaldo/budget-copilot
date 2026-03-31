@@ -172,11 +172,23 @@ function calculateFreedomDate(
 
   // Calculate total months - simplified simulation
   let totalMonths = 0;
-  let remainingDebts = sortedDebts.map((d) => ({
-    balance: d.currentBalanceCents,
-    apr: d.aprPercent,
-    minPayment: d.minimumPaymentCents || 0,
-  }));
+  let remainingDebts = sortedDebts.map((d) => {
+    // Use actual payment if set, otherwise effective minimum, otherwise 2% fallback
+    const effectiveMin =
+      d.effectiveMinimumPaymentCents ||
+      d.minimumPaymentCents ||
+      Math.ceil(d.currentBalanceCents * 0.02);
+    const payment =
+      d.actualPaymentCents && d.actualPaymentCents > 0
+        ? d.actualPaymentCents
+        : effectiveMin;
+    return {
+      balance: d.currentBalanceCents,
+      apr: d.aprPercent,
+      minPayment: payment,
+      originalMinPayment: payment,
+    };
+  });
 
   // Get total minimum payment budget
   const totalMinPayment = remainingDebts.reduce(
@@ -207,14 +219,14 @@ function calculateFreedomDate(
       return { ...debt, balance: newBalance };
     });
 
-    // Redistribute freed-up payments to first debt
-    const paidOffPayments = sortedDebts
-      .filter((_, i) => remainingDebts[i]!.balance === 0)
-      .reduce((sum, d) => sum + (d.minimumPaymentCents || 0), 0);
+    // Redistribute freed-up payments to first active debt
+    const paidOffPayments = remainingDebts
+      .filter((d) => d.balance === 0)
+      .reduce((sum, d) => sum + d.originalMinPayment, 0);
 
-    if (remainingDebts[0] && remainingDebts[0].balance > 0) {
-      remainingDebts[0].minPayment =
-        (sortedDebts[0]?.minimumPaymentCents || 0) + paidOffPayments;
+    const firstActive = remainingDebts.find((d) => d.balance > 0);
+    if (firstActive) {
+      firstActive.minPayment = firstActive.originalMinPayment + paidOffPayments;
     }
   }
 
@@ -893,73 +905,131 @@ export default function DeudasPage(): React.JSX.Element {
                       : 'Focus your extra payments on the smallest debt first'}
                   </p>
 
-                  {/* Active debts in strategy */}
-                  <div className="space-y-2">
-                    {[...debts]
-                      .filter(
-                        (d) =>
-                          d.status === 'active' &&
-                          d.currentBalanceCents > 0 &&
-                          !excludedFromStrategy.has(d.id)
-                      )
-                      .sort((a, b) =>
-                        selectedStrategy === 'avalanche'
-                          ? b.aprPercent - a.aprPercent
-                          : a.currentBalanceCents - b.currentBalanceCents
-                      )
-                      .map((debt, index) => (
-                        <div
-                          key={debt.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg border ${
-                            index === 0
-                              ? 'border-yellow-500/50 bg-yellow-500/10'
-                              : 'border-gray-700 bg-gray-800/30'
-                          }`}
-                        >
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                              index === 0
-                                ? 'bg-yellow-500 text-black'
-                                : 'bg-gray-700 text-gray-300'
-                            }`}
-                          >
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-white truncate">
-                              {debt.name}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {formatCurrency(debt.currentBalanceCents)} •{' '}
-                              {debt.aprPercent}% APR
-                            </p>
-                          </div>
-                          {index === 0 && (
-                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded font-medium">
-                              🎯 Priority
-                            </span>
-                          )}
-                          <button
-                            onClick={() => toggleDebtInStrategy(debt.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
-                            title="Exclude from strategy"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                  {/* Active debts in strategy with insights */}
+                  <div className="space-y-3">
+                    {(() => {
+                      const sorted = [...debts]
+                        .filter(
+                          (d) =>
+                            d.status === 'active' &&
+                            d.currentBalanceCents > 0 &&
+                            !excludedFromStrategy.has(d.id)
+                        )
+                        .sort((a, b) =>
+                          selectedStrategy === 'avalanche'
+                            ? b.aprPercent - a.aprPercent
+                            : a.currentBalanceCents - b.currentBalanceCents
+                        );
+
+                      // Calculate cumulative freed-up payments
+                      let cumulativeFreed = 0;
+
+                      return sorted.map((debt, index) => {
+                        const currentPayment =
+                          debt.actualPaymentCents ||
+                          debt.effectiveMinimumPaymentCents ||
+                          debt.minimumPaymentCents ||
+                          Math.ceil(debt.currentBalanceCents * 0.02);
+                        const recommendedPayment =
+                          index === 0
+                            ? currentPayment + cumulativeFreed
+                            : currentPayment;
+                        const extraFromPrevious = cumulativeFreed;
+
+                        // After this debt is paid, its payment frees up
+                        const freedAfter = recommendedPayment;
+
+                        // For display: what gets redirected when this one is done
+                        const nextDebt = sorted[index + 1];
+
+                        const node = (
+                          <div key={debt.id}>
+                            <div
+                              className={`flex items-center gap-3 p-4 rounded-lg border ${
+                                index === 0
+                                  ? 'border-yellow-500/50 bg-yellow-500/10'
+                                  : 'border-gray-700 bg-gray-800/30'
+                              }`}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                                  index === 0
+                                    ? 'bg-yellow-500 text-black'
+                                    : 'bg-gray-700 text-gray-300'
+                                }`}
+                              >
+                                {index + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-white truncate">
+                                  {debt.name}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {formatCurrency(debt.currentBalanceCents)} •{' '}
+                                  {debt.aprPercent}% APR
+                                </p>
+                                {/* Insight: recommended payment */}
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                  <span className="text-gray-500">
+                                    Current: {formatCurrency(currentPayment)}/mo
+                                  </span>
+                                  {index === 0 && extraFromPrevious > 0 && (
+                                    <span className="text-green-400">
+                                      Pay {formatCurrency(recommendedPayment)}
+                                      /mo (+{formatCurrency(extraFromPrevious)}{' '}
+                                      freed up)
+                                    </span>
+                                  )}
+                                  {debt.deathDate && (
+                                    <span className="text-gray-500">
+                                      Payoff: {debt.deathDate}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {index === 0 && (
+                                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded font-medium flex-shrink-0">
+                                  Priority
+                                </span>
+                              )}
+                              <button
+                                onClick={() => toggleDebtInStrategy(debt.id)}
+                                className="p-1.5 text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
+                                title="Exclude from strategy"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                            {/* Arrow showing payment redirect */}
+                            {nextDebt && (
+                              <div className="flex items-center gap-2 py-1.5 pl-12">
+                                <div className="w-px h-4 bg-gray-700"></div>
+                                <span className="text-xs text-cyan-400/70">
+                                  When paid off, redirect{' '}
+                                  {formatCurrency(freedAfter)}/mo to{' '}
+                                  {nextDebt.name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+
+                        cumulativeFreed += currentPayment;
+                        return node;
+                      });
+                    })()}
                   </div>
 
                   {/* Excluded debts section */}
@@ -1008,22 +1078,21 @@ export default function DeudasPage(): React.JSX.Element {
                                 <p className="text-xs text-gray-500">
                                   {formatCurrency(debt.currentBalanceCents)} •{' '}
                                   {debt.aprPercent}% APR
-                                  {debt.type === 'mortgage' && ' • Hipoteca'}
+                                  {debt.type === 'mortgage' && ' • Mortgage'}
                                 </p>
                               </div>
                               <button
                                 onClick={() => toggleDebtInStrategy(debt.id)}
                                 className="px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded transition-colors"
-                                title="Incluir en la estrategia"
+                                title="Include in strategy"
                               >
-                                Incluir
+                                Include
                               </button>
                             </div>
                           ))}
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        Las hipotecas se excluyen por defecto (son a largo
-                        plazo)
+                        Mortgages are excluded by default (long-term debt)
                       </p>
                     </div>
                   )}
