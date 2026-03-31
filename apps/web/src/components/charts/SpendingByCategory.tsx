@@ -46,7 +46,7 @@ export function SpendingByCategory({
       const category = categories.find((c) => c.id === categoryId);
       return {
         id: categoryId,
-        name: category?.name || 'Sin categoría',
+        name: category?.name || 'Uncategorized',
         value: amountCents / 100,
         emoji: category?.emoji || '📦',
       };
@@ -57,7 +57,7 @@ export function SpendingByCategory({
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-32 text-gray-500">
-        No hay gastos este mes
+        No expenses this month
       </div>
     );
   }
@@ -127,7 +127,7 @@ export function SpendingByCategory({
         );
       })}
       <div className="pt-3 mt-2 border-t border-gray-700 flex items-center justify-between">
-        <span className="text-gray-400">Total Gastado</span>
+        <span className="text-gray-400">Total Spent</span>
         <span className="text-xl font-bold text-white">
           ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </span>

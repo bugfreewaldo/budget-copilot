@@ -34,12 +34,12 @@ export default function PricingPage(): React.ReactElement {
   }, []);
 
   const prices = {
-    monthly: { amount: 4.99, originalAmount: 9.99, period: '/mes' },
+    monthly: { amount: 4.99, originalAmount: 9.99, period: '/mo' },
     yearly: {
       amount: 39.99,
       monthlyEquiv: 3.33,
       originalMonthlyEquiv: 6.67,
-      period: '/ano',
+      period: '/yr',
     },
   };
 
@@ -53,10 +53,10 @@ export default function PricingPage(): React.ReactElement {
       console.error('Checkout error:', error);
       // If not authenticated, redirect to login
       if (error instanceof Error && error.message.includes('authenticated')) {
-        showToast('Inicia sesion para continuar', 'info');
+        showToast('Sign in to continue', 'info');
         router.push('/login?redirect=/pricing');
       } else {
-        showToast('Error al iniciar el pago. Intenta de nuevo.', 'error');
+        showToast('Failed to start payment. Try again.', 'error');
       }
       setIsLoading(false);
     }
@@ -85,14 +85,14 @@ export default function PricingPage(): React.ReactElement {
                 href="/dashboard"
                 className="text-gray-400 hover:text-white text-sm"
               >
-                Volver al Dashboard
+                Back to Dashboard
               </Link>
             ) : (
               <Link
                 href="/login"
                 className="text-gray-400 hover:text-white text-sm"
               >
-                Iniciar Sesion
+                Sign In
               </Link>
             )}
           </div>
@@ -104,23 +104,21 @@ export default function PricingPage(): React.ReactElement {
         <div className="max-w-lg w-full text-center">
           {/* Value Proposition */}
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Sabe exactamente que hacer con tu dinero
+            Know exactly what to do with your money
           </h1>
           <p className="text-gray-400 text-lg mb-8">
-            Un comando diario. Sin graficas. Sin confusion.
+            One daily command. No charts. No confusion.
           </p>
 
           {/* Comparison */}
           <div className="grid grid-cols-2 gap-4 mb-8 text-left">
             <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-              <p className="text-gray-500 text-sm mb-2">Gratis</p>
-              <p className="text-white">Ve que algo necesita atencion</p>
+              <p className="text-gray-500 text-sm mb-2">Free</p>
+              <p className="text-white">See that something needs attention</p>
             </div>
             <div className="bg-gradient-to-br from-cyan-900/30 to-purple-900/30 border border-cyan-500/50 rounded-xl p-4">
               <p className="text-cyan-400 text-sm mb-2">Pro</p>
-              <p className="text-white font-medium">
-                Sabe exactamente que hacer
-              </p>
+              <p className="text-white font-medium">Know exactly what to do</p>
             </div>
           </div>
 
@@ -156,7 +154,7 @@ export default function PricingPage(): React.ReactElement {
           {/* Launch Offer Badge */}
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-full px-4 py-1.5 mb-4">
             <span className="text-amber-400 text-sm font-medium">
-              Oferta de Lanzamiento
+              Launch Offer
             </span>
             <span className="bg-amber-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
               -50%
@@ -177,7 +175,7 @@ export default function PricingPage(): React.ReactElement {
                   </div>
                 </div>
                 <p className="text-gray-500 text-sm mt-2">
-                  ${prices.yearly.amount} cobrado anualmente
+                  ${prices.yearly.amount} billed annually
                 </p>
               </>
             ) : (
@@ -205,29 +203,29 @@ export default function PricingPage(): React.ReactElement {
             {isLoading ? (
               <span className="flex items-center gap-2">
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Procesando...
+                Processing...
               </span>
             ) : (
-              'Obtener Pro'
+              'Get Pro'
             )}
           </Button>
 
           {/* Trust signals */}
           <p className="text-gray-500 text-sm">
-            Cancela cuando quieras. Garantia de 14 dias.
+            Cancel anytime. 14-day guarantee.
           </p>
 
           {/* Features */}
           <div className="mt-10 text-left">
-            <p className="text-gray-400 text-sm mb-4">Con Pro obtienes:</p>
+            <p className="text-gray-400 text-sm mb-4">With Pro you get:</p>
             <ul className="space-y-3">
               {[
-                'Decisiones diarias personalizadas',
-                'Comandos con consecuencias claras',
-                'Estrategias de pago de deudas',
-                'Alertas de gastos criticos',
-                'Proyeccion de fecha libre de deudas',
-                'Contexto "Por que?" bajo demanda',
+                'Personalized daily decisions',
+                'Commands with clear consequences',
+                'Debt payoff strategies',
+                'Critical spending alerts',
+                'Debt-free date projection',
+                'On-demand "Why?" context',
               ].map((feature, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm">
                   <span className="text-cyan-400">✓</span>
@@ -246,10 +244,10 @@ export default function PricingPage(): React.ReactElement {
             Terminos
           </Link>
           <Link href="/privacy" className="hover:text-gray-300">
-            Privacidad
+            Privacy
           </Link>
           <Link href="/dashboard" className="hover:text-gray-300">
-            Volver
+            Back
           </Link>
         </div>
       </footer>

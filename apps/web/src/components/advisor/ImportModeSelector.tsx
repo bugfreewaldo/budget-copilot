@@ -36,13 +36,13 @@ export function ImportModeSelector({
   // Build breakdown text
   const parts: string[] = [];
   if (stats.expenseCount > 0) {
-    parts.push(`${stats.expenseCount} gastos`);
+    parts.push(`${stats.expenseCount} expenses`);
   }
   if (stats.incomeCount > 0) {
-    parts.push(`${stats.incomeCount} ingresos`);
+    parts.push(`${stats.incomeCount} income`);
   }
   if (stats.transferCount > 0) {
-    parts.push(`${stats.transferCount} transferencias`);
+    parts.push(`${stats.transferCount} transfers`);
   }
   const breakdown = parts.join(', ');
 
@@ -57,37 +57,37 @@ export function ImportModeSelector({
   // Period text
   let periodText = '';
   if (documentContext.period?.from && documentContext.period?.to) {
-    periodText = ` de ${documentContext.period.from} a ${documentContext.period.to}`;
+    periodText = ` from ${documentContext.period.from} to ${documentContext.period.to}`;
   }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
       <div className="mb-4 space-y-2">
         <p className="text-sm text-gray-700 dark:text-gray-300">
-          <span className="font-medium">Listo</span> - procesé tu estado de
-          cuenta{periodText}.
+          <span className="font-medium">Done</span> - I processed your bank
+          statement{periodText}.
         </p>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Encontré{' '}
-          <span className="font-medium">{stats.totalCount} transacciones</span>{' '}
-          ({amountRange}): {breakdown}.
+          Found{' '}
+          <span className="font-medium">{stats.totalCount} transactions</span> (
+          {amountRange}): {breakdown}.
         </p>
         {stats.uncategorizedCount > 0 && (
           <p className="text-xs text-amber-600 dark:text-amber-400">
-            {stats.uncategorizedCount} transacciones sin categoría detectada.
+            {stats.uncategorizedCount} transactions with no detected category.
           </p>
         )}
       </div>
 
       <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-        ¿Qué quieres hacer con esto?
+        What would you like to do with this?
       </p>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
         <Button variant="outline" onClick={onAnalyzeOnly} className="flex-1">
           <div className="flex flex-col items-center">
-            <span>Solo análisis</span>
-            <span className="text-xs text-gray-500">Sin importar</span>
+            <span>Analysis only</span>
+            <span className="text-xs text-gray-500">No import</span>
           </div>
         </Button>
 
@@ -97,15 +97,15 @@ export function ImportModeSelector({
           className="flex-1"
         >
           <div className="flex flex-col items-center">
-            <span>Revisar y seleccionar</span>
-            <span className="text-xs opacity-80">Recomendado</span>
+            <span>Review and select</span>
+            <span className="text-xs opacity-80">Recommended</span>
           </div>
         </Button>
 
         <Button variant="outline" onClick={onImportAll} className="flex-1">
           <div className="flex flex-col items-center">
-            <span>Importar todo</span>
-            <span className="text-xs text-gray-500">Con filtros</span>
+            <span>Import all</span>
+            <span className="text-xs text-gray-500">With filters</span>
           </div>
         </Button>
       </div>

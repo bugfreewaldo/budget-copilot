@@ -28,6 +28,8 @@ export async function register(input: {
   email: string;
   password: string;
   name?: string;
+  householdName: string;
+  memberNames?: string[];
 }): Promise<AuthResponse> {
   return await fetchApi<AuthResponse>('/v1/auth/register', {
     method: 'POST',
@@ -327,6 +329,7 @@ export interface Transaction {
   accountId: string;
   cleared: boolean;
   notes: string | null;
+  sensitive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -366,6 +369,7 @@ export async function createTransaction(input: {
   accountId: string;
   cleared?: boolean;
   notes?: string;
+  sensitive?: boolean;
 }): Promise<Transaction> {
   const response = await fetchApi<{ data: Transaction }>('/v1/transactions', {
     method: 'POST',
@@ -597,7 +601,7 @@ export async function getCopilotQuickActions(): Promise<QuickAction[]> {
 }
 
 // ============================================================================
-// Debts (Copiloto de Deudas)
+// Debts (Debt Copilot)
 // ============================================================================
 
 export type DebtType =
@@ -810,7 +814,7 @@ export async function getDebtStrategies(): Promise<DebtStrategies> {
 }
 
 // ============================================================================
-// Goals (Seguimiento de Metas)
+// Goals (Goal Tracking)
 // ============================================================================
 
 export type GoalType =
@@ -1420,7 +1424,7 @@ export async function initiateCheckout(
 }
 
 // ============================================================================
-// Asesor Financiero (Financial Advisor)
+// Financial Advisor
 // ============================================================================
 
 export interface AdvisorMessage {

@@ -19,7 +19,7 @@ export interface EnrichedTransaction {
     id: string | null;
     name: string | null;
     confidence: number; // 0.0 - 1.0
-    source: 'pattern' | 'ai' | 'none';
+    source: 'learned' | 'pattern' | 'ai' | 'llm' | 'none';
   };
   isTransfer: boolean;
   matchedTransferId?: string;

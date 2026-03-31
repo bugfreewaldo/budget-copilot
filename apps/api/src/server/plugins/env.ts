@@ -6,7 +6,7 @@ import fp from 'fastify-plugin';
  * Ensures required env vars are present
  */
 const envPluginImpl: FastifyPluginAsync = async (fastify) => {
-  const requiredEnvVars = ['LIBSQL_URL'];
+  const requiredEnvVars = ['DATABASE_URL'];
 
   const missing = requiredEnvVars.filter((key) => !process.env[key]);
 
@@ -20,7 +20,7 @@ const envPluginImpl: FastifyPluginAsync = async (fastify) => {
     {
       env: {
         nodeEnv: process.env.NODE_ENV || 'development',
-        libsqlUrl: process.env.LIBSQL_URL,
+        databaseUrl: process.env.DATABASE_URL,
         port: process.env.PORT || 4001,
       },
     },

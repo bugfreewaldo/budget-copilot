@@ -20,11 +20,10 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Get existing session
-    const session = await db
+    const [session] = await db
       .select()
       .from(interviewSessions)
-      .where(eq(interviewSessions.userId, userId))
-      .get();
+      .where(eq(interviewSessions.userId, userId));
 
     if (session) {
       // Mark as abandoned
@@ -38,11 +37,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark onboarding as complete (skipped)
-    const existingProfile = await db
+    const [existingProfile] = await db
       .select()
       .from(userProfiles)
-      .where(eq(userProfiles.userId, userId))
-      .get();
+      .where(eq(userProfiles.userId, userId));
 
     if (existingProfile) {
       await db
@@ -67,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       data: {
         success: true,
-        message: 'Puedes completar esta información más tarde.',
+        message: 'You can complete this information later.',
       },
     });
   } catch (error) {

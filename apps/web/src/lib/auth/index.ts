@@ -5,6 +5,8 @@ import {
   sessions,
   passwordResetTokens,
   emailVerificationTokens,
+  households,
+  householdMembers,
 } from '../db/schema';
 import {
   hashPassword,
@@ -22,6 +24,8 @@ export interface RegisterInput {
   email: string;
   password: string;
   name?: string;
+  householdName: string;
+  memberNames?: string[];
 }
 
 export interface LoginInput {
@@ -67,7 +71,7 @@ export class AuthError extends Error {
 
 export async function register(input: RegisterInput): Promise<AuthResult> {
   const db = getDb();
-  const { email, password, name } = input;
+  const { email, password, name, householdName, memberNames = [] } = input;
 
   const [existing] = await db
     .select()
@@ -109,6 +113,40 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     createdAt: now,
     updatedAt: now,
   });
+
+  // Create household and add user as owner
+  const householdId = generateId();
+  await db.insert(households).values({
+    id: householdId,
+    name: householdName,
+    createdById: userId,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const memberId = generateId();
+  await db.insert(householdMembers).values({
+    id: memberId,
+    householdId,
+    userId,
+    name: name || email.split('@')[0],
+    role: 'owner',
+    invitedAt: now,
+    acceptedAt: now,
+  });
+
+  // Add additional household members (name-only, no user account)
+  if (memberNames.length > 0) {
+    await db.insert(householdMembers).values(
+      memberNames.map((memberName) => ({
+        id: generateId(),
+        householdId,
+        name: memberName,
+        role: 'member' as const,
+        invitedAt: now,
+      }))
+    );
+  }
 
   const sessionToken = generateToken();
   const sessionTokenHash = hashToken(sessionToken);

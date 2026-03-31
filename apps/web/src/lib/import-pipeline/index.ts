@@ -9,3 +9,5 @@ export * from './types';
 export * from './transfer-detector';
 export * from './enricher';
 export * from './insights';
+export * from './pattern-learner';
+export * from './llm-categorizer';

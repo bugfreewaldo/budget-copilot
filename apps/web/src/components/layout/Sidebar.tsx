@@ -21,62 +21,62 @@ const NAV_ITEMS: NavItem[] = [
     href: '/dashboard',
     label: 'Dashboard',
     emoji: '🏠',
-    description: 'Resumen financiero',
+    description: 'Financial overview',
   },
   {
     href: '/transacciones',
-    label: 'Transacciones',
+    label: 'Transactions',
     emoji: '💸',
-    description: 'Gestiona tus movimientos',
+    description: 'Manage your transactions',
   },
   // TODO: Temporarily hidden - re-enable when presupuesto is ready
   // {
   //   href: '/presupuesto',
-  //   label: 'Presupuesto',
+  //   label: 'Budget',
   //   emoji: '📊',
-  //   description: 'Controla tus sobres',
+  //   description: 'Manage your envelopes',
   // },
   {
     href: '/alcancia',
-    label: 'Alcancía',
+    label: 'Piggy Bank',
     emoji: '🐷',
-    description: 'Ahorra monedita a monedita',
+    description: 'Save little by little',
   },
   {
     href: '/recurrentes',
-    label: 'Recurrentes',
+    label: 'Recurring',
     emoji: '🔄',
-    description: 'Pagos e ingresos fijos',
+    description: 'Fixed payments and income',
   },
   {
     href: '/deudas',
-    label: 'Copiloto de Deudas',
+    label: 'Debt Copilot',
     emoji: '💀',
-    description: 'Destruye tus deudas',
+    description: 'Crush your debts',
   },
   {
     href: '/metas',
-    label: 'Seguimiento de Metas',
+    label: 'Goal Tracking',
     emoji: '🎯',
-    description: 'Alcanza tus sueños',
+    description: 'Reach your dreams',
   },
   {
     href: '/categories',
-    label: 'Categorías',
+    label: 'Categories',
     emoji: '🏷️',
-    description: 'Organiza tus gastos',
+    description: 'Organize your expenses',
   },
   {
     href: '/familia',
-    label: 'Familia',
+    label: 'Family',
     emoji: '👨‍👩‍👧‍👦',
-    description: 'Comparte con tu familia',
+    description: 'Share with your family',
   },
   {
     href: '/advisor',
-    label: 'Asesor Financiero',
+    label: 'Financial Advisor',
     emoji: '🧠',
-    description: 'Actualiza tu situación',
+    description: 'Update your financial situation',
     requiresPro: true,
   },
 ];
@@ -152,7 +152,7 @@ export function Sidebar({ children }: SidebarProps) {
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-sm">Cargando...</p>
+          <p className="text-gray-400 text-sm">Loading...</p>
         </div>
       </div>
     );
@@ -166,7 +166,7 @@ export function Sidebar({ children }: SidebarProps) {
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 -ml-2 text-gray-400 hover:text-white transition-colors"
-            aria-label="Abrir menú"
+            aria-label="Open menu"
           >
             <svg
               className="w-6 h-6"
@@ -222,7 +222,7 @@ export function Sidebar({ children }: SidebarProps) {
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 text-gray-400 hover:text-white transition-colors"
-              aria-label="Cerrar menú"
+              aria-label="Close menu"
             >
               <svg
                 className="w-5 h-5"
@@ -297,7 +297,7 @@ export function Sidebar({ children }: SidebarProps) {
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-              Cerrar Sesión
+              Sign Out
             </Link>
           </div>
         </div>
@@ -329,7 +329,7 @@ export function Sidebar({ children }: SidebarProps) {
           {!isCollapsed && (
             <div className="mb-4 px-2">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Funciones
+                Features
               </span>
             </div>
           )}
@@ -379,7 +379,7 @@ export function Sidebar({ children }: SidebarProps) {
           <button
             onClick={toggleCollapsed}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all text-sm"
-            title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
+            title={isCollapsed ? 'Expand menu' : 'Collapse menu'}
           >
             <svg
               className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
@@ -394,7 +394,7 @@ export function Sidebar({ children }: SidebarProps) {
                 d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
               />
             </svg>
-            {!isCollapsed && <span>Colapsar</span>}
+            {!isCollapsed && <span>Collapse</span>}
           </button>
         </div>
 
@@ -404,7 +404,7 @@ export function Sidebar({ children }: SidebarProps) {
         >
           <Link
             href="/"
-            title={isCollapsed ? 'Cerrar Sesión' : undefined}
+            title={isCollapsed ? 'Sign Out' : undefined}
             className={`flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-all text-sm ${
               isCollapsed ? 'justify-center' : ''
             }`}
@@ -422,7 +422,7 @@ export function Sidebar({ children }: SidebarProps) {
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
-            {!isCollapsed && <span>Cerrar Sesión</span>}
+            {!isCollapsed && <span>Sign Out</span>}
           </Link>
         </div>
       </aside>

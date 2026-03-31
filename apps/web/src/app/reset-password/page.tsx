@@ -16,7 +16,7 @@ function ResetPasswordForm() {
 
   const validatePassword = (pwd: string) => {
     if (pwd.length < 8) {
-      return 'La contraseña debe tener al menos 8 caracteres';
+      return 'Password must be at least 8 characters';
     }
     return null;
   };
@@ -26,7 +26,7 @@ function ResetPasswordForm() {
     setError('');
 
     if (!token) {
-      setError('Token de restablecimiento no válido.');
+      setError('Invalid reset token.');
       return;
     }
 
@@ -37,7 +37,7 @@ function ResetPasswordForm() {
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+      setError('Passwords do not match.');
       return;
     }
 
@@ -57,11 +57,11 @@ function ResetPasswordForm() {
       } else {
         setError(
           data.message ||
-            'El enlace ha expirado o ya fue usado. Solicita uno nuevo.'
+            'The link has expired or was already used. Request a new one.'
         );
       }
     } catch {
-      setError('Error al restablecer la contraseña. Intenta de nuevo.');
+      setError('Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -87,16 +87,14 @@ function ResetPasswordForm() {
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">
-            Enlace inválido
+            Invalid Link
           </h3>
-          <p className="text-gray-400 mb-6">
-            Este enlace de restablecimiento no es válido.
-          </p>
+          <p className="text-gray-400 mb-6">This reset link is not valid.</p>
           <Link
             href="/forgot-password"
             className="inline-flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 transition-all"
           >
-            Solicitar nuevo enlace
+            Request new link
           </Link>
         </div>
       </div>
@@ -123,16 +121,16 @@ function ResetPasswordForm() {
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">
-            ¡Contraseña actualizada!
+            Password Updated!
           </h3>
           <p className="text-gray-400 mb-6">
-            Tu contraseña ha sido restablecida exitosamente.
+            Your password has been reset successfully.
           </p>
           <Link
             href="/login"
             className="inline-flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 transition-all"
           >
-            Iniciar Sesión
+            Sign In
           </Link>
         </div>
       </div>
@@ -153,7 +151,7 @@ function ResetPasswordForm() {
             htmlFor="password"
             className="block text-sm font-medium text-gray-300"
           >
-            Nueva Contraseña
+            New Password
           </label>
           <div className="mt-1">
             <input
@@ -165,7 +163,7 @@ function ResetPasswordForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Minimum 8 characters"
             />
           </div>
         </div>
@@ -175,7 +173,7 @@ function ResetPasswordForm() {
             htmlFor="confirmPassword"
             className="block text-sm font-medium text-gray-300"
           >
-            Confirmar Contraseña
+            Confirm Password
           </label>
           <div className="mt-1">
             <input
@@ -187,7 +185,7 @@ function ResetPasswordForm() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="Repite tu contraseña"
+              placeholder="Repeat your password"
             />
           </div>
         </div>
@@ -216,10 +214,10 @@ function ResetPasswordForm() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Actualizando...
+                Updating...
               </span>
             ) : (
-              'Restablecer Contraseña'
+              'Reset Password'
             )}
           </button>
         </div>
@@ -258,10 +256,10 @@ export default function ResetPasswordPage(): React.ReactElement | null {
           </span>
         </Link>
         <h2 className="text-center text-3xl font-bold text-white">
-          Restablecer Contraseña
+          Reset Password
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
-          Ingresa tu nueva contraseña
+          Enter your new password
         </p>
       </div>
 

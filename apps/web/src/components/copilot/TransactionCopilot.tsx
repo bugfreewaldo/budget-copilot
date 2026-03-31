@@ -55,7 +55,7 @@ export function TransactionCopilot({
       id: '1',
       role: 'assistant',
       content:
-        '¡Hola! 👋 Soy tu asistente financiero. Puedes contarme tus gastos con texto o subir una foto de un recibo usando el ícono de cámara 📷. ¡Empecemos!',
+        "Hi there! 👋 I'm your financial assistant. You can tell me about your expenses with text or upload a receipt photo using the camera icon 📷. Let's get started!",
     },
   ]);
   const [input, setInput] = useState('');
@@ -149,7 +149,7 @@ export function TransactionCopilot({
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: 'Lo siento, hubo un error. Por favor intenta de nuevo.',
+          content: 'Sorry, there was an error. Please try again.',
         },
       ]);
     } finally {
@@ -168,7 +168,7 @@ export function TransactionCopilot({
           msg.transactionId === transactionId
             ? {
                 ...msg,
-                content: msg.content + ' (Categoría actualizada)',
+                content: msg.content + ' (Category updated)',
                 suggestedCategories: undefined,
               }
             : msg
@@ -201,7 +201,7 @@ export function TransactionCopilot({
         {
           id: Date.now().toString(),
           role: 'assistant',
-          content: 'Solo puedo procesar imágenes (JPG, PNG, WebP) y PDFs.',
+          content: 'I can only process images (JPG, PNG, WebP) and PDFs.',
         },
       ]);
       return;
@@ -228,7 +228,7 @@ export function TransactionCopilot({
       {
         id: assistantMsgId,
         role: 'assistant',
-        content: 'Procesando archivo...',
+        content: 'Processing file...',
         parsedFile: {
           fileId: '',
           filename: file.name,
@@ -255,7 +255,7 @@ export function TransactionCopilot({
           msg.id === assistantMsgId
             ? {
                 ...msg,
-                content: 'Analizando contenido...',
+                content: 'Analyzing content...',
                 parsedFile: {
                   ...msg.parsedFile!,
                   status: 'processing',
@@ -321,14 +321,12 @@ export function TransactionCopilot({
           msg.id === assistantMsgId
             ? {
                 ...msg,
-                content: 'Error al procesar el archivo. Intenta de nuevo.',
+                content: 'Failed to process the file. Please try again.',
                 parsedFile: {
                   ...msg.parsedFile!,
                   status: 'error',
                   error:
-                    error instanceof Error
-                      ? error.message
-                      : 'Error desconocido',
+                    error instanceof Error ? error.message : 'Unknown error',
                 },
               }
             : msg
@@ -378,7 +376,7 @@ export function TransactionCopilot({
                 ? {
                     ...msg,
                     content:
-                      'El archivo sigue procesándose. Revisa más tarde en tus archivos.',
+                      'The file is still processing. Check your files later.',
                     parsedFile: {
                       fileId,
                       filename,
@@ -400,12 +398,12 @@ export function TransactionCopilot({
   const getFileResultMessage = (summary: FileSummaryResponse): string => {
     if (isReceipt(summary.summary)) {
       const { merchant, amount } = summary.summary.mainTransaction;
-      return `Encontré un recibo de ${merchant} por ${formatCents(amount * 100)}. ¿Quieres importarlo?`;
+      return `Found a receipt from ${merchant} for ${formatCents(amount * 100)}. Would you like to import it?`;
     } else if (isBankStatement(summary.summary)) {
       const count = summary.summary.transactions.length;
-      return `Encontré ${count} transacción${count !== 1 ? 'es' : ''} en el documento. Selecciona las que quieras importar.`;
+      return `Found ${count} transaction${count !== 1 ? 's' : ''} in the document. Select the ones you want to import.`;
     }
-    return 'Documento procesado.';
+    return 'Document processed.';
   };
 
   // Import transactions from parsed file
@@ -433,7 +431,7 @@ export function TransactionCopilot({
             msg.id === messageId
               ? {
                   ...msg,
-                  content: `✅ ${result.imported.length} transacción${result.imported.length !== 1 ? 'es' : ''} importada${result.imported.length !== 1 ? 's' : ''} correctamente!`,
+                  content: `✅ ${result.imported.length} transaction${result.imported.length !== 1 ? 's' : ''} imported successfully!`,
                   parsedFile: undefined,
                 }
               : msg
@@ -468,9 +466,9 @@ export function TransactionCopilot({
   };
 
   const quickExamples = [
-    'Gasté $30 en almuerzo',
-    '$50 de Uber',
-    'Compré ropa por $150',
+    'Spent $30 on lunch',
+    '$50 on Uber',
+    'Bought clothes for $150',
   ];
 
   // Collapsed state - floating button
@@ -548,7 +546,7 @@ export function TransactionCopilot({
                     </div>
                     {msg.transaction.categoryName && (
                       <div className="text-xs text-gray-400 mt-1">
-                        Categoría: {msg.transaction.categoryName}
+                        Category: {msg.transaction.categoryName}
                       </div>
                     )}
                   </div>
@@ -560,7 +558,7 @@ export function TransactionCopilot({
                   msg.transactionId && (
                     <div className="mt-2 pt-2 border-t border-gray-700/50">
                       <p className="text-xs text-gray-400 mb-2">
-                        ¿Cambiar categoría?
+                        Change category?
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {msg.suggestedCategories.map((cat) => (
@@ -595,13 +593,13 @@ export function TransactionCopilot({
                           }
                           className="w-full text-xs px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors"
                         >
-                          ✓ Importar gasto
+                          ✓ Import expense
                         </button>
                       ) : isBankStatement(msg.parsedFile.summary.summary) ? (
                         // Bank statement - list transactions with category selection
                         <div className="space-y-2">
                           <p className="text-xs text-gray-400 mb-2">
-                            Selecciona categoría e importa:
+                            Select category and import:
                           </p>
                           <div className="max-h-64 overflow-y-auto space-y-2">
                             {msg.parsedFile.summary.summary.transactions.map(
@@ -648,7 +646,7 @@ export function TransactionCopilot({
                                         }
                                         className="flex-1 text-xs px-2 py-1 bg-gray-800 border border-gray-600 rounded text-white focus:outline-none focus:border-cyan-500"
                                       >
-                                        <option value="">Sin categoría</option>
+                                        <option value="">No category</option>
                                         {categories.map((cat) => (
                                           <option key={cat.id} value={cat.id}>
                                             {cat.emoji} {cat.name}
@@ -666,7 +664,7 @@ export function TransactionCopilot({
                                         {selectedCat
                                           ? `${selectedCat.emoji}`
                                           : '+'}{' '}
-                                        Importar
+                                        Import
                                       </button>
                                     </div>
                                   </div>
@@ -688,7 +686,7 @@ export function TransactionCopilot({
                               }}
                               className="w-full text-xs px-3 py-2 mt-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-lg transition-colors"
                             >
-                              Importar todas (
+                              Import all (
                               {
                                 msg.parsedFile.summary.summary.transactions
                                   .length
@@ -710,8 +708,8 @@ export function TransactionCopilot({
                         <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
                         <span>
                           {msg.parsedFile.status === 'uploading'
-                            ? 'Subiendo...'
-                            : 'Analizando...'}
+                            ? 'Uploading...'
+                            : 'Analyzing...'}
                         </span>
                       </div>
                     </div>
@@ -745,7 +743,7 @@ export function TransactionCopilot({
         {/* Quick examples */}
         {messages.length <= 2 && (
           <div className="px-4 py-2 border-t border-gray-800">
-            <p className="text-xs text-gray-500 mb-2">Ejemplos rápidos:</p>
+            <p className="text-xs text-gray-500 mb-2">Quick examples:</p>
             <div className="flex flex-wrap gap-2">
               {quickExamples.map((example) => (
                 <button
@@ -776,7 +774,7 @@ export function TransactionCopilot({
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || isUploading}
               className="p-2 text-gray-400 hover:text-cyan-400 disabled:text-gray-600 transition-colors"
-              title="Subir foto o PDF"
+              title="Upload photo or PDF"
             >
               <svg
                 className="w-5 h-5"
@@ -804,7 +802,7 @@ export function TransactionCopilot({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Escribe tu gasto..."
+              placeholder="Type your expense..."
               className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-sm"
               disabled={isLoading || isUploading}
             />

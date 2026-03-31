@@ -2,40 +2,33 @@
  * Migration to add role column to users table
  */
 
-import { createClient } from '@libsql/client';
+import { neon } from '@neondatabase/serverless';
 
 async function main() {
-  const databaseUrl = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
-  const authToken =
-    process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+  const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    console.error('Error: LIBSQL_URL environment variable is required');
+    console.error('Error: DATABASE_URL environment variable is required');
     process.exit(1);
   }
 
-  const client = createClient({
-    url: databaseUrl,
-    authToken,
-  });
+  const sql = neon(databaseUrl);
 
   console.log('Adding role column to users table...');
 
   try {
     // Add the role column with default value 'user'
-    await client.execute(`
+    await sql`
       ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'
-    `);
+    `;
     console.log('Successfully added role column');
   } catch (err) {
-    if (err instanceof Error && err.message.includes('duplicate column')) {
+    if (err instanceof Error && err.message.includes('already exists')) {
       console.log('Column role already exists');
     } else {
       throw err;
     }
   }
-
-  client.close();
 }
 
 main().catch((err) => {

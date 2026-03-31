@@ -9,18 +9,18 @@ import { errorJson } from '@/lib/api/utils';
 export const dynamic = 'force-dynamic';
 
 // Initial message for the advisor
-const INITIAL_MESSAGE = `Este es tu espacio para actualizar tu situación financiera.
+const INITIAL_MESSAGE = `This is your space to update your financial situation.
 
-Puedes subir documentos, aclarar gastos, o hacer preguntas.
+You can upload documents, clarify expenses, or ask questions.
 
-Si algo cambia lo suficiente, la decisión de hoy se ajustará automáticamente.`;
+If something changes enough, today's decision will adjust automatically.`;
 
 // Paywall content for free users
 const PAYWALL = {
-  title: 'Asesor Financiero',
+  title: 'Financial Advisor',
   message:
-    'Para consultar o subir documentos, necesitas Pro. Esto permite que BudgetCopilot ajuste tus decisiones con información real.',
-  ctaText: 'Desbloquear asesor financiero',
+    'To ask questions or upload documents, you need Pro. This lets BudgetCopilot adjust your decisions with real information.',
+  ctaText: 'Unlock financial advisor',
   ctaUrl: '/pricing',
 };
 
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const db = getDb();
 
     // Check for existing active session
-    const session = await db
+    const [session] = await db
       .select()
       .from(advisorSessions)
       .where(
@@ -58,8 +58,7 @@ export async function GET(request: NextRequest) {
           eq(advisorSessions.userId, user.id),
           eq(advisorSessions.status, 'active')
         )
-      )
-      .get();
+      );
 
     // Create new session if none exists
     if (!session) {

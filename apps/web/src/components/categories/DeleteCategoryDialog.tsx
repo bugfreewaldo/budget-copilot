@@ -85,13 +85,13 @@ export function DeleteCategoryDialog({
             id="delete-category-title"
             className="text-xl font-semibold text-white mb-4 flex items-center gap-2"
           >
-            <span>🗑️</span> Eliminar Categoría
+            <span>🗑️</span> Delete Category
           </h2>
 
           <p className="text-gray-300 mb-6">
-            ¿Estás seguro de que quieres eliminar{' '}
+            Are you sure you want to delete{' '}
             <span className="font-semibold text-white">{category.name}</span>?
-            Esta acción no se puede deshacer.
+            This action cannot be undone.
           </p>
 
           <div className="flex justify-end gap-3">
@@ -101,7 +101,7 @@ export function DeleteCategoryDialog({
               disabled={loading}
               className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="button"
@@ -109,7 +109,7 @@ export function DeleteCategoryDialog({
               disabled={loading}
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {loading ? 'Eliminando...' : '🗑️ Eliminar'}
+              {loading ? 'Deleting...' : '🗑️ Delete'}
             </button>
           </div>
         </div>

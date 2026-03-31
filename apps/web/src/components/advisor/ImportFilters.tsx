@@ -72,7 +72,7 @@ export function ImportFilters({
             onClick={resetFilters}
             className="h-7 px-2 text-xs"
           >
-            Mostrar todo ({stats.totalCount})
+            Show all ({stats.totalCount})
           </Button>
         )}
 
@@ -88,7 +88,7 @@ export function ImportFilters({
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-gray-700 dark:text-gray-300">
-              Excluir transferencias ({stats.transferCount})
+              Exclude transfers ({stats.transferCount})
             </span>
           </label>
         )}
@@ -105,7 +105,7 @@ export function ImportFilters({
               className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <span className="text-gray-700 dark:text-gray-300">
-              Excluir micro-cargos &lt;$1 ({stats.microFeeCount})
+              Exclude micro-fees &lt;$1 ({stats.microFeeCount})
             </span>
           </label>
         )}
@@ -118,7 +118,7 @@ export function ImportFilters({
             onClick={() => updateFilter('typeFilter', 'all')}
             className="h-7 px-2 text-xs"
           >
-            Todos ({stats.totalCount})
+            All ({stats.totalCount})
           </Button>
           <Button
             variant={filters.typeFilter === 'expense' ? 'primary' : 'ghost'}
@@ -126,7 +126,7 @@ export function ImportFilters({
             onClick={() => updateFilter('typeFilter', 'expense')}
             className="h-7 px-2 text-xs"
           >
-            Gastos ({stats.expenseCount})
+            Expenses ({stats.expenseCount})
           </Button>
           <Button
             variant={filters.typeFilter === 'income' ? 'primary' : 'ghost'}
@@ -134,15 +134,15 @@ export function ImportFilters({
             onClick={() => updateFilter('typeFilter', 'income')}
             className="h-7 px-2 text-xs"
           >
-            Ingresos ({stats.incomeCount})
+            Income ({stats.incomeCount})
           </Button>
         </div>
       </div>
 
       {/* Filtered count summary */}
       <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        Mostrando {filteredCount} de {stats.totalCount} transacciones
-        {hasActiveFilters && ' (filtros activos)'}
+        Showing {filteredCount} of {stats.totalCount} transactions
+        {hasActiveFilters && ' (filters active)'}
       </div>
     </div>
   );

@@ -38,8 +38,8 @@ export function ConfirmModal({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
   variant = 'danger',
   isLoading = false,
 }: ConfirmModalProps) {

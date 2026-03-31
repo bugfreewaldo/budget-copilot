@@ -16,18 +16,18 @@ import {
 function formatMonth(month: string): string {
   const [year, monthNum] = month.split('-');
   const months = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   return `${months[parseInt(monthNum!) - 1]} ${year}`;
 }
@@ -56,7 +56,7 @@ function getProgressColor(percent: number): string {
   return 'bg-emerald-500';
 }
 
-export default function PresupuestoPage(): React.ReactElement {
+export default function BudgetPage(): React.ReactElement {
   const [categories, setCategories] = useState<Category[]>([]);
   const [envelopes, setEnvelopes] = useState<Envelope[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -85,7 +85,7 @@ export default function PresupuestoPage(): React.ReactElement {
       setEnvelopes(envelopesData);
     } catch (err) {
       console.error('Failed to load data:', err);
-      setError('Error al cargar los datos. ¿Está el servidor corriendo?');
+      setError('Failed to load data. Is the server running?');
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function PresupuestoPage(): React.ReactElement {
     // Validate budget amount
     const parsedAmount = parseFloat(budgetAmount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      alert('El presupuesto debe ser mayor a $0');
+      alert('Budget must be greater than $0');
       return;
     }
 
@@ -149,7 +149,7 @@ export default function PresupuestoPage(): React.ReactElement {
     } catch (err) {
       console.error('Failed to save envelope:', err);
       alert(
-        `Error al guardar el sobre: ${err instanceof Error ? err.message : 'Intenta de nuevo'}`
+        `Failed to save envelope: ${err instanceof Error ? err.message : 'Try again'}`
       );
     } finally {
       setSaving(false);
@@ -208,10 +208,10 @@ export default function PresupuestoPage(): React.ReactElement {
           <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2 flex items-center gap-3">
-                <span className="text-4xl">📊</span> Presupuesto
+                <span className="text-4xl">📊</span> Budget
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                Administra tus sobres de presupuesto por categoría
+                Manage your budget envelopes by category
               </p>
             </div>
             <button
@@ -224,7 +224,7 @@ export default function PresupuestoPage(): React.ReactElement {
               disabled={categoriesWithoutEnvelopes.length === 0}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>+</span> Nuevo Sobre
+              <span>+</span> New Envelope
             </button>
           </div>
 
@@ -289,7 +289,7 @@ export default function PresupuestoPage(): React.ReactElement {
             <div className="text-center py-12">
               <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/50 rounded-xl border border-gray-800">
                 <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-400">Cargando presupuesto...</p>
+                <p className="text-gray-400">Loading budget...</p>
               </div>
             </div>
           ) : (
@@ -298,9 +298,7 @@ export default function PresupuestoPage(): React.ReactElement {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 lg:mb-8">
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">
-                      Presupuesto Total
-                    </span>
+                    <span className="text-gray-400 text-sm">Total Budget</span>
                     <span className="text-2xl">💰</span>
                   </div>
                   <div className="text-2xl font-bold text-white">
@@ -309,7 +307,7 @@ export default function PresupuestoPage(): React.ReactElement {
                 </div>
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Gastado</span>
+                    <span className="text-gray-400 text-sm">Spent</span>
                     <span className="text-2xl">🔥</span>
                   </div>
                   <div className="text-2xl font-bold text-red-400">
@@ -318,7 +316,7 @@ export default function PresupuestoPage(): React.ReactElement {
                 </div>
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Disponible</span>
+                    <span className="text-gray-400 text-sm">Available</span>
                     <span className="text-2xl">✨</span>
                   </div>
                   <div
@@ -334,7 +332,7 @@ export default function PresupuestoPage(): React.ReactElement {
                 <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-5 mb-6 lg:mb-8">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-white font-medium">
-                      Progreso General
+                      Overall Progress
                     </span>
                     <span
                       className={`font-bold ${overallPercent >= 100 ? 'text-red-400' : overallPercent >= 80 ? 'text-yellow-400' : 'text-emerald-400'}`}
@@ -356,29 +354,29 @@ export default function PresupuestoPage(): React.ReactElement {
                 <div className="text-center py-16">
                   <div className="text-8xl mb-6">📊</div>
                   <h2 className="text-2xl font-bold text-white mb-3">
-                    No hay sobres para este mes
+                    No envelopes for this month
                   </h2>
                   <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                    Crea sobres de presupuesto para cada categoría y controla
-                    tus gastos mes a mes.
+                    Create budget envelopes for each category and track your
+                    spending month by month.
                   </p>
                   {categoriesWithoutEnvelopes.length > 0 ? (
                     <button
                       onClick={() => setShowCreateModal(true)}
                       className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white rounded-xl font-medium transition-all text-lg"
                     >
-                      📊 Crear Mi Primer Sobre
+                      📊 Create My First Envelope
                     </button>
                   ) : (
                     <p className="text-yellow-400">
-                      Primero crea categorías en la sección de Categorías.
+                      First create categories in the Categories section.
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                    Sobres del Mes
+                    Month's Envelopes
                   </h3>
                   {envelopes.map((envelope) => {
                     const category = categories.find(
@@ -403,10 +401,10 @@ export default function PresupuestoPage(): React.ReactElement {
                             </span>
                             <div>
                               <h4 className="text-lg font-semibold text-white">
-                                {category?.name || 'Sin categoría'}
+                                {category?.name || 'Uncategorized'}
                               </h4>
                               <p className="text-sm text-gray-500">
-                                {formatCents(envelope.spentCents)} gastado de{' '}
+                                {formatCents(envelope.spentCents)} spent of{' '}
                                 {formatCents(envelope.budgetCents)}
                               </p>
                             </div>
@@ -415,7 +413,7 @@ export default function PresupuestoPage(): React.ReactElement {
                             <button
                               onClick={() => openEditModal(envelope)}
                               className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
-                              title="Editar"
+                              title="Edit"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -434,7 +432,7 @@ export default function PresupuestoPage(): React.ReactElement {
                             <button
                               onClick={() => setDeleteConfirm(envelope)}
                               className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                              title="Eliminar"
+                              title="Delete"
                             >
                               <svg
                                 className="w-4 h-4"
@@ -468,14 +466,14 @@ export default function PresupuestoPage(): React.ReactElement {
                           <span
                             className={`font-medium ${percent >= 100 ? 'text-red-400' : percent >= 80 ? 'text-yellow-400' : 'text-emerald-400'}`}
                           >
-                            {percent.toFixed(0)}% usado
+                            {percent.toFixed(0)}% used
                           </span>
                           <span
                             className={`font-medium ${remaining >= 0 ? 'text-gray-400' : 'text-red-400'}`}
                           >
                             {remaining >= 0
-                              ? `${formatCents(remaining)} disponible`
-                              : `${formatCents(Math.abs(remaining))} sobre el límite`}
+                              ? `${formatCents(remaining)} available`
+                              : `${formatCents(Math.abs(remaining))} over the limit`}
                           </span>
                         </div>
                       </div>
@@ -497,23 +495,21 @@ export default function PresupuestoPage(): React.ReactElement {
             <div className="relative bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <span>📊</span>{' '}
-                {editingEnvelope
-                  ? 'Editar Sobre'
-                  : 'Nuevo Sobre de Presupuesto'}
+                {editingEnvelope ? 'Edit Envelope' : 'New Budget Envelope'}
               </h3>
 
               <div className="space-y-4">
                 {!editingEnvelope && (
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Categoría
+                      Category
                     </label>
                     <select
                       value={selectedCategoryId}
                       onChange={(e) => setSelectedCategoryId(e.target.value)}
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-emerald-500"
                     >
-                      <option value="">Selecciona una categoría</option>
+                      <option value="">Select a category</option>
                       {categoriesWithoutEnvelopes.map((cat) => (
                         <option key={cat.id} value={cat.id}>
                           {cat.emoji} {cat.name}
@@ -533,14 +529,14 @@ export default function PresupuestoPage(): React.ReactElement {
                     <span className="text-white font-medium">
                       {categories.find(
                         (c) => c.id === editingEnvelope.categoryId
-                      )?.name || 'Sin categoría'}
+                      )?.name || 'Uncategorized'}
                     </span>
                   </div>
                 )}
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Presupuesto Mensual
+                    Monthly Budget
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
@@ -559,7 +555,7 @@ export default function PresupuestoPage(): React.ReactElement {
                 {/* Quick amounts */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    Montos sugeridos
+                    Suggested amounts
                   </label>
                   <div className="flex gap-2 flex-wrap">
                     {[500, 1000, 2000, 3000, 5000].map((amount) => (
@@ -583,7 +579,7 @@ export default function PresupuestoPage(): React.ReactElement {
                   }}
                   className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={handleSaveEnvelope}
@@ -599,7 +595,7 @@ export default function PresupuestoPage(): React.ReactElement {
                   ) : (
                     <>
                       <span>💾</span>{' '}
-                      {editingEnvelope ? 'Guardar Cambios' : 'Crear Sobre'}
+                      {editingEnvelope ? 'Save Changes' : 'Create Envelope'}
                     </>
                   )}
                 </button>
@@ -613,10 +609,10 @@ export default function PresupuestoPage(): React.ReactElement {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeleteEnvelope}
-          title="Eliminar Sobre"
-          message={`¿Estás seguro de eliminar el sobre de "${categories.find((c) => c.id === deleteConfirm?.categoryId)?.name || 'esta categoría'}"? Esta acción no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          title="Delete Envelope"
+          message={`Are you sure you want to delete the envelope for "${categories.find((c) => c.id === deleteConfirm?.categoryId)?.name || 'this category'}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
           variant="danger"
           isLoading={isDeleting}
         />

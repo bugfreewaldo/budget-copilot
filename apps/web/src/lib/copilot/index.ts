@@ -71,40 +71,40 @@ const anthropic = new Anthropic({
 // SYSTEM PROMPT - Context-Aware Budget Copilot
 // ============================================================================
 
-const SYSTEM_PROMPT = `Eres Budget Copilot, un asistente financiero amigable y directo.
+const SYSTEM_PROMPT = `You are Budget Copilot, a friendly and direct financial assistant.
 
-CAPACIDADES:
-- Registrar gastos e ingresos cuando el usuario los mencione
-- Ver resúmenes financieros
-- Ayudar con deudas y presupuesto
-- El usuario también puede SUBIR FOTOS de recibos usando el ícono de cámara 📷 en el chat
+CAPABILITIES:
+- Record expenses and income when the user mentions them
+- View financial summaries
+- Help with debts and budgeting
+- The user can also UPLOAD PHOTOS of receipts using the camera icon in the chat
 
-REGLAS DE FORMATO (MUY IMPORTANTE):
-- Respuestas CORTAS: máximo 2-3 oraciones
-- NUNCA uses ** para énfasis
-- NUNCA uses markdown complejo
-- Usa emojis con moderación (1-2 por mensaje máximo)
-- Tono casual y amigable, como un amigo que sabe de finanzas
-- Siempre en español
+FORMATTING RULES (VERY IMPORTANT):
+- SHORT responses: 2-3 sentences max
+- NEVER use ** for emphasis
+- NEVER use complex markdown
+- Use emojis sparingly (1-2 per message max)
+- Casual and friendly tone, like a friend who's good with money
+- Always respond in English
 
-CONTEXTO:
-- [ESTADO_ACTUAL] contiene los datos financieros del usuario
-- [HISTORIAL_RELEVANTE] contiene la conversación reciente
-- Usa este contexto sin pedirlo de nuevo
+CONTEXT:
+- [CURRENT_STATE] contains the user's financial data
+- [RELEVANT_HISTORY] contains the recent conversation
+- Use this context without asking for it again
 
-EJEMPLOS DE RESPUESTAS BUENAS:
-- "Listo, registré $50 en comida 🍽️"
-- "Este mes llevas $1,200 en gastos. ¿Quieres ver el desglose?"
-- "Esa deuda del 45% está brava. Te conviene pagarla primero."
+EXAMPLES OF GOOD RESPONSES:
+- "Done, I recorded $50 in food 🍽️"
+- "This month you've spent $1,200. Want to see the breakdown?"
+- "That 45% interest debt is rough. You'd better pay it first."
 
-EJEMPLOS DE RESPUESTAS MALAS (NO HACER):
-- "**¡Excelente!** He registrado tu gasto de **$50** en la categoría de **Comida**..."
-- Párrafos largos explicando todo
-- Listas con muchos puntos
+EXAMPLES OF BAD RESPONSES (DON'T DO THIS):
+- "**Excellent!** I have recorded your expense of **$50** in the **Food** category..."
+- Long paragraphs explaining everything
+- Lists with many bullet points
 
-Si el usuario pregunta sobre subir fotos, dile que use el ícono de cámara 📷 junto al campo de texto.
+If the user asks about uploading photos, tell them to use the camera icon next to the text field.
 
-Responde siempre en español.`;
+Always respond in English.`;
 
 // ============================================================================
 // CONVERSATION HISTORY - In-memory storage for context
@@ -142,14 +142,14 @@ function addToHistory(
 function getRelevantHistory(userId: string): string {
   const history = conversationHistory.get(userId);
   if (!history || history.length === 0) {
-    return 'No hay historial previo relevante.';
+    return 'No relevant prior history.';
   }
 
   // Build a summary of recent conversation
   const recent = history.slice(-10); // Last 10 entries
   const summary = recent
     .map((entry) => {
-      const prefix = entry.role === 'user' ? 'Usuario' : 'Copilot';
+      const prefix = entry.role === 'user' ? 'User' : 'Copilot';
       // Truncate long messages
       const content =
         entry.content.length > 150
@@ -170,34 +170,32 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'create_transaction',
     description:
-      'Registra una transacción (gasto o ingreso). Usa esta herramienta cuando el usuario mencione que gastó dinero, compró algo, recibió un pago, le depositaron, etc.',
+      'Records a transaction (expense or income). Use this tool when the user mentions spending money, buying something, receiving a payment, getting a deposit, etc.',
     input_schema: {
       type: 'object' as const,
       properties: {
         amount: {
           type: 'number',
-          description: 'Monto en pesos (ej: 150.50)',
+          description: 'Amount in dollars (e.g.: 150.50)',
         },
         description: {
           type: 'string',
-          description:
-            'Descripción de la transacción (ej: "Café en Starbucks")',
+          description: 'Transaction description (e.g.: "Coffee at Starbucks")',
         },
         type: {
           type: 'string',
           enum: ['expense', 'income'],
-          description:
-            'Tipo de transacción: expense (gasto) o income (ingreso)',
+          description: 'Transaction type: expense or income',
         },
         category: {
           type: 'string',
           description:
-            'Categoría sugerida (ej: "Café", "Restaurantes", "Supermercado", "Salario")',
+            'Suggested category (e.g.: "Coffee", "Restaurants", "Groceries", "Salary")',
         },
         date: {
           type: 'string',
           description:
-            'Fecha en formato YYYY-MM-DD. Si el usuario dice "ayer", calcula la fecha. Por defecto es hoy.',
+            'Date in YYYY-MM-DD format. If the user says "yesterday", calculate the date. Default is today.',
         },
       },
       required: ['amount', 'description', 'type'],
@@ -206,23 +204,22 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'create_debt',
     description:
-      'Registra una deuda. Usa cuando el usuario mencione que debe dinero, tiene una tarjeta de crédito, préstamo, etc.',
+      'Records a debt. Use when the user mentions owing money, having a credit card balance, a loan, etc.',
     input_schema: {
       type: 'object' as const,
       properties: {
         name: {
           type: 'string',
-          description:
-            'Nombre de la deuda (ej: "Tarjeta BBVA", "Préstamo personal")',
+          description: 'Name of the debt (e.g.: "Chase Visa", "Personal loan")',
         },
         amount: {
           type: 'number',
-          description: 'Monto total de la deuda en pesos',
+          description: 'Total debt amount in dollars',
         },
         apr: {
           type: 'number',
           description:
-            'Tasa de interés anual (APR) en porcentaje (ej: 45 para 45%)',
+            'Annual interest rate (APR) as a percentage (e.g.: 45 for 45%)',
         },
         type: {
           type: 'string',
@@ -235,11 +232,11 @@ const TOOLS: Anthropic.Tool[] = [
             'medical',
             'other',
           ],
-          description: 'Tipo de deuda',
+          description: 'Debt type',
         },
         minimum_payment: {
           type: 'number',
-          description: 'Pago mínimo mensual (opcional)',
+          description: 'Monthly minimum payment (optional)',
         },
       },
       required: ['name', 'amount', 'type'],
@@ -248,20 +245,20 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'update_profile',
     description:
-      'Actualiza el perfil financiero del usuario (salario, frecuencia de pago, etc). Usa cuando mencionen su sueldo o cómo les pagan.',
+      "Updates the user's financial profile (salary, pay frequency, etc). Use when they mention their salary or how they get paid.",
     input_schema: {
       type: 'object' as const,
       properties: {
         monthly_salary: {
           type: 'number',
           description:
-            'Salario mensual en pesos. Si dicen quincena, multiplica por 2.',
+            'Monthly salary in dollars. If they say biweekly, multiply by 2.',
         },
         pay_frequency: {
           type: 'string',
           enum: ['weekly', 'biweekly', 'semimonthly', 'monthly'],
           description:
-            'Frecuencia de pago: weekly (semanal), biweekly (cada 2 semanas), semimonthly (quincenal), monthly (mensual)',
+            'Pay frequency: weekly, biweekly (every 2 weeks), semimonthly (twice a month), monthly',
         },
       },
       required: ['monthly_salary'],
@@ -270,17 +267,17 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'get_financial_summary',
     description:
-      'Obtiene un resumen financiero del usuario. Usa cuando pregunten cuánto han gastado, su balance, sus deudas, etc.',
+      "Gets the user's financial summary. Use when they ask how much they've spent, their balance, their debts, etc.",
     input_schema: {
       type: 'object' as const,
       properties: {
         include_debts: {
           type: 'boolean',
-          description: 'Incluir información de deudas',
+          description: 'Include debt information',
         },
         include_recent_transactions: {
           type: 'boolean',
-          description: 'Incluir transacciones recientes',
+          description: 'Include recent transactions',
         },
       },
       required: [],
@@ -289,21 +286,22 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'create_scheduled_bill',
     description:
-      'Programa un gasto recurrente/fijo (luz, agua, renta, Netflix, etc). Usa cuando mencionen pagos mensuales fijos.',
+      'Schedules a recurring/fixed expense (electricity, water, rent, Netflix, etc). Use when they mention fixed monthly payments.',
     input_schema: {
       type: 'object' as const,
       properties: {
         name: {
           type: 'string',
-          description: 'Nombre del gasto (ej: "Luz", "Renta", "Netflix")',
+          description:
+            'Name of the expense (e.g.: "Electricity", "Rent", "Netflix")',
         },
         amount: {
           type: 'number',
-          description: 'Monto en pesos',
+          description: 'Amount in dollars',
         },
         due_day: {
           type: 'number',
-          description: 'Día del mes en que vence (1-31)',
+          description: 'Day of the month it is due (1-31)',
         },
         type: {
           type: 'string',
@@ -319,7 +317,7 @@ const TOOLS: Anthropic.Tool[] = [
             'subscription',
             'other',
           ],
-          description: 'Tipo de gasto fijo',
+          description: 'Type of fixed expense',
         },
       },
       required: ['name', 'amount', 'due_day', 'type'],
@@ -328,7 +326,7 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: 'get_debt_strategy',
     description:
-      'Genera un plan de pago de deudas. Usa cuando pregunten cómo pagar sus deudas, estrategias, método avalancha o bola de nieve.',
+      'Generates a debt payoff plan. Use when they ask how to pay off debts, strategies, avalanche or snowball method.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -336,7 +334,7 @@ const TOOLS: Anthropic.Tool[] = [
           type: 'string',
           enum: ['avalanche', 'snowball', 'both'],
           description:
-            'Método: avalanche (mayor interés primero), snowball (menor balance primero), both (mostrar ambos)',
+            'Method: avalanche (highest interest first), snowball (lowest balance first), both (show both)',
         },
       },
       required: [],
@@ -377,7 +375,7 @@ async function executeCreateTransaction(
     await db.insert(accounts).values({
       id,
       userId,
-      name: 'Efectivo',
+      name: 'Cash',
       type: 'cash',
       createdAt: Date.now(),
     });
@@ -700,7 +698,7 @@ async function executeGetDebtStrategy(
       debts: [],
       avalancheOrder: [],
       snowballOrder: [],
-      recommendation: 'No tienes deudas registradas. ¡Eso está genial!',
+      recommendation: "You have no debts recorded. That's great!",
     };
   }
 
@@ -719,8 +717,8 @@ async function executeGetDebtStrategy(
 
   const hasHighInterest = debtsList.some((d) => d.apr >= 25);
   const recommendation = hasHighInterest
-    ? 'Con deudas de alto interés, el método Avalancha te ahorrará más dinero a largo plazo.'
-    : 'Ambos métodos son buenos. Bola de Nieve te dará victorias rápidas que te mantendrán motivado.';
+    ? 'With high-interest debts, the Avalanche method will save you the most money long-term.'
+    : 'Both methods work well. Snowball will give you quick wins that keep you motivated.';
 
   return {
     totalDebt,
@@ -797,50 +795,50 @@ function getCategoryEmoji(category: string): string {
 // ============================================================================
 
 interface UserState {
-  ingresos: Array<{
-    monto: number;
-    descripcion: string;
-    frecuencia?: string;
-    proxima_fecha?: string;
+  income: Array<{
+    amount: number;
+    description: string;
+    frequency?: string;
+    next_date?: string;
   }>;
-  gastos_mes_actual: {
+  current_month_expenses: {
     total: number;
-    por_categoria: Array<{ categoria: string; monto: number }>;
-    transacciones_recientes: Array<{
-      descripcion: string;
-      monto: number;
-      categoria?: string;
-      fecha: string;
+    by_category: Array<{ category: string; amount: number }>;
+    recent_transactions: Array<{
+      description: string;
+      amount: number;
+      category?: string;
+      date: string;
     }>;
   };
-  deudas: Array<{
-    nombre: string;
-    tipo: string;
-    monto_pendiente: number;
-    tasa_anual: number;
-    pago_minimo?: number;
-    fecha_limite?: string;
-    estado: string;
+  debts: Array<{
+    name: string;
+    type: string;
+    outstanding_balance: number;
+    annual_rate: number;
+    minimum_payment?: number;
+    due_date?: string;
+    status: string;
   }>;
-  pagos_programados: Array<{
-    nombre: string;
-    monto: number;
-    fecha: string;
-    frecuencia: string;
-    tipo: string;
+  scheduled_payments: Array<{
+    name: string;
+    amount: number;
+    date: string;
+    frequency: string;
+    type: string;
   }>;
-  perfil: {
-    salario_mensual?: number;
-    frecuencia_pago?: string;
+  profile: {
+    monthly_salary?: number;
+    pay_frequency?: string;
   };
-  resumen: {
-    ingresos_mes: number;
-    gastos_mes: number;
-    balance_disponible: number;
-    total_deudas: number;
-    fecha_hoy: string;
+  summary: {
+    monthly_income: number;
+    monthly_expenses: number;
+    available_balance: number;
+    total_debts: number;
+    today_date: string;
   };
-  alertas: string[];
+  alerts: string[];
 }
 
 async function buildUserState(userId: string): Promise<UserState> {
@@ -894,8 +892,8 @@ async function buildUserState(userId: string): Promise<UserState> {
     .filter((t) => t.type === 'expense')
     .forEach((t) => {
       const catName = t.categoryId
-        ? categoryMap.get(t.categoryId) || 'Sin categoría'
-        : 'Sin categoría';
+        ? categoryMap.get(t.categoryId) || 'Uncategorized'
+        : 'Uncategorized';
       expensesByCategory.set(
         catName,
         (expensesByCategory.get(catName) || 0) + Math.abs(t.amountCents)
@@ -920,7 +918,7 @@ async function buildUserState(userId: string): Promise<UserState> {
     );
 
   // Build alerts
-  const alertas: string[] = [];
+  const alerts: string[] = [];
 
   // Check for upcoming payments (within 5 days)
   const fiveDaysFromNow = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
@@ -928,8 +926,8 @@ async function buildUserState(userId: string): Promise<UserState> {
     if (bill.nextDueDate) {
       const dueDate = new Date(bill.nextDueDate);
       if (dueDate <= fiveDaysFromNow && dueDate >= now) {
-        alertas.push(
-          `PAGO_PROXIMO: ${bill.name} vence el ${bill.nextDueDate} ($${(bill.amountCents / 100).toFixed(2)})`
+        alerts.push(
+          `UPCOMING_PAYMENT: ${bill.name} is due ${bill.nextDueDate} ($${(bill.amountCents / 100).toFixed(2)})`
         );
       }
     }
@@ -938,8 +936,8 @@ async function buildUserState(userId: string): Promise<UserState> {
   // Check for high APR debts
   userDebts.forEach((debt) => {
     if (debt.aprPercent > 30) {
-      alertas.push(
-        `TASA_ALTA: ${debt.name} tiene ${debt.aprPercent}% APR - priorizar`
+      alerts.push(
+        `HIGH_RATE: ${debt.name} has ${debt.aprPercent}% APR - prioritize`
       );
     }
   });
@@ -949,8 +947,8 @@ async function buildUserState(userId: string): Promise<UserState> {
     (totalIncome - totalExpenses) / 100 -
     bills.reduce((sum, b) => sum + b.amountCents / 100, 0);
   if (projectedBalance < 0) {
-    alertas.push(
-      `SALDO_NEGATIVO: Balance proyectado negativo ($${projectedBalance.toFixed(2)})`
+    alerts.push(
+      `NEGATIVE_BALANCE: Projected negative balance ($${projectedBalance.toFixed(2)})`
     );
   }
 
@@ -960,64 +958,64 @@ async function buildUserState(userId: string): Promise<UserState> {
   );
 
   return {
-    ingresos: monthTx
+    income: monthTx
       .filter((t) => t.type === 'income')
       .slice(0, 5)
       .map((t) => ({
-        monto: Math.abs(t.amountCents) / 100,
-        descripcion: t.description,
+        amount: Math.abs(t.amountCents) / 100,
+        description: t.description,
       })),
-    gastos_mes_actual: {
+    current_month_expenses: {
       total: totalExpenses / 100,
-      por_categoria: Array.from(expensesByCategory.entries()).map(
+      by_category: Array.from(expensesByCategory.entries()).map(
         ([cat, amount]) => ({
-          categoria: cat,
-          monto: amount / 100,
+          category: cat,
+          amount: amount / 100,
         })
       ),
-      transacciones_recientes: monthTx
+      recent_transactions: monthTx
         .filter((t) => t.type === 'expense')
         .slice(0, 10)
         .map((t) => ({
-          descripcion: t.description,
-          monto: Math.abs(t.amountCents) / 100,
-          categoria: t.categoryId
+          description: t.description,
+          amount: Math.abs(t.amountCents) / 100,
+          category: t.categoryId
             ? categoryMap.get(t.categoryId) || undefined
             : undefined,
-          fecha: t.date,
+          date: t.date,
         })),
     },
-    deudas: userDebts.map((d) => ({
-      nombre: d.name,
-      tipo: d.type,
-      monto_pendiente: d.currentBalanceCents / 100,
-      tasa_anual: d.aprPercent,
-      pago_minimo: d.minimumPaymentCents
+    debts: userDebts.map((d) => ({
+      name: d.name,
+      type: d.type,
+      outstanding_balance: d.currentBalanceCents / 100,
+      annual_rate: d.aprPercent,
+      minimum_payment: d.minimumPaymentCents
         ? d.minimumPaymentCents / 100
         : undefined,
-      estado: d.status,
+      status: d.status,
     })),
-    pagos_programados: bills.map((b) => ({
-      nombre: b.name,
-      monto: b.amountCents / 100,
-      fecha: b.nextDueDate || `día ${b.dueDay}`,
-      frecuencia: b.frequency,
-      tipo: b.type,
+    scheduled_payments: bills.map((b) => ({
+      name: b.name,
+      amount: b.amountCents / 100,
+      date: b.nextDueDate || `day ${b.dueDay}`,
+      frequency: b.frequency,
+      type: b.type,
     })),
-    perfil: {
-      salario_mensual: profile?.monthlySalaryCents
+    profile: {
+      monthly_salary: profile?.monthlySalaryCents
         ? profile.monthlySalaryCents / 100
         : undefined,
-      frecuencia_pago: profile?.payFrequency || undefined,
+      pay_frequency: profile?.payFrequency || undefined,
     },
-    resumen: {
-      ingresos_mes: totalIncome / 100,
-      gastos_mes: totalExpenses / 100,
-      balance_disponible: (totalIncome - totalExpenses) / 100,
-      total_deudas: totalDebt / 100,
-      fecha_hoy: today,
+    summary: {
+      monthly_income: totalIncome / 100,
+      monthly_expenses: totalExpenses / 100,
+      available_balance: (totalIncome - totalExpenses) / 100,
+      total_debts: totalDebt / 100,
+      today_date: today,
     },
-    alertas,
+    alerts,
   };
 }
 
@@ -1026,13 +1024,13 @@ function buildContextPrompt(
   history: string,
   userMessage: string
 ): string {
-  return `[ESTADO_ACTUAL]
+  return `[CURRENT_STATE]
 ${JSON.stringify(state, null, 2)}
 
-[HISTORIAL_RELEVANTE]
+[RELEVANT_HISTORY]
 ${history}
 
-[MENSAJE_USUARIO]
+[USER_MESSAGE]
 ${userMessage}`;
 }
 
@@ -1182,40 +1180,44 @@ export async function processMessage(
 
     if (transactionCreated) {
       followUpActions.push(
-        { label: 'Otro gasto', type: 'quick_reply', value: 'Gasté $' },
+        { label: 'Another expense', type: 'quick_reply', value: 'I spent $' },
         {
-          label: 'Ver resumen',
+          label: 'View summary',
           type: 'quick_reply',
-          value: '¿Cuánto llevo gastado?',
+          value: 'How much have I spent?',
         }
       );
     } else if (debtCreated) {
       followUpActions.push(
-        { label: 'Ver deudas', type: 'quick_reply', value: '¿Cuánto debo?' },
         {
-          label: 'Plan de pago',
+          label: 'View debts',
           type: 'quick_reply',
-          value: '¿Cómo pago mis deudas?',
+          value: 'How much do I owe?',
+        },
+        {
+          label: 'Payment plan',
+          type: 'quick_reply',
+          value: 'How do I pay off my debts?',
         }
       );
     } else {
       followUpActions.push(
         {
-          label: 'Registrar gasto',
+          label: 'Record expense',
           type: 'quick_reply',
-          value: 'Gasté $50 en',
+          value: 'I spent $50 on',
         },
         {
-          label: 'Ver resumen',
+          label: 'View summary',
           type: 'quick_reply',
-          value: '¿Cuánto he gastado?',
+          value: 'How much have I spent?',
         }
       );
     }
 
     const responseMessage =
       finalMessage ||
-      'Hmm, no estoy seguro de qué hacer con eso. ¿Puedes darme más detalles?';
+      "Hmm, I'm not sure what to do with that. Can you give me more details?";
 
     // Add assistant response to history
     addToHistory(userId, 'assistant', responseMessage);
@@ -1233,7 +1235,7 @@ export async function processMessage(
     console.error('Copilot error:', error);
 
     const errorMessage =
-      '¡Ups! Algo salió mal. 😅 Intenta de nuevo o dime qué necesitas de otra forma.';
+      'Oops! Something went wrong. Try again or tell me what you need in a different way.';
 
     // Add error response to history too
     addToHistory(userId, 'assistant', errorMessage);
@@ -1242,8 +1244,8 @@ export async function processMessage(
     return {
       message: errorMessage,
       followUpActions: [
-        { label: 'Registrar gasto', type: 'quick_reply', value: 'Gasté $' },
-        { label: 'Ayuda', type: 'quick_reply', value: '¿Qué puedes hacer?' },
+        { label: 'Record expense', type: 'quick_reply', value: 'I spent $' },
+        { label: 'Help', type: 'quick_reply', value: 'What can you do?' },
       ],
     };
   }
@@ -1279,15 +1281,15 @@ export async function updateTransactionCategory(
 
 export function getQuickActions(): Array<{ text: string; example: string }> {
   return [
-    { text: 'Registrar gasto', example: 'Gasté $30 en almuerzo' },
-    { text: 'Compras', example: 'Compré ropa por $150 en Zara' },
-    { text: 'Transporte', example: '$15 de Uber' },
-    { text: 'Ingreso', example: 'Me pagaron mi quincena de $2400' },
-    { text: 'Configurar salario', example: 'Gano $15,000 al mes' },
-    { text: 'Registrar deuda', example: 'Tengo una tarjeta con $5000 al 45%' },
-    { text: 'Plan de pago', example: '¿Cómo pago mis deudas?' },
-    { text: 'Ver resumen', example: '¿Cuánto he gastado este mes?' },
-    { text: 'Tips', example: '¿Qué es la regla 50/30/20?' },
+    { text: 'Record expense', example: 'I spent $30 on lunch' },
+    { text: 'Shopping', example: 'I bought clothes for $150 at Zara' },
+    { text: 'Transportation', example: '$15 Uber ride' },
+    { text: 'Income', example: 'I got paid my $2400 paycheck' },
+    { text: 'Set salary', example: 'I earn $5,000 a month' },
+    { text: 'Record debt', example: 'I have a credit card with $5000 at 45%' },
+    { text: 'Payment plan', example: 'How do I pay off my debts?' },
+    { text: 'View summary', example: 'How much have I spent this month?' },
+    { text: 'Tips', example: 'What is the 50/30/20 rule?' },
   ];
 }
 

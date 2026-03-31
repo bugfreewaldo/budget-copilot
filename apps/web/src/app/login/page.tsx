@@ -32,7 +32,7 @@ function LoginForm() {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError('Error al iniciar sesión. Por favor intenta de nuevo.');
+        setError('Failed to sign in. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ function LoginForm() {
             htmlFor="email"
             className="block text-sm font-medium text-gray-300"
           >
-            Correo Electrónico
+            Email
           </label>
           <div className="mt-1">
             <input
@@ -65,7 +65,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="tu@email.com"
+              placeholder="you@email.com"
             />
           </div>
         </div>
@@ -75,7 +75,7 @@ function LoginForm() {
             htmlFor="password"
             className="block text-sm font-medium text-gray-300"
           >
-            Contraseña
+            Password
           </label>
           <div className="mt-1">
             <input
@@ -104,7 +104,7 @@ function LoginForm() {
               htmlFor="remember-me"
               className="ml-2 block text-sm text-gray-400"
             >
-              Recordarme
+              Remember me
             </label>
           </div>
 
@@ -113,7 +113,7 @@ function LoginForm() {
               href="/forgot-password"
               className="text-cyan-400 hover:text-cyan-300"
             >
-              ¿Olvidaste tu contraseña?
+              Forgot your password?
             </Link>
           </div>
         </div>
@@ -142,10 +142,10 @@ function LoginForm() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Iniciando sesión...
+                Signing in...
               </span>
             ) : (
-              'Iniciar Sesión'
+              'Sign In'
             )}
           </button>
         </div>
@@ -158,7 +158,7 @@ function LoginForm() {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-gray-900 text-gray-500">
-              O continúa con
+              Or continue with
             </span>
           </div>
         </div>
@@ -201,9 +201,7 @@ function LoginForm() {
             <span className="ml-2">Apple</span>
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-500">
-          Próximamente disponible
-        </p>
+        <p className="mt-3 text-center text-xs text-gray-500">Coming soon</p>
       </div>
     </div>
   );
@@ -230,12 +228,12 @@ function RegisterLink() {
 
   return (
     <p className="mt-2 text-center text-sm text-gray-400">
-      ¿No tienes cuenta?{' '}
+      Don&apos;t have an account?{' '}
       <Link
         href={registerHref}
         className="text-cyan-400 hover:text-cyan-300 font-medium"
       >
-        Regístrate gratis
+        Sign up free
       </Link>
     </p>
   );
@@ -258,14 +256,12 @@ export default function LoginPage(): React.ReactElement {
             Budget Copilot
           </span>
         </Link>
-        <h2 className="text-center text-3xl font-bold text-white">
-          Iniciar Sesión
-        </h2>
+        <h2 className="text-center text-3xl font-bold text-white">Sign In</h2>
         <Suspense
           fallback={
             <p className="mt-2 text-center text-sm text-gray-400">
-              ¿No tienes cuenta?{' '}
-              <span className="text-cyan-400">Regístrate gratis</span>
+              Don&apos;t have an account?{' '}
+              <span className="text-cyan-400">Sign up free</span>
             </p>
           }
         >

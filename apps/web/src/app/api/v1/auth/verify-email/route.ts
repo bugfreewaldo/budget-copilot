@@ -26,17 +26,17 @@ export async function POST(request: NextRequest) {
     if (!success) {
       return errorJson(
         'INVALID_TOKEN',
-        'El enlace de verificación es inválido o ha expirado',
+        'The verification link is invalid or has expired',
         400
       );
     }
 
     console.log('[verify-email] Verification successful!');
     return NextResponse.json({
-      message: '¡Tu correo electrónico ha sido verificado!',
+      message: 'Your email has been verified!',
     });
   } catch (error) {
     console.error('Email verification error:', error);
-    return errorJson('INTERNAL_ERROR', 'Error al verificar el correo', 500);
+    return errorJson('INTERNAL_ERROR', 'Failed to verify email', 500);
   }
 }

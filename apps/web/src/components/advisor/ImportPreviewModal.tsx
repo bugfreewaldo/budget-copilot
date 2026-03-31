@@ -208,20 +208,20 @@ export function ImportPreviewModal({
     filteredTransactions.length > 0 &&
     filteredTransactions.every((tx) => selectedIds.has(tx.id));
 
-  // Sort categories: parents first (alphabetically), then children grouped under parents
-  const sortedCategories = useMemo(() => {
+  // Group categories by parent for optgroup display
+  const categoryGroups = useMemo(() => {
     const parents = categories
       .filter((c) => !c.parentId)
       .sort((a, b) => a.name.localeCompare(b.name));
-    const result: Category[] = [];
+
+    const groups: Array<{ parent: Category; children: Category[] }> = [];
     for (const parent of parents) {
-      result.push(parent);
       const children = categories
         .filter((c) => c.parentId === parent.id)
         .sort((a, b) => a.name.localeCompare(b.name));
-      result.push(...children);
+      groups.push({ parent, children });
     }
-    return result;
+    return groups;
   }, [categories]);
 
   // Handle category change from dropdown
@@ -242,7 +242,7 @@ export function ImportPreviewModal({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Revisar transacciones
+          Review transactions
         </h2>
         <button
           onClick={onClose}
@@ -294,19 +294,19 @@ export function ImportPreviewModal({
                 />
               </th>
               <th className="py-2 text-left text-gray-500 dark:text-gray-400">
-                Fecha
+                Date
               </th>
               <th className="py-2 text-left text-gray-500 dark:text-gray-400">
-                Descripcion
+                Description
               </th>
               <th className="py-2 text-right text-gray-500 dark:text-gray-400">
-                Monto
+                Amount
               </th>
               <th className="py-2 text-left text-gray-500 dark:text-gray-400">
-                Categoria
+                Category
               </th>
               <th className="w-20 py-2 text-center text-gray-500 dark:text-gray-400">
-                Tipo
+                Type
               </th>
             </tr>
           </thead>
@@ -317,7 +317,7 @@ export function ImportPreviewModal({
                 transaction={tx}
                 selected={selectedIds.has(tx.id)}
                 onToggle={() => toggleSelection(tx.id)}
-                categories={sortedCategories}
+                categoryGroups={categoryGroups}
                 onCategoryChange={(categoryId) =>
                   handleCategoryDropdownChange(tx.id, categoryId)
                 }
@@ -328,7 +328,7 @@ export function ImportPreviewModal({
 
         {filteredTransactions.length === 0 && (
           <div className="py-8 text-center text-gray-500">
-            No hay transacciones que coincidan con los filtros.
+            No transactions match the current filters.
           </div>
         )}
       </div>
@@ -337,42 +337,42 @@ export function ImportPreviewModal({
       <div className="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-700">
         {/* Total stats (all transactions) */}
         <div className="text-xs text-gray-500 dark:text-gray-500">
-          Total en archivo: {totalStats.count} transacciones ·{' '}
+          Total in file: {totalStats.count} transactions ·{' '}
           <span className="text-red-500">
             -{formatCurrency(totalStats.expenses)}
           </span>{' '}
-          gastos ·{' '}
+          expenses ·{' '}
           <span className="text-green-500">
             +{formatCurrency(totalStats.income)}
           </span>{' '}
-          ingresos
+          income
         </div>
 
         {/* Selected stats and actions */}
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-medium">{selectedStats.count}</span> de{' '}
-            {totalStats.count} seleccionadas
+            <span className="font-medium">{selectedStats.count}</span> of{' '}
+            {totalStats.count} selected
             {' · '}
             <span className="text-red-600 dark:text-red-400">
               -{formatCurrency(selectedStats.expenses)}
             </span>
-            {' gastos · '}
+            {' expenses · '}
             <span className="text-green-600 dark:text-green-400">
               +{formatCurrency(selectedStats.income)}
             </span>
-            {' ingresos'}
+            {' income'}
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>
-              Cancelar
+              Cancel
             </Button>
             <Button
               variant="primary"
               onClick={() => onStage(selectedTransactions)}
               disabled={selectedStats.count === 0}
             >
-              Continuar con {selectedStats.count} transacciones
+              Continue with {selectedStats.count} transactions
             </Button>
           </div>
         </div>
@@ -389,13 +389,13 @@ function TransactionRow({
   transaction,
   selected,
   onToggle,
-  categories,
+  categoryGroups,
   onCategoryChange,
 }: {
   transaction: EnrichedTransaction;
   selected: boolean;
   onToggle: () => void;
-  categories: Category[];
+  categoryGroups: Array<{ parent: Category; children: Category[] }>;
   onCategoryChange: (categoryId: string) => void;
 }) {
   const amountCents = Math.round(Math.abs(transaction.amount) * 100);
@@ -420,7 +420,7 @@ function TransactionRow({
       <td className="max-w-xs truncate py-2 text-gray-900 dark:text-white">
         {transaction.description}
         {transaction.isTransfer && (
-          <span className="ml-1 text-xs text-blue-500">(transferencia)</span>
+          <span className="ml-1 text-xs text-blue-500">(transfer)</span>
         )}
       </td>
       <td
@@ -437,24 +437,63 @@ function TransactionRow({
         <select
           value={transaction.category.id ?? ''}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className={`w-full max-w-[180px] px-2 py-1 text-sm bg-transparent border rounded cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500 ${
+          className={`w-full max-w-[220px] px-2 py-1 text-sm bg-transparent border rounded cursor-pointer focus:outline-none focus:ring-1 focus:ring-cyan-500 ${
             transaction.category.id
               ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
               : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
           } ${transaction.category.confidence < 0.7 ? 'border-amber-400 dark:border-amber-500' : ''}`}
         >
-          <option value="">Sin categoría</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.parentId
-                ? `  ${cat.emoji || ''} ${cat.name}`
-                : `${cat.emoji || ''} ${cat.name}`}
-            </option>
-          ))}
+          <option value="">No category</option>
+          {categoryGroups.map(({ parent, children }) =>
+            children.length > 0 ? (
+              <optgroup
+                key={parent.id}
+                label={`${parent.emoji || ''} ${parent.name}`}
+              >
+                <option value={parent.id}>
+                  {parent.emoji || ''} {parent.name} (general)
+                </option>
+                {children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {child.emoji || ''} {child.name}
+                  </option>
+                ))}
+              </optgroup>
+            ) : (
+              <option key={parent.id} value={parent.id}>
+                {parent.emoji || ''} {parent.name}
+              </option>
+            )
+          )}
         </select>
-        {transaction.category.confidence < 0.7 && transaction.category.id && (
-          <span className="ml-1 text-xs text-amber-500" title="Baja confianza">
-            ?
+        {transaction.category.id && (
+          <span
+            className={`ml-1 inline-block text-xs ${
+              transaction.category.source === 'learned'
+                ? 'text-green-500'
+                : transaction.category.source === 'llm'
+                  ? 'text-purple-400'
+                  : transaction.category.confidence < 0.7
+                    ? 'text-amber-500'
+                    : 'text-gray-500'
+            }`}
+            title={
+              transaction.category.source === 'learned'
+                ? 'Matched from your history'
+                : transaction.category.source === 'llm'
+                  ? 'AI suggestion'
+                  : transaction.category.source === 'pattern'
+                    ? 'Pattern match'
+                    : 'Low confidence'
+            }
+          >
+            {transaction.category.source === 'learned'
+              ? '✓'
+              : transaction.category.source === 'llm'
+                ? '✦'
+                : transaction.category.confidence < 0.7
+                  ? '?'
+                  : ''}
           </span>
         )}
       </td>
@@ -466,7 +505,7 @@ function TransactionRow({
               : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
           }`}
         >
-          {transaction.isCredit ? 'Ingreso' : 'Gasto'}
+          {transaction.isCredit ? 'Income' : 'Expense'}
         </span>
       </td>
     </tr>

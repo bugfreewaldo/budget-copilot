@@ -20,14 +20,14 @@ import { useToast } from '@/components/ui/toast';
  */
 
 const STEP_LABELS: Record<InterviewStep, string> = {
-  cash: 'Efectivo',
-  income: 'Ingresos',
-  bills: 'Gastos fijos',
-  debts: 'Deudas',
-  spending: 'Gastos variables',
-  ant_expenses: 'Gastos pequeños',
-  savings: 'Ahorro',
-  complete: 'Listo',
+  cash: 'Cash',
+  income: 'Income',
+  bills: 'Fixed expenses',
+  debts: 'Debts',
+  spending: 'Variable expenses',
+  ant_expenses: 'Small expenses',
+  savings: 'Savings',
+  complete: 'Done',
 };
 
 const STEP_ORDER: InterviewStep[] = [
@@ -120,14 +120,14 @@ export default function OnboardingPage() {
 
       // If interview is complete, show summary and redirect
       if (response.isComplete) {
-        showToast('Entrevista completada', 'success');
+        showToast('Interview completed', 'success');
         setTimeout(() => {
           router.push('/dashboard');
         }, 2000);
       }
     } catch (err) {
       console.error('Failed to send message:', err);
-      showToast('Error al enviar mensaje. Intenta de nuevo.', 'error');
+      showToast('Failed to send message. Try again.', 'error');
     } finally {
       setIsSending(false);
       inputRef.current?.focus();
@@ -137,11 +137,11 @@ export default function OnboardingPage() {
   const handleSkip = async () => {
     try {
       await skipInterview();
-      showToast('Puedes completar esta información más tarde.', 'info');
+      showToast('You can complete this information later.', 'info');
       router.push('/dashboard');
     } catch (err) {
       console.error('Failed to skip interview:', err);
-      showToast('Error al saltar la entrevista.', 'error');
+      showToast('Failed to skip the interview.', 'error');
     }
   };
 
@@ -152,10 +152,10 @@ export default function OnboardingPage() {
       setMessages([]);
       setCurrentStep('cash');
       refresh();
-      showToast('Entrevista reiniciada.', 'info');
+      showToast('Interview reset.', 'info');
     } catch (err) {
       console.error('Failed to reset interview:', err);
-      showToast('Error al reiniciar la entrevista.', 'error');
+      showToast('Failed to reset the interview.', 'error');
     }
   };
 
@@ -172,7 +172,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Cargando...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -183,12 +183,12 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-400 mb-4">Error al cargar la entrevista.</p>
+          <p className="text-red-400 mb-4">Failed to load the interview.</p>
           <button
             onClick={() => refresh()}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Reintentar
+            Retry
           </button>
         </div>
       </div>
@@ -219,7 +219,7 @@ export default function OnboardingPage() {
                 onClick={handleSkip}
                 className="text-sm text-gray-400 hover:text-white transition-colors"
               >
-                Saltar
+                Skip
               </button>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function OnboardingPage() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu respuesta..."
+              placeholder="Type your answer..."
               disabled={isSending}
               className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
             />
@@ -303,7 +303,7 @@ export default function OnboardingPage() {
               disabled={!inputValue.trim() || isSending}
               className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl font-medium transition-colors"
             >
-              Enviar
+              Send
             </button>
           </div>
         </div>

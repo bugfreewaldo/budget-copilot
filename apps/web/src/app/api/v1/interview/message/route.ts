@@ -29,8 +29,7 @@ interface ChatMessage {
   timestamp: number;
 }
 
-// Step-specific transitions with micro-reflections (authority tone, Spanish)
-// Based on CEO's complete copy rewrite for authority without judgment
+// Step-specific transitions with micro-reflections (authority tone)
 // Each step has: acknowledgment (clear) + acknowledgment (unclear) + reflection ("aha") + question
 interface StepResponse {
   acknowledgment: string;
@@ -45,61 +44,63 @@ const STEP_RESPONSES: Record<InterviewStep, StepResponse> = {
     acknowledgmentUnclear: '',
     reflection: '',
     question:
-      '¿Cuánto dinero tienes disponible ahora mismo?\nIncluye lo que tengas en cuentas o efectivo que puedas usar hoy.',
+      'How much money do you have available right now?\nInclude anything in accounts or cash you can use today.',
   },
   income: {
-    acknowledgment: 'Entendido. Tomaré este monto como base.',
+    acknowledgment: "Got it. I'll use this amount as a baseline.",
     acknowledgmentUnclear:
-      'Tomaré $0 como referencia por ahora.\nEsto indica poca tolerancia a imprevistos inmediatos.',
+      "I'll use $0 as a reference for now.\nThis indicates low tolerance for immediate surprises.",
     reflection: '',
     question:
-      '¿Cuánto ganas en un mes típico?\nIncluye tu salario neto y cualquier ingreso regular.',
+      'How much do you earn in a typical month?\nInclude your net salary and any regular income.',
   },
   bills: {
-    acknowledgment: 'Usaré este monto al mes como ingreso base.',
-    acknowledgmentUnclear: 'Usaré un estimado conservador como ingreso base.',
+    acknowledgment: "I'll use this monthly amount as your base income.",
+    acknowledgmentUnclear:
+      "I'll use a conservative estimate as your base income.",
     reflection: '',
     question:
-      '¿Qué gastos fijos pagas todos los meses?\nRenta o hipoteca, servicios, seguros, teléfono, internet, suscripciones.',
+      'What fixed expenses do you pay every month?\nRent or mortgage, utilities, insurance, phone, internet, subscriptions.',
   },
   debts: {
-    acknowledgment: 'De acuerdo.',
+    acknowledgment: 'Noted.',
     acknowledgmentUnclear:
-      'No es necesario que sean exactos.\nUsaré estimados conservadores y los ajustaremos después.',
-    reflection: 'Estos gastos definen cuánto margen real tienes cada mes.',
+      "They don't need to be exact.\nI'll use conservative estimates and we'll adjust later.",
+    reflection:
+      'These expenses define how much real margin you have each month.',
     question:
-      '¿Tienes deudas actualmente?\nTarjetas de crédito, préstamos, compras a plazos, cualquier deuda con interés.',
+      'Do you have any debts right now?\nCredit cards, loans, installment purchases, any interest-bearing debt.',
   },
   spending: {
-    acknowledgment: 'Entendido.',
+    acknowledgment: 'Got it.',
     acknowledgmentUnclear:
-      'Es común cuando hay varias deudas activas.\nCuando las deudas no están claras, la presión suele sentirse mayor de lo necesario.',
+      "That's common when there are several active debts.\nWhen debts aren't clear, the pressure often feels greater than it needs to.",
     reflection: '',
     question:
-      'En un mes normal, ¿cuánto gastas aproximadamente en gastos variables?\nComida, transporte, entretenimiento, compras.',
+      'In a normal month, roughly how much do you spend on variable expenses?\nFood, transportation, entertainment, shopping.',
   },
   ant_expenses: {
-    acknowledgment: 'Entendido.',
-    acknowledgmentUnclear: 'Usaré un promedio conservador para continuar.',
+    acknowledgment: 'Got it.',
+    acknowledgmentUnclear: "I'll use a conservative average to continue.",
     reflection: '',
     question:
-      'Además de eso, ¿hay gastos pequeños que se repiten y se van sumando?\nCafé, snacks, apps, pedidos, transporte rápido.',
+      'Beyond that, are there small recurring expenses that add up?\nCoffee, snacks, apps, delivery, ride-sharing.',
   },
   savings: {
-    acknowledgment: 'Perfecto. Los incluiré como gastos recurrentes.',
+    acknowledgment: "Perfect. I'll include those as recurring expenses.",
     acknowledgmentUnclear:
-      'Tomaré un estimado pequeño pero constante.\nEstos gastos suelen pasar desapercibidos hasta que se acumulan.',
+      "I'll use a small but steady estimate.\nThese expenses often go unnoticed until they pile up.",
     reflection: '',
     question:
-      '¿Ahorras algo de forma regular?\nFondo de emergencia, cuenta de ahorros, o cualquier forma de ahorro.',
+      'Do you save anything regularly?\nEmergency fund, savings account, or any form of savings.',
   },
   complete: {
-    acknowledgment: 'Entendido.',
+    acknowledgment: 'Got it.',
     acknowledgmentUnclear:
-      'Registraré $0 en ahorros por ahora.\nEl ahorro funciona como amortiguador cuando algo se sale de lo esperado.',
+      "I'll record $0 in savings for now.\nSavings work as a buffer when something unexpected comes up.",
     reflection: '',
     question:
-      'Esta información es suficiente para continuar.\nTu primera instrucción financiera está siendo calculada.',
+      'This information is enough to continue.\nYour first financial instruction is being calculated.',
   },
 };
 
@@ -111,6 +112,12 @@ const UNCLEAR_TRIGGERS = [
   'no tengo idea',
   'ni idea',
   'no lo he pensado',
+  "i don't know",
+  'i dont know',
+  'not sure',
+  'no idea',
+  'no clue',
+  "haven't thought about it",
 ];
 
 // Check if message indicates uncertainty
@@ -123,8 +130,15 @@ function isUnclearAnswer(message: string): boolean {
 function parseAmount(message: string): number | null {
   const normalized = message.toLowerCase().replace(/,/g, '').replace(/\s/g, '');
 
-  // Handle "nada", "0", "cero"
-  if (normalized === 'nada' || normalized === '0' || normalized === 'cero') {
+  // Handle "nada", "0", "cero", "nothing", "zero", "none"
+  if (
+    normalized === 'nada' ||
+    normalized === '0' ||
+    normalized === 'cero' ||
+    normalized === 'nothing' ||
+    normalized === 'zero' ||
+    normalized === 'none'
+  ) {
     return 0;
   }
 
@@ -272,22 +286,21 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Get existing session
-    const session = await db
+    const [session] = await db
       .select()
       .from(interviewSessions)
-      .where(eq(interviewSessions.userId, userId))
-      .get();
+      .where(eq(interviewSessions.userId, userId));
 
     if (!session) {
       return errorJson(
         'NOT_FOUND',
-        'No hay sesión de entrevista. Comienza una nueva.',
+        'No interview session found. Start a new one.',
         404
       );
     }
 
     if (session.status === 'completed') {
-      return errorJson('VALIDATION_ERROR', 'Entrevista ya completada.', 400);
+      return errorJson('VALIDATION_ERROR', 'Interview already completed.', 400);
     }
 
     // Parse stored state
@@ -359,11 +372,10 @@ export async function POST(request: NextRequest) {
 
     // If complete, update user profile
     if (isComplete) {
-      const existingProfile = await db
+      const [existingProfile] = await db
         .select()
         .from(userProfiles)
-        .where(eq(userProfiles.userId, userId))
-        .get();
+        .where(eq(userProfiles.userId, userId));
 
       const profileData = {
         onboardingCompleted: true,
@@ -399,7 +411,7 @@ export async function POST(request: NextRequest) {
         isComplete,
         insightFlags,
         summary: isComplete
-          ? 'Tu información financiera ha sido registrada. Ya puedes ver tu instrucción diaria.'
+          ? 'Your financial information has been recorded. You can now see your daily instruction.'
           : null,
       },
     });

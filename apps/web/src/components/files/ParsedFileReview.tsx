@@ -73,7 +73,7 @@ export function ParsedFileReview({
           return;
         }
 
-        setError(err instanceof Error ? err.message : 'Error al cargar');
+        setError(err instanceof Error ? err.message : 'Failed to load');
         setLoading(false);
       }
     };
@@ -132,12 +132,12 @@ export function ParsedFileReview({
 
       if (result.imported.length > 0) {
         showToast(
-          `${result.imported.length} transacción(es) importada(s)`,
+          `${result.imported.length} transaction(s) imported`,
           'success'
         );
       }
       if (result.errors.length > 0) {
-        showToast(`${result.errors.length} error(es) al importar`, 'error');
+        showToast(`${result.errors.length} error(s) during import`, 'error');
       }
 
       // Refresh the summary
@@ -150,7 +150,7 @@ export function ParsedFileReview({
       }
     } catch (err) {
       showToast(
-        err instanceof Error ? err.message : 'Error al importar',
+        err instanceof Error ? err.message : 'Failed to import',
         'error'
       );
     } finally {
@@ -170,7 +170,7 @@ export function ParsedFileReview({
             ))}
           </div>
         </div>
-        <p className="text-gray-400 text-center mt-4">Procesando archivo...</p>
+        <p className="text-gray-400 text-center mt-4">Processing file...</p>
       </div>
     );
   }
@@ -186,7 +186,7 @@ export function ParsedFileReview({
               onClick={onClose}
               className="mt-4 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 transition-all"
             >
-              Cerrar
+              Close
             </button>
           )}
         </div>
@@ -212,10 +212,10 @@ export function ParsedFileReview({
         </h3>
         <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
           {summary.documentType === 'receipt'
-            ? 'Recibo'
+            ? 'Receipt'
             : summary.documentType === 'invoice'
-              ? 'Factura'
-              : 'Estado de cuenta'}
+              ? 'Invoice'
+              : 'Bank statement'}
         </span>
       </div>
 
@@ -226,7 +226,7 @@ export function ParsedFileReview({
             {summary.summary.mainTransaction.merchant}
           </p>
           <p className="text-gray-400 text-sm">
-            {summary.summary.mainTransaction.date || 'Fecha no detectada'}
+            {summary.summary.mainTransaction.date || 'Date not detected'}
           </p>
           <p className="text-2xl font-bold text-white mt-2">
             {formatCents(summary.summary.mainTransaction.amount * 100)}
@@ -241,12 +241,12 @@ export function ParsedFileReview({
           )}
           {summary.summary.period && (
             <p className="text-gray-400 text-sm">
-              Período: {summary.summary.period.from} -{' '}
+              Period: {summary.summary.period.from} -{' '}
               {summary.summary.period.to}
             </p>
           )}
           <p className="text-gray-400 text-sm mt-1">
-            {summary.summary.transactions.length} transacciones encontradas
+            {summary.summary.transactions.length} transactions found
           </p>
         </div>
       ) : null}
@@ -263,8 +263,8 @@ export function ParsedFileReview({
                 className="text-sm text-cyan-400 hover:text-cyan-300 disabled:text-gray-600"
               >
                 {selectedItems.size === allItemIds.length
-                  ? 'Deseleccionar todo'
-                  : 'Seleccionar todo'}
+                  ? 'Deselect all'
+                  : 'Select all'}
               </button>
             </div>
             <div className="max-h-64 overflow-y-auto space-y-1">
@@ -303,7 +303,7 @@ export function ParsedFileReview({
                       {formatCents(Math.abs(tx.amount) * 100)}
                     </span>
                     {isImported && (
-                      <span className="text-xs text-gray-500">Importado</span>
+                      <span className="text-xs text-gray-500">Imported</span>
                     )}
                   </label>
                 );
@@ -332,7 +332,7 @@ export function ParsedFileReview({
               {summary.summary.mainTransaction.merchant}
             </p>
             <p className="text-gray-500 text-xs">
-              {summary.summary.mainTransaction.date || 'Fecha no detectada'}
+              {summary.summary.mainTransaction.date || 'Date not detected'}
             </p>
           </div>
           <span className="font-medium text-red-400">
@@ -345,7 +345,7 @@ export function ParsedFileReview({
       {!allImported && accounts.length > 0 && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-1">
-            Cuenta destino
+            Destination account
           </label>
           <select
             value={selectedAccountId}
@@ -369,7 +369,7 @@ export function ParsedFileReview({
             disabled={importing}
             className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
           >
-            Cerrar
+            Close
           </button>
         )}
         {!allImported && (
@@ -381,13 +381,13 @@ export function ParsedFileReview({
             className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {importing
-              ? 'Importando...'
-              : `Importar ${selectedItems.size} transacción(es)`}
+              ? 'Importing...'
+              : `Import ${selectedItems.size} transaction(s)`}
           </button>
         )}
         {allImported && (
           <span className="text-green-400 text-sm flex items-center gap-1">
-            ✓ Todo importado
+            ✓ All imported
           </span>
         )}
       </div>

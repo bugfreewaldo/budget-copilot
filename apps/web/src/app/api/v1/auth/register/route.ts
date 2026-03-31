@@ -8,6 +8,8 @@ const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().max(100).optional(),
+  householdName: z.string().min(1, 'Household name is required').max(100),
+  memberNames: z.array(z.string().max(100)).optional().default([]),
 });
 
 const SESSION_COOKIE_NAME = 'session';

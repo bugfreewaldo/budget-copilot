@@ -137,21 +137,21 @@ export default function HomePage(): React.ReactElement {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-gray-300 hover:text-white py-2"
               >
-                Como Funciona
+                How It Works
               </Link>
               <Link
                 href="#examples"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-gray-300 hover:text-white py-2"
               >
-                Ejemplos
+                Examples
               </Link>
               <Link
                 href="/pricing"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-gray-300 hover:text-white py-2"
               >
-                Precios
+                Pricing
               </Link>
               <div className="border-t border-gray-800 pt-4 mt-4 space-y-3">
                 <Link
@@ -159,14 +159,14 @@ export default function HomePage(): React.ReactElement {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block text-gray-300 hover:text-white py-2"
                 >
-                  Iniciar Sesion
+                  Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Button className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0">
-                    Ver qué hacer hoy
+                    See what to do today
                   </Button>
                 </Link>
               </div>
@@ -192,32 +192,32 @@ export default function HomePage(): React.ReactElement {
                 href="#how"
                 className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Como Funciona
+                How It Works
               </Link>
               <Link
                 href="#examples"
                 className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Ejemplos
+                Examples
               </Link>
               <Link
                 href="/pricing"
                 className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Precios
+                Pricing
               </Link>
               <Link
                 href="/login"
                 className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Iniciar Sesion
+                Sign In
               </Link>
               <Link href="/register">
                 <Button
                   size="sm"
                   className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0"
                 >
-                  Ver qué hacer hoy
+                  See what to do today
                 </Button>
               </Link>
             </nav>
@@ -262,9 +262,7 @@ export default function HomePage(): React.ReactElement {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              <span className="text-sm text-gray-300">
-                Motor de Decisiones con IA
-              </span>
+              <span className="text-sm text-gray-300">AI Decision Engine</span>
             </div>
 
             {/* Headline */}
@@ -277,9 +275,9 @@ export default function HomePage(): React.ReactElement {
                   'opacity 0.6s ease-out 0.1s, transform 0.6s ease-out 0.1s',
               }}
             >
-              Deja de adivinar.
+              Stop guessing.
               <span className="block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Haz exactamente lo que tu dinero necesita hoy.
+                Do exactly what your money needs today.
               </span>
             </h2>
 
@@ -293,9 +291,9 @@ export default function HomePage(): React.ReactElement {
                   'opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s',
               }}
             >
-              BudgetCopilot usa IA para hacerte las preguntas correctas,
-              analizar tus finanzas, y emitir una instruccion financiera clara
-              cada dia — que pagar, que gastar, o cuando parar.
+              BudgetCopilot uses AI to ask you the right questions, analyze your
+              finances, and issue a clear financial instruction every day — what
+              to pay, what to spend, or when to stop.
             </p>
 
             {/* Micro-line */}
@@ -308,8 +306,8 @@ export default function HomePage(): React.ReactElement {
                   'opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s',
               }}
             >
-              Funciona en todo el mundo. Sube estados de cuenta, capturas o
-              Excel. Sin conexion bancaria requerida.
+              Works worldwide. Upload bank statements, screenshots, or Excel
+              files. No bank connection required.
             </p>
 
             {/* CTAs */}
@@ -327,7 +325,7 @@ export default function HomePage(): React.ReactElement {
                   size="lg"
                   className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-lg px-8 transition-transform hover:scale-105"
                 >
-                  Ver qué hacer hoy
+                  See what to do today
                 </Button>
               </Link>
               <Link href="#how">
@@ -336,7 +334,7 @@ export default function HomePage(): React.ReactElement {
                   size="lg"
                   className="w-full sm:w-auto border-gray-600 text-gray-300 hover:bg-gray-800 text-lg transition-transform hover:scale-105"
                 >
-                  Ver como funciona
+                  See how it works
                 </Button>
               </Link>
             </div>
@@ -347,25 +345,25 @@ export default function HomePage(): React.ReactElement {
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
           <AnimatedSection className="max-w-4xl mx-auto text-center">
             <p className="text-cyan-400 text-sm font-medium mb-4">
-              ESTO NO ES UNA APP DE PRESUPUESTO
+              THIS IS NOT A BUDGETING APP
             </p>
             <h3 className="text-3xl lg:text-4xl font-bold mb-6">
-              BudgetCopilot es un motor de decisiones financieras.
+              BudgetCopilot is a financial decision engine.
             </h3>
             <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-              En lugar de dashboards, graficas o configuracion interminable, una
-              IA te guia a traves de una entrevista financiera corta — y luego
-              te dice exactamente que hacer.
+              Instead of dashboards, charts, or endless configuration, an AI
+              guides you through a short financial interview — and then tells
+              you exactly what to do.
             </p>
             <div className="flex flex-wrap justify-center gap-6 text-gray-500">
               <span className="flex items-center gap-2">
-                <span className="text-red-400">✕</span> Sin hojas de calculo
+                <span className="text-red-400">✕</span> No spreadsheets
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-red-400">✕</span> Sin analisis manual
+                <span className="text-red-400">✕</span> No manual analysis
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-red-400">✕</span> Sin adivinanzas
+                <span className="text-red-400">✕</span> No guessing
               </span>
             </div>
           </AnimatedSection>
@@ -376,7 +374,7 @@ export default function HomePage(): React.ReactElement {
           <div className="max-w-5xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                Como Funciona BudgetCopilot
+                How BudgetCopilot Works
               </h3>
             </AnimatedSection>
 
@@ -389,11 +387,11 @@ export default function HomePage(): React.ReactElement {
                 <div className="relative bg-gray-900/50 rounded-2xl p-6 border border-gray-800 h-full transition-all duration-300 hover:border-gray-700 hover:-translate-y-1">
                   <div className="text-4xl mb-4">🎙️</div>
                   <h4 className="text-xl font-bold mb-3 text-white">
-                    La IA te hace preguntas simples
+                    The AI asks you simple questions
                   </h4>
                   <p className="text-gray-400">
-                    Cuanto ganas, que cuentas tienes, que debes, cuanto gastas.
-                    Responde lo que sepas — los estimados funcionan.
+                    How much you earn, what accounts you have, what you owe, how
+                    much you spend. Answer what you know — estimates work.
                   </p>
                 </div>
               </AnimatedSection>
@@ -406,11 +404,11 @@ export default function HomePage(): React.ReactElement {
                 <div className="relative bg-gray-900/50 rounded-2xl p-6 border border-gray-800 h-full transition-all duration-300 hover:border-gray-700 hover:-translate-y-1">
                   <div className="text-4xl mb-4">📄</div>
                   <h4 className="text-xl font-bold mb-3 text-white">
-                    Subes lo que ya tienes (opcional)
+                    Upload what you already have (optional)
                   </h4>
                   <p className="text-gray-400">
-                    PDFs, capturas de pantalla, archivos Excel, CSVs. La IA los
-                    lee y llena los espacios.
+                    PDFs, screenshots, Excel files, CSVs. The AI reads them and
+                    fills in the gaps.
                   </p>
                 </div>
               </AnimatedSection>
@@ -423,10 +421,10 @@ export default function HomePage(): React.ReactElement {
                 <div className="relative bg-gradient-to-br from-cyan-900/30 to-purple-900/30 rounded-2xl p-6 border border-cyan-500/30 h-full transition-all duration-300 hover:border-cyan-500/50 hover:-translate-y-1">
                   <div className="text-4xl mb-4">⚡</div>
                   <h4 className="text-xl font-bold mb-3 text-cyan-400">
-                    Recibes la instruccion financiera de hoy
+                    You receive today's financial instruction
                   </h4>
                   <p className="text-gray-400">
-                    Una accion clara — con consecuencias — valida solo por hoy.
+                    One clear action — with consequences — valid only for today.
                   </p>
                 </div>
               </AnimatedSection>
@@ -436,7 +434,7 @@ export default function HomePage(): React.ReactElement {
               className="text-center text-gray-500 mt-8"
               delay={300}
             >
-              <p>Eso es todo.</p>
+              <p>That's it.</p>
             </AnimatedSection>
           </div>
         </section>
@@ -446,11 +444,10 @@ export default function HomePage(): React.ReactElement {
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                Que Hace Esto Diferente
+                What Makes This Different
               </h3>
               <p className="text-lg text-gray-400">
-                La mayoria de apps financieras te hacen hacer el trabajo.
-                BudgetCopilot no.
+                Most financial apps make you do the work. BudgetCopilot doesn't.
               </p>
             </AnimatedSection>
 
@@ -459,11 +456,11 @@ export default function HomePage(): React.ReactElement {
                 <div className="bg-gray-800/30 rounded-2xl p-6 border border-gray-700/50 h-full transition-all duration-300 hover:border-gray-600 hover:-translate-y-1">
                   <div className="text-2xl mb-3">🤖</div>
                   <h4 className="text-lg font-bold mb-2 text-white">
-                    La IA lidera el proceso
+                    The AI leads the process
                   </h4>
                   <p className="text-gray-400 text-sm">
-                    Nunca enfrentas una pantalla en blanco. Nunca te bloqueas
-                    por datos faltantes.
+                    You never face a blank screen. You never get stuck because
+                    of missing data.
                   </p>
                 </div>
               </AnimatedSection>
@@ -472,12 +469,12 @@ export default function HomePage(): React.ReactElement {
                 <div className="bg-gray-800/30 rounded-2xl p-6 border border-gray-700/50 h-full transition-all duration-300 hover:border-gray-600 hover:-translate-y-1">
                   <div className="text-2xl mb-3">🌍</div>
                   <h4 className="text-lg font-bold mb-2 text-white">
-                    Funciona aunque:
+                    Works even if:
                   </h4>
                   <ul className="text-gray-400 text-sm space-y-1">
-                    <li>• No recuerdes montos exactos</li>
-                    <li>• Solo tengas numeros aproximados</li>
-                    <li>• No quieras conectar tu banco</li>
+                    <li>• You don't remember exact amounts</li>
+                    <li>• You only have rough numbers</li>
+                    <li>• You don't want to connect your bank</li>
                   </ul>
                 </div>
               </AnimatedSection>
@@ -490,11 +487,11 @@ export default function HomePage(): React.ReactElement {
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                Lo Que Realmente Veras
+                What You'll Actually See
               </h3>
               <p className="text-lg text-gray-400">
-                Estos son ejemplos de instrucciones reales que BudgetCopilot
-                emite:
+                These are examples of real instructions that BudgetCopilot
+                issues:
               </p>
             </AnimatedSection>
 
@@ -506,11 +503,11 @@ export default function HomePage(): React.ReactElement {
                     <span className="text-3xl">🟡</span>
                     <div>
                       <p className="text-xl font-bold text-white mb-2">
-                        "No excedas $23/dia hasta el viernes. Cualquier cosa
-                        arriba de esto pone tu cuenta de luz en riesgo."
+                        "Don't exceed $23/day until Friday. Anything above this
+                        puts your electric bill at risk."
                       </p>
                       <p className="text-amber-400/80 text-sm">
-                        Valido por 14 horas
+                        Valid for 14 hours
                       </p>
                     </div>
                   </div>
@@ -524,11 +521,11 @@ export default function HomePage(): React.ReactElement {
                     <span className="text-3xl">💳</span>
                     <div>
                       <p className="text-xl font-bold text-white mb-2">
-                        "Paga $312 extra a tu tarjeta Chase hoy. Esto acorta tu
-                        fecha libre de deuda por 41 dias."
+                        "Pay $312 extra on your Chase card today. This shortens
+                        your debt-free date by 41 days."
                       </p>
                       <p className="text-green-400/80 text-sm">
-                        Valido por 8 horas
+                        Valid for 8 hours
                       </p>
                     </div>
                   </div>
@@ -542,11 +539,11 @@ export default function HomePage(): React.ReactElement {
                     <span className="text-3xl">🚨</span>
                     <div>
                       <p className="text-xl font-bold text-white mb-2">
-                        "CONGELA todo gasto hasta el dia de pago. Estas $186
-                        corto en cuentas proximas."
+                        "FREEZE all spending until payday. You're $186 short on
+                        upcoming bills."
                       </p>
                       <p className="text-red-400/80 text-sm">
-                        Valido por 6 horas
+                        Valid for 6 hours
                       </p>
                     </div>
                   </div>
@@ -555,8 +552,8 @@ export default function HomePage(): React.ReactElement {
             </div>
 
             <AnimatedSection className="text-center mt-8 space-y-2" delay={300}>
-              <p className="text-gray-500">Sin graficas requeridas.</p>
-              <p className="text-gray-500">Sin interpretacion necesaria.</p>
+              <p className="text-gray-500">No charts required.</p>
+              <p className="text-gray-500">No interpretation needed.</p>
             </AnimatedSection>
           </div>
         </section>
@@ -565,45 +562,45 @@ export default function HomePage(): React.ReactElement {
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
           <AnimatedSection className="max-w-4xl mx-auto text-center">
             <h3 className="text-3xl lg:text-4xl font-bold mb-6">
-              Por Que Esto Funciona
+              Why This Works
             </h3>
             <p className="text-xl text-gray-400 mb-8">
-              La mayoria de herramientas te dan informacion.
+              Most tools give you information.
               <br />
               <span className="text-white font-medium">
-                BudgetCopilot te da direccion.
+                BudgetCopilot gives you direction.
               </span>
             </p>
 
             <div className="grid md:grid-cols-3 gap-6 text-left">
               <div className="bg-gray-800/30 rounded-xl p-5 transition-all duration-300 hover:bg-gray-800/50 hover:-translate-y-1">
                 <div className="text-cyan-400 font-bold mb-2">
-                  Una instruccion a la vez
+                  One instruction at a time
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Sin paralisis de analisis. Una accion clara.
+                  No analysis paralysis. One clear action.
                 </p>
               </div>
               <div className="bg-gray-800/30 rounded-xl p-5 transition-all duration-300 hover:bg-gray-800/50 hover:-translate-y-1">
                 <div className="text-cyan-400 font-bold mb-2">
-                  Consecuencias claras
+                  Clear consequences
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Sabes exactamente que pasa si no actuas.
+                  You know exactly what happens if you don't act.
                 </p>
               </div>
               <div className="bg-gray-800/30 rounded-xl p-5 transition-all duration-300 hover:bg-gray-800/50 hover:-translate-y-1">
                 <div className="text-cyan-400 font-bold mb-2">
-                  Expira diario
+                  Expires daily
                 </div>
                 <p className="text-gray-400 text-sm">
-                  Te entrena a actuar, no a explorar.
+                  It trains you to act, not to explore.
                 </p>
               </div>
             </div>
 
             <p className="text-gray-500 mt-8">
-              O sigues la instruccion — o aceptas el riesgo.
+              Either follow the instruction — or accept the risk.
             </p>
           </AnimatedSection>
         </section>
@@ -613,17 +610,17 @@ export default function HomePage(): React.ReactElement {
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <p className="text-gray-500 text-sm font-medium mb-4 uppercase tracking-wide">
-                La pregunta obvia
+                The obvious question
               </p>
               <h3 className="text-3xl lg:text-4xl font-bold mb-6">
-                "¿No puedo simplemente usar ChatGPT o una IA?"
+                "Can't I just use ChatGPT or some AI?"
               </h3>
-              <p className="text-xl text-gray-400">Si. Puedes.</p>
+              <p className="text-xl text-gray-400">Yes. You can.</p>
             </AnimatedSection>
 
             <AnimatedSection className="mb-12">
               <p className="text-lg text-gray-300 text-center mb-8">
-                Pero aqui esta la diferencia:
+                But here's the difference:
               </p>
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 {/* ChatGPT */}
@@ -631,27 +628,25 @@ export default function HomePage(): React.ReactElement {
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-2xl">💬</span>
                     <h4 className="text-lg font-bold text-gray-400">
-                      ChatGPT responde preguntas
+                      ChatGPT answers questions
                     </h4>
                   </div>
                   <ul className="space-y-3 text-gray-500 text-sm">
                     <li className="flex items-start gap-2">
                       <span className="text-gray-600 mt-1">•</span>
-                      <span>Espera que tu hagas las preguntas correctas</span>
+                      <span>It waits for you to ask the right questions</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-600 mt-1">•</span>
-                      <span>
-                        No conoce tus fechas, tus riesgos ni tus limites
-                      </span>
+                      <span>It doesn't know your dates, risks, or limits</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-600 mt-1">•</span>
-                      <span>No se responsabiliza por las consecuencias</span>
+                      <span>It takes no responsibility for consequences</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-gray-600 mt-1">•</span>
-                      <span>Da respuestas diferentes cada vez</span>
+                      <span>It gives different answers every time</span>
                     </li>
                   </ul>
                 </div>
@@ -661,29 +656,27 @@ export default function HomePage(): React.ReactElement {
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-2xl">🧠</span>
                     <h4 className="text-lg font-bold text-cyan-400">
-                      BudgetCopilot toma decisiones
+                      BudgetCopilot makes decisions
                     </h4>
                   </div>
                   <ul className="space-y-3 text-gray-300 text-sm">
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">✓</span>
                       <span>
-                        Te hace las preguntas correctas, en el orden correcto
+                        Asks you the right questions, in the right order
                       </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">✓</span>
-                      <span>
-                        Usa tus numeros reales (aunque sean estimados)
-                      </span>
+                      <span>Uses your real numbers (even if estimated)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">✓</span>
-                      <span>Evalua riesgo, urgencia y consecuencias</span>
+                      <span>Evaluates risk, urgency, and consequences</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-cyan-400 mt-1">✓</span>
-                      <span>Te da una sola accion clara, valida hoy</span>
+                      <span>Gives you one clear action, valid today</span>
                     </li>
                   </ul>
                 </div>
@@ -694,22 +687,22 @@ export default function HomePage(): React.ReactElement {
             <AnimatedSection delay={100}>
               <div className="grid md:grid-cols-2 gap-6 mb-12">
                 <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
-                  <p className="text-gray-500 text-sm mb-3">Con ChatGPT:</p>
+                  <p className="text-gray-500 text-sm mb-3">With ChatGPT:</p>
                   <p className="text-gray-300 italic mb-2">
-                    "Tengo esto... ¿que deberia hacer?"
+                    "I have this... what should I do?"
                   </p>
                   <p className="text-gray-500 text-sm">
-                    → Interpretas, decides, dudas.
+                    → You interpret, decide, doubt.
                   </p>
                 </div>
                 <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/20">
                   <p className="text-cyan-400 text-sm mb-3">
-                    Con BudgetCopilot:
+                    With BudgetCopilot:
                   </p>
                   <p className="text-white font-medium mb-2">
-                    "Haz esto hoy. Si no, esto es lo que pasa."
+                    "Do this today. If not, here's what happens."
                   </p>
-                  <p className="text-cyan-400/80 text-sm">→ Actuas.</p>
+                  <p className="text-cyan-400/80 text-sm">→ You act.</p>
                 </div>
               </div>
             </AnimatedSection>
@@ -718,17 +711,17 @@ export default function HomePage(): React.ReactElement {
             <AnimatedSection className="text-center mb-12" delay={200}>
               <div className="bg-gray-800/30 rounded-2xl p-8 border border-gray-700/50">
                 <p className="text-lg text-gray-400 mb-4">
-                  ChatGPT es un copiloto de{' '}
-                  <span className="text-gray-300">conversacion</span>.
+                  ChatGPT is a{' '}
+                  <span className="text-gray-300">conversation</span>.
                 </p>
                 <p className="text-lg text-white font-medium mb-6">
-                  BudgetCopilot es un sistema de{' '}
+                  BudgetCopilot is a{' '}
                   <span className="text-cyan-400">control</span>.
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4 text-sm">
-                  <span className="text-gray-500">Uno conversa contigo.</span>
+                  <span className="text-gray-500">One chats with you.</span>
                   <span className="text-cyan-400 font-medium">
-                    El otro te dirige.
+                    The other directs you.
                   </span>
                 </div>
               </div>
@@ -737,17 +730,17 @@ export default function HomePage(): React.ReactElement {
             {/* Close + CTA */}
             <AnimatedSection className="text-center" delay={300}>
               <p className="text-gray-400 mb-2">
-                Si solo quieres ideas, cualquier IA sirve.
+                If you just want ideas, any AI will do.
               </p>
               <p className="text-white font-medium mb-8">
-                Si quieres claridad, necesitas un sistema que decida.
+                If you want clarity, you need a system that decides.
               </p>
               <Link href="/register">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-lg px-8 transition-transform hover:scale-105"
                 >
-                  Ver que hacer hoy
+                  See what to do today
                 </Button>
               </Link>
             </AnimatedSection>
@@ -759,7 +752,7 @@ export default function HomePage(): React.ReactElement {
           <div className="max-w-4xl mx-auto">
             <AnimatedSection className="text-center mb-12">
               <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                Para Quien Es Esto
+                Who This Is For
               </h3>
             </AnimatedSection>
 
@@ -768,25 +761,25 @@ export default function HomePage(): React.ReactElement {
               <AnimatedSection delay={0}>
                 <div className="bg-gradient-to-br from-cyan-900/20 to-purple-900/20 rounded-2xl p-8 border border-cyan-500/30 h-full transition-all duration-300 hover:border-cyan-500/50 hover:-translate-y-1">
                   <h4 className="text-xl font-bold mb-4 text-cyan-400">
-                    Esto es para ti si:
+                    This is for you if:
                   </h4>
                   <ul className="space-y-3 text-gray-300">
                     <li className="flex items-start gap-3">
                       <span className="text-green-400">✓</span>
-                      <span>Ganas dinero</span>
+                      <span>You earn money</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-green-400">✓</span>
-                      <span>Tienes cuentas, deudas o presion financiera</span>
+                      <span>You have bills, debts, or financial pressure</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-green-400">✓</span>
-                      <span>No quieres pensar en dinero todos los dias</span>
+                      <span>You don't want to think about money every day</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-green-400">✓</span>
                       <span>
-                        Quieres que alguien te diga el siguiente paso correcto
+                        You want someone to tell you the right next step
                       </span>
                     </li>
                   </ul>
@@ -797,24 +790,24 @@ export default function HomePage(): React.ReactElement {
               <AnimatedSection delay={100}>
                 <div className="bg-gray-800/30 rounded-2xl p-8 border border-gray-700/50 h-full transition-all duration-300 hover:border-gray-600 hover:-translate-y-1">
                   <h4 className="text-xl font-bold mb-4 text-gray-400">
-                    Esto NO es para ti si:
+                    This is NOT for you if:
                   </h4>
                   <ul className="space-y-3 text-gray-500">
                     <li className="flex items-start gap-3">
                       <span className="text-red-400">✕</span>
-                      <span>Disfrutas las hojas de calculo</span>
+                      <span>You enjoy spreadsheets</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-red-400">✕</span>
-                      <span>Quieres control manual total</span>
+                      <span>You want full manual control</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-red-400">✕</span>
-                      <span>Te gusta trackear por diversion</span>
+                      <span>You like tracking for fun</span>
                     </li>
                   </ul>
                   <p className="text-gray-600 text-sm mt-4">
-                    BudgetCopilot esta hecho para claridad, no control.
+                    BudgetCopilot is made for clarity, not control.
                   </p>
                 </div>
               </AnimatedSection>
@@ -826,27 +819,27 @@ export default function HomePage(): React.ReactElement {
         <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
           <AnimatedSection className="max-w-4xl mx-auto text-center">
             <h3 className="text-2xl lg:text-3xl font-bold mb-4">
-              Funciona en cualquier lugar.
+              Works anywhere.
             </h3>
             <p className="text-gray-400 mb-6">
-              BudgetCopilot no requiere conexiones bancarias. La IA trabaja con:
+              BudgetCopilot doesn't require bank connections. The AI works with:
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <span className="bg-gray-800 px-4 py-2 rounded-full text-sm text-gray-300 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
                 📄 PDFs
               </span>
               <span className="bg-gray-800 px-4 py-2 rounded-full text-sm text-gray-300 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                📸 Capturas de pantalla
+                📸 Screenshots
               </span>
               <span className="bg-gray-800 px-4 py-2 rounded-full text-sm text-gray-300 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                📊 Archivos Excel y CSV
+                📊 Excel and CSV files
               </span>
               <span className="bg-gray-800 px-4 py-2 rounded-full text-sm text-gray-300 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                💬 Respuestas simples
+                💬 Simple answers
               </span>
             </div>
             <p className="text-gray-500 text-sm mt-6">
-              Tu mantienes el control. La IA hace el trabajo.
+              You stay in control. The AI does the work.
             </p>
           </AnimatedSection>
         </section>
@@ -858,21 +851,21 @@ export default function HomePage(): React.ReactElement {
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/20 to-purple-600/20 rounded-3xl blur-2xl transition-all duration-500 group-hover:from-cyan-600/30 group-hover:to-purple-600/30"></div>
               <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 border border-gray-700/50 text-center transition-all duration-300 hover:border-gray-600">
                 <p className="text-gray-400 mb-4">
-                  Tus finanzas ya requieren accion.
+                  Your finances already need action.
                 </p>
                 <h3 className="text-3xl lg:text-4xl font-bold mb-8">
-                  Ver qué hacer hoy
+                  See what to do today
                 </h3>
                 <Link href="/register">
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 border-0 text-lg px-12 transition-transform hover:scale-105"
                   >
-                    Ver qué hacer hoy
+                    See what to do today
                   </Button>
                 </Link>
                 <p className="text-sm text-gray-500 mt-4">
-                  Toma menos de 2 minutos
+                  Takes less than 2 minutes
                 </p>
               </div>
             </div>
@@ -893,19 +886,19 @@ export default function HomePage(): React.ReactElement {
                 href="/terms"
                 className="hover:text-white transition-colors"
               >
-                Terminos
+                Terms
               </Link>
               <Link
                 href="/privacy"
                 className="hover:text-white transition-colors"
               >
-                Privacidad
+                Privacy
               </Link>
               <Link
                 href="/pricing"
                 className="hover:text-white transition-colors"
               >
-                Precios
+                Pricing
               </Link>
             </div>
             <p className="text-sm text-gray-500">© 2024 BudgetCopilot</p>

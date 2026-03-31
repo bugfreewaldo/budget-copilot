@@ -39,10 +39,10 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return `Tipo de archivo no soportado: ${file.type}`;
+      return `Unsupported file type: ${file.type}`;
     }
     if (file.size > MAX_FILE_SIZE) {
-      return `Archivo muy grande (máx 10MB)`;
+      return `File too large (max 10MB)`;
     }
     return null;
   };
@@ -168,7 +168,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
                     ...f,
                     status: 'error' as const,
                     error:
-                      error instanceof Error ? error.message : 'Error al subir',
+                      error instanceof Error ? error.message : 'Upload error',
                   }
                 : f
             )
@@ -198,7 +198,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
         );
 
         showToast(
-          `${result.fileIds.length} archivo(s) subido(s) correctamente`,
+          `${result.fileIds.length} file(s) uploaded successfully`,
           'success'
         );
 
@@ -208,7 +208,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
       }
     } catch (error) {
       showToast(
-        error instanceof Error ? error.message : 'Error al subir archivos',
+        error instanceof Error ? error.message : 'Failed to upload files',
         'error'
       );
     } finally {
@@ -223,7 +223,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
     <div className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
       <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
         <span>📄</span>
-        Subir Archivos
+        Upload Files
       </h3>
 
       {/* Drop zone */}
@@ -251,10 +251,10 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
         />
         <div className="text-4xl mb-3">📸</div>
         <p className="text-gray-300 font-medium">
-          Arrastra archivos aquí o haz clic para seleccionar
+          Drag files here or click to select
         </p>
         <p className="text-gray-500 text-sm mt-2">
-          Imágenes, PDFs, Excel, CSV (máx 10MB)
+          Images, PDFs, Excel, CSV (max 10MB)
         </p>
       </div>
 
@@ -284,20 +284,20 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
               </div>
               <div className="flex items-center gap-2">
                 {f.status === 'pending' && (
-                  <span className="text-gray-400 text-xs">Pendiente</span>
+                  <span className="text-gray-400 text-xs">Pending</span>
                 )}
                 {f.status === 'uploading' && (
                   <span className="text-cyan-400 text-xs animate-pulse">
-                    Subiendo...
+                    Uploading...
                   </span>
                 )}
                 {f.status === 'processing' && (
                   <span className="text-yellow-400 text-xs animate-pulse">
-                    Procesando...
+                    Processing...
                   </span>
                 )}
                 {f.status === 'done' && (
-                  <span className="text-green-400 text-xs">✓ Listo</span>
+                  <span className="text-green-400 text-xs">✓ Done</span>
                 )}
                 {f.status === 'error' && (
                   <span className="text-red-400 text-xs" title={f.error}>
@@ -329,7 +329,7 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
             disabled={isUploading}
             className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
           >
-            Cancelar
+            Cancel
           </button>
         )}
         <button
@@ -338,8 +338,8 @@ export function FileUpload({ onUploadComplete, onClose }: FileUploadProps) {
           className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           {isUploading
-            ? 'Subiendo...'
-            : `Subir ${pendingCount} archivo${pendingCount !== 1 ? 's' : ''}`}
+            ? 'Uploading...'
+            : `Upload ${pendingCount} file${pendingCount !== 1 ? 's' : ''}`}
         </button>
       </div>
     </div>

@@ -69,14 +69,14 @@ function getDatePresetRange(preset: DatePreset): { from: string; to: string } {
 
 function formatDateForDisplay(dateStr: string): string {
   const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString('es-MX', {
+  return date.toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
 }
 
-export default function TransaccionesPage(): React.ReactElement {
+export default function TransactionsPage(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>(
     'all'
@@ -90,6 +90,10 @@ export default function TransaccionesPage(): React.ReactElement {
   const [deleteConfirm, setDeleteConfirm] = useState<Transaction | null>(null);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
+  const [autoCategorizing, setAutoCategorizing] = useState(false);
+  const [autoCatResult, setAutoCatResult] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 50;
 
   // Date range state - default to current month
   const [datePreset, setDatePreset] = useState<DatePreset>('this-month');
@@ -115,7 +119,7 @@ export default function TransaccionesPage(): React.ReactElement {
     refresh,
   } = useDashboardData(currentMonth, from, to);
   const error = fetchError
-    ? 'Error al cargar las transacciones. ¿Está el servidor corriendo?'
+    ? 'Failed to load transactions. Is the server running?'
     : null;
 
   // Filter transactions based on search and filters
@@ -182,10 +186,34 @@ export default function TransaccionesPage(): React.ReactElement {
     setShowTransactionModal(true);
   };
 
+  const handleAutoCategorize = async () => {
+    setAutoCategorizing(true);
+    setAutoCatResult(null);
+    try {
+      const res = await fetch('/api/v1/transactions/auto-categorize', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setAutoCatResult(json.data.message);
+        refresh();
+      } else {
+        setAutoCatResult('Failed to auto-categorize. Try again.');
+      }
+    } catch {
+      setAutoCatResult('Failed to auto-categorize. Try again.');
+    } finally {
+      setAutoCategorizing(false);
+    }
+  };
+
+  const uncategorizedCount = transactions.filter((tx) => !tx.categoryId).length;
+
   const getCategoryName = (categoryId: string | null): string => {
-    if (!categoryId) return 'Sin categoría';
+    if (!categoryId) return 'Uncategorized';
     const category = categories.find((c) => c.id === categoryId);
-    return category ? category.name : 'Sin categoría';
+    return category ? category.name : 'Uncategorized';
   };
 
   const getCategoryEmoji = (categoryId: string | null): string => {
@@ -194,7 +222,7 @@ export default function TransaccionesPage(): React.ReactElement {
     return category?.emoji || '';
   };
 
-  // Calculate totals
+  // Calculate totals from ALL filtered transactions (not just current page)
   const totals = useMemo(() => {
     const income = filteredTransactions
       .filter((tx) => tx.type === 'income')
@@ -204,6 +232,22 @@ export default function TransaccionesPage(): React.ReactElement {
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
     return { income, expense, balance: income - expense };
   }, [filteredTransactions]);
+
+  // Pagination
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTransactions.length / PAGE_SIZE)
+  );
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredTransactions.slice(start, start + PAGE_SIZE);
+  }, [filteredTransactions, currentPage]);
+
+  // Reset page when filters change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, categoryFilter, from, to]);
 
   return (
     <Sidebar>
@@ -220,27 +264,60 @@ export default function TransaccionesPage(): React.ReactElement {
           <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2">
-                Transacciones
+                Transactions
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                Gestiona y busca todas tus transacciones
+                Manage and search all your transactions
               </p>
             </div>
             <div className="flex gap-2 lg:gap-3">
+              {uncategorizedCount > 0 && (
+                <button
+                  onClick={handleAutoCategorize}
+                  disabled={autoCategorizing}
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/50 rounded-xl text-sm lg:text-base font-medium transition-all disabled:opacity-50"
+                >
+                  {autoCategorizing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                      Categorizing...
+                    </>
+                  ) : (
+                    <>
+                      <span>✦</span> Auto-categorize ({uncategorizedCount})
+                    </>
+                  )}
+                </button>
+              )}
               <button
                 onClick={openIncomeModal}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
               >
-                <span>↑</span> Ingreso
+                <span>↑</span> Income
               </button>
               <button
                 onClick={openExpenseModal}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 lg:px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 rounded-xl text-sm lg:text-base font-medium transition-all"
               >
-                <span>↓</span> Gasto
+                <span>↓</span> Expense
               </button>
             </div>
           </div>
+
+          {/* Auto-categorize Result */}
+          {autoCatResult && (
+            <div className="mb-4 p-3 bg-purple-900/30 border border-purple-500/50 rounded-lg backdrop-blur-sm flex items-center justify-between">
+              <p className="text-purple-300 text-sm flex items-center gap-2">
+                <span>✦</span> {autoCatResult}
+              </p>
+              <button
+                onClick={() => setAutoCatResult(null)}
+                className="text-purple-400 hover:text-purple-300 text-sm"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Error State */}
           {error && (
@@ -253,13 +330,13 @@ export default function TransaccionesPage(): React.ReactElement {
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
-              <p className="text-xs lg:text-sm text-gray-400 mb-1">Ingresos</p>
+              <p className="text-xs lg:text-sm text-gray-400 mb-1">Income</p>
               <p className="text-lg lg:text-xl font-bold text-green-400">
                 {formatCents(totals.income)}
               </p>
             </div>
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
-              <p className="text-xs lg:text-sm text-gray-400 mb-1">Gastos</p>
+              <p className="text-xs lg:text-sm text-gray-400 mb-1">Expenses</p>
               <p className="text-lg lg:text-xl font-bold text-red-400">
                 {formatCents(totals.expense)}
               </p>
@@ -279,15 +356,15 @@ export default function TransaccionesPage(): React.ReactElement {
             {/* Date Range Filter */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-gray-400">Período:</span>
+                <span className="text-sm text-gray-400">Period:</span>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { key: 'this-month', label: 'Este mes' },
-                    { key: 'last-month', label: 'Mes pasado' },
-                    { key: 'last-3-months', label: 'Últimos 3 meses' },
-                    { key: 'this-year', label: 'Este año' },
-                    { key: 'all-time', label: 'Todo' },
-                    { key: 'custom', label: 'Personalizado' },
+                    { key: 'this-month', label: 'This month' },
+                    { key: 'last-month', label: 'Last month' },
+                    { key: 'last-3-months', label: 'Last 3 months' },
+                    { key: 'this-year', label: 'This year' },
+                    { key: 'all-time', label: 'All' },
+                    { key: 'custom', label: 'Custom' },
                   ].map(({ key, label }) => (
                     <button
                       key={key}
@@ -308,7 +385,7 @@ export default function TransaccionesPage(): React.ReactElement {
               {datePreset === 'custom' && (
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">Desde:</span>
+                    <span className="text-sm text-gray-400">From:</span>
                     <input
                       type="date"
                       value={customFromDate}
@@ -317,7 +394,7 @@ export default function TransaccionesPage(): React.ReactElement {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-400">Hasta:</span>
+                    <span className="text-sm text-gray-400">To:</span>
                     <input
                       type="date"
                       value={customToDate}
@@ -331,7 +408,7 @@ export default function TransaccionesPage(): React.ReactElement {
               {/* Show current date range */}
               {datePreset !== 'all-time' && (
                 <p className="text-xs text-gray-500">
-                  Mostrando: {formatDateForDisplay(from)} -{' '}
+                  Showing: {formatDateForDisplay(from)} -{' '}
                   {formatDateForDisplay(to)}
                 </p>
               )}
@@ -359,7 +436,7 @@ export default function TransaccionesPage(): React.ReactElement {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Buscar transacciones..."
+                  placeholder="Search transactions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
@@ -374,9 +451,9 @@ export default function TransaccionesPage(): React.ReactElement {
                 }
                 className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
               >
-                <option value="all">Todos</option>
-                <option value="income">Ingresos</option>
-                <option value="expense">Gastos</option>
+                <option value="all">All</option>
+                <option value="income">Income</option>
+                <option value="expense">Expenses</option>
               </select>
 
               {/* Category Filter */}
@@ -385,12 +462,39 @@ export default function TransaccionesPage(): React.ReactElement {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
               >
-                <option value="all">Todas las categorías</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.emoji} {cat.name}
-                  </option>
-                ))}
+                <option value="all">All categories</option>
+                {(() => {
+                  const parents = categories
+                    .filter((c) => !c.parentId)
+                    .sort((a, b) => a.name.localeCompare(b.name));
+                  return parents.map((parent) => {
+                    const children = categories
+                      .filter((c) => c.parentId === parent.id)
+                      .sort((a, b) => a.name.localeCompare(b.name));
+                    if (children.length > 0) {
+                      return (
+                        <optgroup
+                          key={parent.id}
+                          label={`${parent.emoji || ''} ${parent.name}`}
+                        >
+                          <option value={parent.id}>
+                            {parent.emoji || ''} {parent.name} (all)
+                          </option>
+                          {children.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.emoji || ''} {child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    }
+                    return (
+                      <option key={parent.id} value={parent.id}>
+                        {parent.emoji || ''} {parent.name}
+                      </option>
+                    );
+                  });
+                })()}
               </select>
             </div>
           </div>
@@ -399,10 +503,11 @@ export default function TransaccionesPage(): React.ReactElement {
           <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 overflow-hidden">
             <div className="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between">
               <h3 className="text-lg lg:text-xl font-semibold text-white flex items-center gap-2">
-                <span>💸</span> Lista de Transacciones
+                <span>💸</span> Transaction List
               </h3>
               <span className="text-sm text-gray-500">
-                {filteredTransactions.length} de {transactions.length}
+                {filteredTransactions.length} of {transactions.length}
+                {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
               </span>
             </div>
 
@@ -410,23 +515,23 @@ export default function TransaccionesPage(): React.ReactElement {
               <div className="p-8 text-center">
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/50 rounded-xl border border-gray-800">
                   <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-gray-400">Cargando transacciones...</p>
+                  <p className="text-gray-400">Loading transactions...</p>
                 </div>
               </div>
-            ) : filteredTransactions.length === 0 ? (
+            ) : paginatedTransactions.length === 0 ? (
               <div className="p-8 text-center">
                 <span className="text-4xl mb-4 block">🔍</span>
                 <p className="text-gray-400">
                   {searchQuery ||
                   typeFilter !== 'all' ||
                   categoryFilter !== 'all'
-                    ? 'No se encontraron transacciones con los filtros aplicados'
-                    : 'No hay transacciones aún'}
+                    ? 'No transactions found with the applied filters'
+                    : 'No transactions yet'}
                 </p>
               </div>
             ) : (
               <div className="divide-y divide-gray-800">
-                {filteredTransactions.map((tx) => (
+                {paginatedTransactions.map((tx) => (
                   <div
                     key={tx.id}
                     className="p-4 hover:bg-gray-800/30 transition-colors flex items-center gap-4"
@@ -444,8 +549,22 @@ export default function TransaccionesPage(): React.ReactElement {
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-white truncate">
-                        {tx.description}
+                      <div className="font-medium text-white truncate flex items-center gap-2">
+                        {tx.sensitive ? (
+                          <>
+                            <span className="italic text-gray-500">
+                              Hidden transaction
+                            </span>
+                            <span
+                              className="text-purple-400 text-xs"
+                              title="Sensitive — description hidden"
+                            >
+                              🔒
+                            </span>
+                          </>
+                        ) : (
+                          tx.description
+                        )}
                       </div>
                       <div className="text-sm text-gray-500 flex items-center gap-2 flex-wrap">
                         <span>{tx.date}</span>
@@ -473,7 +592,7 @@ export default function TransaccionesPage(): React.ReactElement {
                       <button
                         onClick={() => openEditModal(tx)}
                         className="p-2 flex items-center justify-center text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
-                        title="Editar"
+                        title="Edit"
                       >
                         <svg
                           className="w-4 h-4"
@@ -493,7 +612,7 @@ export default function TransaccionesPage(): React.ReactElement {
                         onClick={() => setDeleteConfirm(tx)}
                         disabled={deletingId === tx.id}
                         className="p-2 flex items-center justify-center text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-50"
-                        title="Eliminar"
+                        title="Delete"
                       >
                         {deletingId === tx.id ? (
                           <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
@@ -516,6 +635,67 @@ export default function TransaccionesPage(): React.ReactElement {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="p-4 border-t border-gray-800 flex items-center justify-between">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (p) =>
+                        p === 1 ||
+                        p === totalPages ||
+                        Math.abs(p - currentPage) <= 2
+                    )
+                    .reduce<(number | 'ellipsis')[]>((acc, p, i, arr) => {
+                      if (
+                        i > 0 &&
+                        arr[i - 1] !== undefined &&
+                        p - (arr[i - 1] as number) > 1
+                      ) {
+                        acc.push('ellipsis');
+                      }
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, i) =>
+                      item === 'ellipsis' ? (
+                        <span key={`e${i}`} className="px-2 text-gray-600">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={item}
+                          onClick={() => setCurrentPage(item)}
+                          className={`w-9 h-9 text-sm rounded-lg transition-all ${
+                            currentPage === item
+                              ? 'bg-cyan-600 text-white font-medium'
+                              : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      )
+                    )}
+                </div>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  Next
+                </button>
               </div>
             )}
           </div>
@@ -541,10 +721,10 @@ export default function TransaccionesPage(): React.ReactElement {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeleteTransaction}
-          title="Eliminar Transacción"
-          message={`¿Estás seguro de eliminar "${deleteConfirm?.description}"? Esta acción no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          title="Delete Transaction"
+          message={`Are you sure you want to delete "${deleteConfirm?.sensitive ? 'Hidden transaction' : deleteConfirm?.description}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
           variant="danger"
           isLoading={deletingId !== null}
         />

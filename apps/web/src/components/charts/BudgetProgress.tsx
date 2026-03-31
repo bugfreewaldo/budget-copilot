@@ -11,7 +11,7 @@ export function BudgetProgress({ envelopes, categories }: BudgetProgressProps) {
   if (envelopes.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-gray-500">
-        No hay presupuestos configurados
+        No budgets configured
       </div>
     );
   }
@@ -108,13 +108,13 @@ export function BudgetProgress({ envelopes, categories }: BudgetProgressProps) {
 
                 {/* Category Name */}
                 <p className="text-white font-medium text-sm truncate mb-3">
-                  {category?.name || 'Sin categoría'}
+                  {category?.name || 'Uncategorized'}
                 </p>
 
                 {/* Amount Remaining */}
                 <div className={`${statusBg} rounded-lg py-2 px-3 mb-2`}>
                   <p className={`text-xs ${statusColor}`}>
-                    {isOverBudget ? 'Excedido' : 'Disponible'}
+                    {isOverBudget ? 'Over budget' : 'Available'}
                   </p>
                   <p
                     className={`text-lg font-bold ${isOverBudget ? 'text-red-300' : 'text-white'}`}

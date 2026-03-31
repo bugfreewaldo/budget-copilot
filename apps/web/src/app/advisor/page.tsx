@@ -9,7 +9,7 @@ import { AdvisorChat } from '@/components/advisor/AdvisorChat';
 import { getAdvisorSession, type AdvisorSessionResponse } from '@/lib/api';
 
 /**
- * Asesor Financiero Page
+ * Financial Advisor Page
  *
  * Paid-only consultation interface for updating financial data.
  * Decisions command. Advisor listens.
@@ -25,7 +25,7 @@ export default function AdvisorPage() {
       .then(setSession)
       .catch((err) => {
         console.error('Failed to load advisor session:', err);
-        setError('Error al cargar el asesor');
+        setError('Failed to load the advisor');
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -37,7 +37,7 @@ export default function AdvisorPage() {
         <div className="min-h-screen bg-gray-950 flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-400">Cargando...</p>
+            <p className="text-gray-400">Loading...</p>
           </div>
         </div>
       </Sidebar>
@@ -51,7 +51,7 @@ export default function AdvisorPage() {
         <div className="min-h-screen bg-gray-950 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-400 mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Reintentar</Button>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
           </div>
         </div>
       </Sidebar>
@@ -69,13 +69,13 @@ export default function AdvisorPage() {
 
             {/* Title */}
             <h1 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-              <span>🧠</span> Asesor Financiero
+              <span>🧠</span> Financial Advisor
             </h1>
 
             {/* Paywall message */}
             <p className="text-gray-400 mb-8 leading-relaxed">
               {session?.paywall?.message ||
-                'Para consultar o subir documentos, necesitas Pro. Esto permite que BudgetCopilot ajuste tus decisiones con información real.'}
+                'To consult or upload documents, you need Pro. This allows BudgetCopilot to adjust your decisions with real information.'}
             </p>
 
             {/* CTA */}
@@ -84,7 +84,7 @@ export default function AdvisorPage() {
                 size="lg"
                 className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
               >
-                {session?.paywall?.ctaText || 'Desbloquear asesor financiero'}
+                {session?.paywall?.ctaText || 'Unlock financial advisor'}
               </Button>
             </Link>
 
@@ -93,7 +93,7 @@ export default function AdvisorPage() {
               href="/dashboard"
               className="block mt-6 text-gray-500 hover:text-gray-400 text-sm"
             >
-              Volver al dashboard
+              Back to dashboard
             </Link>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function AdvisorPage() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span>🧠</span> Asesor Financiero
+              <span>🧠</span> Financial Advisor
             </h1>
             {session.welcomeMessage && (
               <p className="text-gray-400 mt-3 leading-relaxed">

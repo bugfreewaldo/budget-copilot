@@ -9,8 +9,8 @@
  */
 
 import { eq } from 'drizzle-orm';
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import { users } from '../lib/db/schema';
 import { hashPassword, generateId } from '../lib/auth/crypto';
 
@@ -31,21 +31,15 @@ async function main() {
     process.exit(1);
   }
 
-  const databaseUrl = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
-  const authToken =
-    process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+  const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    console.error('Error: LIBSQL_URL environment variable is required');
+    console.error('Error: DATABASE_URL environment variable is required');
     process.exit(1);
   }
 
-  const client = createClient({
-    url: databaseUrl,
-    authToken,
-  });
-
-  const db = drizzle(client);
+  const sql = neon(databaseUrl);
+  const db = drizzle(sql);
 
   // Check if user exists
   const [existingUser] = await db

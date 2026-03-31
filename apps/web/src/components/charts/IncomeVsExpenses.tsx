@@ -24,7 +24,7 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
   if (income === 0 && expenses === 0) {
     return (
       <div className="flex items-center justify-center h-32 text-gray-500">
-        No hay transacciones este mes
+        No transactions this month
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
     <div className="space-y-4">
       {/* Main Balance Display */}
       <div className="text-center py-4">
-        <p className="text-gray-400 text-sm mb-1">Balance del Mes</p>
+        <p className="text-gray-400 text-sm mb-1">Monthly Balance</p>
         <p
           className={`text-4xl font-bold ${balance < 0 ? 'text-red-400' : isLowBalance ? 'text-amber-400' : 'text-green-400'}`}
         >
@@ -44,13 +44,13 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
         </p>
         {balance > 0 && !isLowBalance && (
           <p className="text-cyan-400 text-sm mt-1">
-            Ahorrando {savingsRate}% de tus ingresos
+            Saving {savingsRate}% of your income
           </p>
         )}
         {isLowBalance && (
           <div className="mt-2 px-3 py-2 bg-amber-500/20 border border-amber-500/40 rounded-lg inline-block">
             <p className="text-amber-400 text-sm font-medium flex items-center gap-1">
-              <span>&#9888;</span> Balance bajo - Cuidado con los gastos
+              <span>&#9888;</span> Low balance - Watch your spending
             </p>
           </div>
         )}
@@ -61,7 +61,7 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
         <div className="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-green-400">↑</span>
-            <span className="text-gray-400 text-sm">Ingresos</span>
+            <span className="text-gray-400 text-sm">Income</span>
           </div>
           <p className="text-xl font-bold text-green-400">
             ${income.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -70,7 +70,7 @@ export function IncomeVsExpenses({ transactions }: IncomeVsExpensesProps) {
         <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-red-400">↓</span>
-            <span className="text-gray-400 text-sm">Gastos</span>
+            <span className="text-gray-400 text-sm">Expenses</span>
           </div>
           <p className="text-xl font-bold text-red-400">
             ${expenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}

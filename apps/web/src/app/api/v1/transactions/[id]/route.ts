@@ -25,6 +25,7 @@ const updateTransactionSchema = z
     accountId: idSchema,
     cleared: z.boolean(),
     notes: z.string().max(1000).optional().nullable(),
+    sensitive: z.boolean(),
   })
   .partial();
 

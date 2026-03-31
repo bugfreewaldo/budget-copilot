@@ -1,16 +1,15 @@
-import { createClient, type Client as LibSQLClient } from '@libsql/client';
-import { drizzle as drizzleLibSQL } from 'drizzle-orm/libsql';
-import type { LibSQLDatabase } from 'drizzle-orm/libsql';
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 
 /**
  * Database client for Vercel serverless environment
- * Connects to a libSQL server (self-hosted sqld or Turso-compatible)
+ * Connects to Neon PostgreSQL
  */
 
-export type DatabaseInstance = LibSQLDatabase<typeof schema>;
+export type DatabaseInstance = NeonHttpDatabase<typeof schema>;
 
-let libsqlClient: LibSQLClient | null = null;
 let dbInstance: DatabaseInstance | null = null;
 
 /**
@@ -22,22 +21,16 @@ export function getDb(): DatabaseInstance {
     return dbInstance;
   }
 
-  const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
-  const authToken =
-    process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.DATABASE_URL;
 
   if (!url) {
     throw new Error(
-      'Missing LIBSQL_URL environment variable. Set it to your libSQL server URL (e.g. http://your-tunnel.example.com)'
+      'Missing DATABASE_URL environment variable. Set it to your Neon PostgreSQL connection string.'
     );
   }
 
-  libsqlClient = createClient({
-    url,
-    authToken,
-  });
-
-  dbInstance = drizzleLibSQL(libsqlClient, { schema });
+  const sql = neon(url);
+  dbInstance = drizzle(sql, { schema });
   return dbInstance;
 }
 
@@ -45,11 +38,7 @@ export function getDb(): DatabaseInstance {
  * Close database connection (for cleanup if needed)
  */
 export function closeDb(): void {
-  if (libsqlClient) {
-    libsqlClient.close();
-    libsqlClient = null;
-    dbInstance = null;
-  }
+  dbInstance = null;
 }
 
 export { schema };

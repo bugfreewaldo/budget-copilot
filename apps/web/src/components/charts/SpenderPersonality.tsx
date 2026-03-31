@@ -20,117 +20,113 @@ interface Archetype {
 const ARCHETYPES: Record<string, Archetype> = {
   saver: {
     id: 'saver',
-    name: 'El Ahorrador',
+    name: 'The Saver',
     emoji: '🐿️',
-    description:
-      'Guardas más de lo que gastas. ¡Tu yo del futuro te lo agradece!',
+    description: 'You save more than you spend. Your future self thanks you!',
     gradient: 'from-green-500/20 to-emerald-500/20',
     borderColor: 'border-green-500/30',
   },
   spender: {
     id: 'spender',
-    name: 'El Gastador',
+    name: 'The Spender',
     emoji: '💸',
     description:
-      'Vives el momento. Solo asegúrate de tener un colchón de emergencia.',
+      'You live in the moment. Just make sure you have an emergency fund.',
     gradient: 'from-red-500/20 to-orange-500/20',
     borderColor: 'border-red-500/30',
   },
   foodie: {
     id: 'foodie',
-    name: 'El Foodie',
+    name: 'The Foodie',
     emoji: '🍕',
     description:
-      'La buena comida es tu pasión. ¿Has probado cocinar más en casa?',
+      'Good food is your passion. Have you tried cooking more at home?',
     gradient: 'from-orange-500/20 to-yellow-500/20',
     borderColor: 'border-orange-500/30',
   },
   fashionista: {
     id: 'fashionista',
-    name: 'La Fashionista',
+    name: 'The Fashionista',
     emoji: '👗',
-    description:
-      'Tu estilo es impecable. ¡Pero ojo con las compras impulsivas!',
+    description: 'Your style is impeccable. But watch out for impulse buys!',
     gradient: 'from-pink-500/20 to-purple-500/20',
     borderColor: 'border-pink-500/30',
   },
   techie: {
     id: 'techie',
-    name: 'El Techie',
+    name: 'The Techie',
     emoji: '📱',
-    description:
-      'Siempre a la vanguardia tecnológica. Gadgets son tu debilidad.',
+    description: 'Always on the cutting edge. Gadgets are your weakness.',
     gradient: 'from-blue-500/20 to-cyan-500/20',
     borderColor: 'border-blue-500/30',
   },
   nomad: {
     id: 'nomad',
-    name: 'El Nómada',
+    name: 'The Nomad',
     emoji: '✈️',
     description:
-      'El mundo es tu oficina. Transporte y viajes dominan tu presupuesto.',
+      'The world is your office. Transportation and travel dominate your budget.',
     gradient: 'from-sky-500/20 to-indigo-500/20',
     borderColor: 'border-sky-500/30',
   },
   subscriber: {
     id: 'subscriber',
-    name: 'El Suscriptor',
+    name: 'The Subscriber',
     emoji: '📺',
     description:
-      'Netflix, Spotify, Disney+... Tienes una suscripción para todo.',
+      'Netflix, Spotify, Disney+... You have a subscription for everything.',
     gradient: 'from-purple-500/20 to-pink-500/20',
     borderColor: 'border-purple-500/30',
   },
   homebody: {
     id: 'homebody',
-    name: 'El Hogareño',
+    name: 'The Homebody',
     emoji: '🏠',
     description:
-      'Tu casa es tu castillo. Inviertes en comodidad y servicios del hogar.',
+      'Your home is your castle. You invest in comfort and household services.',
     gradient: 'from-amber-500/20 to-orange-500/20',
     borderColor: 'border-amber-500/30',
   },
   entertainer: {
     id: 'entertainer',
-    name: 'El Fiestero',
+    name: 'The Party Animal',
     emoji: '🎉',
-    description:
-      'La vida es para disfrutarla. Entretenimiento es tu categoría estrella.',
+    description: 'Life is for enjoying. Entertainment is your star category.',
     gradient: 'from-fuchsia-500/20 to-pink-500/20',
     borderColor: 'border-fuchsia-500/30',
   },
   minimalist: {
     id: 'minimalist',
-    name: 'El Minimalista',
+    name: 'The Minimalist',
     emoji: '🧘',
-    description: 'Menos es más. Gastas poco y en lo esencial. ¡Zen financiero!',
+    description:
+      'Less is more. You spend little and on essentials. Financial zen!',
     gradient: 'from-gray-500/20 to-slate-500/20',
     borderColor: 'border-gray-500/30',
   },
   balanced: {
     id: 'balanced',
-    name: 'El Equilibrado',
+    name: 'The Balanced',
     emoji: '⚖️',
     description:
-      'Ni mucho ni poco. Tienes un balance saludable en tus finanzas.',
+      'Not too much, not too little. You have a healthy financial balance.',
     gradient: 'from-cyan-500/20 to-teal-500/20',
     borderColor: 'border-cyan-500/30',
   },
   hustler: {
     id: 'hustler',
-    name: 'El Emprendedor',
+    name: 'The Hustler',
     emoji: '💼',
-    description:
-      'Múltiples fuentes de ingreso. ¡Estás construyendo tu imperio!',
+    description: 'Multiple income sources. You are building your empire!',
     gradient: 'from-yellow-500/20 to-amber-500/20',
     borderColor: 'border-yellow-500/30',
   },
   newbie: {
     id: 'newbie',
-    name: 'El Nuevo',
+    name: 'The Newcomer',
     emoji: '🌱',
     description:
-      'Apenas empiezas tu viaje financiero. ¡Agrega más transacciones!',
+      'You are just starting your financial journey. Add more transactions!',
     gradient: 'from-lime-500/20 to-green-500/20',
     borderColor: 'border-lime-500/30',
   },
@@ -364,7 +360,7 @@ export function SpenderPersonality({
               </h4>
               {strength > 0 && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-gray-300">
-                  {strength}% seguro
+                  {strength}% confident
                 </span>
               )}
             </div>
@@ -377,7 +373,7 @@ export function SpenderPersonality({
         {/* Fun stats */}
         {transactions.length >= 5 && (
           <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-4 text-xs text-gray-400">
-            <span>📊 Basado en {transactions.length} transacciones</span>
+            <span>📊 Based on {transactions.length} transactions</span>
           </div>
         )}
       </div>

@@ -132,7 +132,7 @@ export function AdvisorChat({
       }
     } catch (error) {
       console.error('Failed to send message:', error);
-      showToast('Error al enviar mensaje. Intenta de nuevo.', 'error');
+      showToast('Failed to send message. Please try again.', 'error');
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -156,11 +156,11 @@ export function AdvisorChat({
           onDecisionUpdated();
         }
       } else {
-        showToast(result.message || 'Error al aplicar cambios', 'error');
+        showToast(result.message || 'Failed to apply changes', 'error');
       }
     } catch (error) {
       console.error('Failed to confirm changes:', error);
-      showToast('Error al aplicar cambios. Intenta de nuevo.', 'error');
+      showToast('Failed to apply changes. Please try again.', 'error');
     } finally {
       setIsConfirming(false);
     }
@@ -169,7 +169,7 @@ export function AdvisorChat({
   const handleCancelChanges = () => {
     setPendingChanges(null);
     setConfirmationPrompt(null);
-    showToast('Cambios descartados', 'info');
+    showToast('Changes discarded', 'info');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -212,7 +212,7 @@ export function AdvisorChat({
       // Check if file parsing failed
       if (result.failed && result.failed.includes(fileId)) {
         throw new Error(
-          'No se pudo procesar el archivo. Verifica que sea un formato valido (imagen, PDF, Excel o CSV).'
+          'Could not process the file. Make sure it is a valid format (image, PDF, Excel, or CSV).'
         );
       }
 
@@ -232,7 +232,7 @@ export function AdvisorChat({
       const tempUserMessage: AdvisorMessage = {
         id: `temp-${Date.now()}`,
         role: 'user',
-        content: `[Archivo: ${file.name}]`,
+        content: `[File: ${file.name}]`,
         timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, tempUserMessage]);
@@ -265,7 +265,7 @@ export function AdvisorChat({
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Error al subir archivo. Intenta de nuevo.';
+          : 'Failed to upload file. Please try again.';
       showToast(errorMessage, 'error');
     } finally {
       setIsUploading(false);
@@ -335,7 +335,7 @@ export function AdvisorChat({
     setImportMode('none');
     setDocumentContext(null);
     setStagedTransactions([]);
-    showToast('Importacion cancelada', 'info');
+    showToast('Import canceled', 'info');
   }, [showToast]);
 
   const handleCloseInsights = useCallback(() => {
@@ -427,11 +427,11 @@ export function AdvisorChat({
           onDecisionUpdated();
         }
       } else {
-        showToast(result.message || 'Error al importar transacciones', 'error');
+        showToast(result.message || 'Failed to import transactions', 'error');
       }
     } catch (error) {
       console.error('Failed to import transactions:', error);
-      showToast('Error al importar transacciones. Intenta de nuevo.', 'error');
+      showToast('Failed to import transactions. Please try again.', 'error');
     } finally {
       setIsConfirming(false);
     }
@@ -464,13 +464,13 @@ export function AdvisorChat({
         setStagedTransactions([]);
         setInput('');
 
-        showToast('Conversacion reiniciada', 'success');
+        showToast('Conversation restarted', 'success');
       } else {
-        showToast(result.message || 'Error al reiniciar', 'error');
+        showToast(result.message || 'Failed to restart', 'error');
       }
     } catch (error) {
       console.error('Failed to reset session:', error);
-      showToast('Error al reiniciar. Intenta de nuevo.', 'error');
+      showToast('Failed to restart. Please try again.', 'error');
     } finally {
       setIsResetting(false);
     }
@@ -498,13 +498,13 @@ export function AdvisorChat({
           onChange={handleFileInputChange}
         />
         {isUploading ? (
-          <p className="text-cyan-400 text-sm">Procesando archivo...</p>
+          <p className="text-cyan-400 text-sm">Processing file...</p>
         ) : (
           <p className="text-gray-500 text-sm">
-            Arrastra aquí estados de cuenta, recibos, capturas o archivos.
+            Drag bank statements, receipts, screenshots, or files here.
             <br />
             <span className="text-gray-600 text-xs">
-              PDF, Excel, CSV o imagen
+              PDF, Excel, CSV, or image
             </span>
           </p>
         )}
@@ -513,28 +513,28 @@ export function AdvisorChat({
       {/* Quick Action Suggestions */}
       {messages.length === 0 && !isLoading && (
         <div className="mb-4">
-          <p className="text-gray-500 text-xs mb-2">Acciones rápidas:</p>
+          <p className="text-gray-500 text-xs mb-2">Quick actions:</p>
           <div className="flex flex-wrap gap-2">
             {[
               {
-                label: '💸 Registrar gasto',
-                message: 'Quiero registrar un gasto',
+                label: '💸 Log expense',
+                message: 'I want to log an expense',
               },
               {
-                label: '💰 Registrar ingreso',
-                message: 'Quiero registrar un ingreso',
+                label: '💰 Log income',
+                message: 'I want to log income',
               },
               {
-                label: '🔄 Agregar gasto fijo',
-                message: 'Quiero agregar un gasto fijo recurrente',
+                label: '🔄 Add recurring expense',
+                message: 'I want to add a recurring expense',
               },
               {
-                label: '💀 Agregar deuda',
-                message: 'Quiero agregar una deuda',
+                label: '💀 Add debt',
+                message: 'I want to add a debt',
               },
               {
-                label: '📊 Ver mi situación',
-                message: '¿Cuál es mi situación financiera actual?',
+                label: '📊 View my situation',
+                message: 'What is my current financial situation?',
               },
             ].map((action) => (
               <button
@@ -632,7 +632,7 @@ export function AdvisorChat({
         {/* Pending Changes Card */}
         {pendingChanges && (
           <div className="bg-gray-900 border border-cyan-500/30 rounded-xl p-4 mx-2">
-            <h3 className="text-cyan-400 font-medium mb-3">Propuesta</h3>
+            <h3 className="text-cyan-400 font-medium mb-3">Proposal</h3>
 
             {/* Summary of changes */}
             <div className="text-gray-300 text-sm space-y-1 mb-4">
@@ -651,7 +651,7 @@ export function AdvisorChat({
                 disabled={isConfirming}
                 className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
               >
-                {isConfirming ? 'Aplicando...' : 'Aplicar cambios'}
+                {isConfirming ? 'Applying...' : 'Apply changes'}
               </Button>
               <Button
                 variant="outline"
@@ -659,13 +659,13 @@ export function AdvisorChat({
                 disabled={isConfirming}
                 className="flex-1"
               >
-                Cancelar
+                Cancel
               </Button>
             </div>
 
             {/* Microcopy */}
             <p className="text-gray-500 text-xs mt-3 text-center">
-              Aplicar cambios puede recalcular la decisión de hoy.
+              Applying changes may recalculate today's decision.
             </p>
           </div>
         )}
@@ -683,7 +683,7 @@ export function AdvisorChat({
               isLoading || isConfirming || isResetting || messages.length === 0
             }
             className="p-3 text-gray-500 hover:text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            title="Reiniciar conversacion"
+            title="Restart conversation"
           >
             <svg
               className="w-5 h-5"
@@ -705,7 +705,7 @@ export function AdvisorChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje..."
+            placeholder="Type your message..."
             disabled={isLoading || isConfirming || isResetting}
             className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
           />
@@ -714,7 +714,7 @@ export function AdvisorChat({
             disabled={!input.trim() || isLoading || isConfirming || isResetting}
             className="px-6"
           >
-            Enviar
+            Send
           </Button>
         </div>
       </div>
@@ -724,11 +724,11 @@ export function AdvisorChat({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm mx-4">
             <h3 className="text-white font-medium mb-2">
-              Reiniciar conversacion
+              Restart conversation
             </h3>
             <p className="text-gray-400 text-sm mb-4">
-              Esto borrara todo el historial de la conversacion actual. Esta
-              accion no se puede deshacer.
+              This will erase the entire conversation history. This action
+              cannot be undone.
             </p>
             <div className="flex gap-3">
               <Button
@@ -736,7 +736,7 @@ export function AdvisorChat({
                 onClick={() => setShowResetConfirm(false)}
                 className="flex-1"
               >
-                Cancelar
+                Cancel
               </Button>
               <Button
                 variant="danger"
@@ -744,7 +744,7 @@ export function AdvisorChat({
                 disabled={isResetting}
                 className="flex-1"
               >
-                {isResetting ? 'Reiniciando...' : 'Reiniciar'}
+                {isResetting ? 'Restarting...' : 'Restart'}
               </Button>
             </div>
           </div>
@@ -783,7 +783,7 @@ function renderPendingChangesSummary(
           typeof txn.amountCents === 'number'
             ? (txn.amountCents / 100).toFixed(2)
             : '?';
-        items.push(`${txn.description || 'Transacción'}: ${sign}$${amount}`);
+        items.push(`${txn.description || 'Transaction'}: ${sign}$${amount}`);
       }
     }
   }
@@ -793,7 +793,7 @@ function renderPendingChangesSummary(
       typeof changes.incomeChange.amountCents === 'number'
         ? (changes.incomeChange.amountCents / 100).toFixed(2)
         : '?';
-    items.push(`Ingreso mensual: $${amount}`);
+    items.push(`Monthly income: $${amount}`);
   }
 
   // Defensive: check if debtChanges is actually an array
@@ -804,7 +804,7 @@ function renderPendingChangesSummary(
           typeof debt.currentBalanceCents === 'number'
             ? ` $${(debt.currentBalanceCents / 100).toFixed(2)}`
             : '';
-        items.push(`Deuda: ${debt.name}${balance}`);
+        items.push(`Debt: ${debt.name}${balance}`);
       }
     }
   }
@@ -815,9 +815,9 @@ function renderPendingChangesSummary(
       if (bill && typeof bill === 'object' && bill.name) {
         const amount =
           typeof bill.amountCents === 'number'
-            ? ` $${(bill.amountCents / 100).toFixed(2)}/mes`
+            ? ` $${(bill.amountCents / 100).toFixed(2)}/mo`
             : '';
-        items.push(`Gasto fijo: ${bill.name}${amount}`);
+        items.push(`Fixed expense: ${bill.name}${amount}`);
       }
     }
   }
@@ -828,7 +828,7 @@ function renderPendingChangesSummary(
     changes.transactionDeletions.length > 0
   ) {
     items.push(
-      `${changes.transactionDeletions.length} transacción(es) a disputar`
+      `${changes.transactionDeletions.length} transaction(s) to dispute`
     );
   }
 
@@ -837,13 +837,11 @@ function renderPendingChangesSummary(
     typeof changes.fileImport === 'object' &&
     Array.isArray(changes.fileImport.itemIds)
   ) {
-    items.push(
-      `${changes.fileImport.itemIds.length} transacciones del archivo`
-    );
+    items.push(`${changes.fileImport.itemIds.length} transactions from file`);
   }
 
   if (items.length === 0) {
-    items.push('Cambios propuestos');
+    items.push('Proposed changes');
   }
 
   return items.map((item, i) => <div key={i}>{item}</div>);

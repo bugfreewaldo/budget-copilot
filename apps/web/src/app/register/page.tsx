@@ -13,12 +13,12 @@ function getPasswordStrength(password: string): {
   checks: { label: string; passed: boolean }[];
 } {
   const checks = [
-    { label: 'Mínimo 8 caracteres', passed: password.length >= 8 },
-    { label: 'Una letra minúscula', passed: /[a-z]/.test(password) },
-    { label: 'Una letra mayúscula', passed: /[A-Z]/.test(password) },
-    { label: 'Un número', passed: /[0-9]/.test(password) },
+    { label: 'At least 8 characters', passed: password.length >= 8 },
+    { label: 'One lowercase letter', passed: /[a-z]/.test(password) },
+    { label: 'One uppercase letter', passed: /[A-Z]/.test(password) },
+    { label: 'One number', passed: /[0-9]/.test(password) },
     {
-      label: 'Un carácter especial (!@#$%)',
+      label: 'One special character (!@#$%)',
       passed: /[!@#$%^&*(),.?":{}|<>]/.test(password),
     },
   ];
@@ -33,16 +33,16 @@ function getPasswordStrength(password: string): {
     label = '';
     color = 'bg-gray-700';
   } else if (passedCount <= 2) {
-    label = 'Débil';
+    label = 'Weak';
     color = 'bg-red-500';
   } else if (passedCount <= 3) {
-    label = 'Regular';
+    label = 'Fair';
     color = 'bg-yellow-500';
   } else if (passedCount <= 4) {
-    label = 'Buena';
+    label = 'Good';
     color = 'bg-cyan-500';
   } else {
-    label = 'Excelente';
+    label = 'Excellent';
     color = 'bg-green-500';
   }
 
@@ -54,6 +54,9 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   // Default to onboarding flow, unless redirect is specified
   const redirectTo = searchParams.get('redirect') || '/onboarding';
+  const [householdName, setHouseholdName] = useState('');
+  const [memberNames, setMemberNames] = useState<string[]>([]);
+  const [newMemberName, setNewMemberName] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,30 +83,41 @@ function RegisterForm() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError('Passwords do not match');
       return;
     }
 
     if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    if (!householdName.trim()) {
+      setError('Please enter a household name');
       return;
     }
 
     setLoading(true);
 
     try {
-      await register({ email, password, name: name || undefined });
+      await register({
+        email,
+        password,
+        name: name || undefined,
+        householdName: householdName.trim(),
+        memberNames: memberNames.filter((n) => n.trim()),
+      });
       // Redirect to the specified page (or dashboard) after registration
       router.push(redirectTo);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.statusCode === 409) {
-          setError('Ya existe una cuenta con este correo electrónico');
+          setError('An account with this email already exists');
         } else {
           setError(err.message);
         }
       } else {
-        setError('Error al crear la cuenta. Por favor intenta de nuevo.');
+        setError('Failed to create account. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -121,10 +135,113 @@ function RegisterForm() {
 
         <div>
           <label
+            htmlFor="householdName"
+            className="block text-sm font-medium text-gray-300"
+          >
+            Household Name <span className="text-red-400">*</span>
+          </label>
+          <div className="mt-1">
+            <input
+              id="householdName"
+              name="householdName"
+              type="text"
+              required
+              value={householdName}
+              onChange={(e) => setHouseholdName(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+              placeholder="e.g. The Smiths, My Budget"
+            />
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Your budget is shared within a household.
+          </p>
+        </div>
+
+        {/* Household Members */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300">
+            Household Members
+          </label>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Add the people who share this budget (e.g. spouse, kids). You can
+            always add more later.
+          </p>
+
+          {/* Member list */}
+          {memberNames.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {memberNames.map((member, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-800/50 border border-gray-700/50 rounded-lg"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500/30 to-cyan-500/30 flex items-center justify-center text-xs text-gray-300 font-medium">
+                    {member.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="flex-1 text-sm text-gray-300">{member}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMemberNames(memberNames.filter((_, j) => j !== i))
+                    }
+                    className="text-gray-500 hover:text-red-400 transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add member input */}
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={newMemberName}
+              onChange={(e) => setNewMemberName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newMemberName.trim()) {
+                  e.preventDefault();
+                  setMemberNames([...memberNames, newMemberName.trim()]);
+                  setNewMemberName('');
+                }
+              }}
+              className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+              placeholder="Member name"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newMemberName.trim()) {
+                  setMemberNames([...memberNames, newMemberName.trim()]);
+                  setNewMemberName('');
+                }
+              }}
+              className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-cyan-400 hover:border-cyan-500/50 text-sm transition-all"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label
             htmlFor="name"
             className="block text-sm font-medium text-gray-300"
           >
-            Nombre (opcional)
+            Your Name (optional)
           </label>
           <div className="mt-1">
             <input
@@ -135,7 +252,7 @@ function RegisterForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="Tu nombre"
+              placeholder="Your name"
             />
           </div>
         </div>
@@ -145,7 +262,7 @@ function RegisterForm() {
             htmlFor="email"
             className="block text-sm font-medium text-gray-300"
           >
-            Correo Electrónico <span className="text-red-400">*</span>
+            Email <span className="text-red-400">*</span>
           </label>
           <div className="mt-1">
             <input
@@ -157,7 +274,7 @@ function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="tu@email.com"
+              placeholder="you@email.com"
             />
           </div>
         </div>
@@ -167,7 +284,7 @@ function RegisterForm() {
             htmlFor="password"
             className="block text-sm font-medium text-gray-300"
           >
-            Contraseña <span className="text-red-400">*</span>
+            Password <span className="text-red-400">*</span>
           </label>
           <div className="mt-1 relative">
             <input
@@ -179,7 +296,7 @@ function RegisterForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 pr-12 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="At least 8 characters"
             />
             <button
               type="button"
@@ -237,13 +354,13 @@ function RegisterForm() {
                 </div>
                 <span
                   className={`text-xs font-medium ${
-                    passwordStrength.label === 'Débil'
+                    passwordStrength.label === 'Weak'
                       ? 'text-red-400'
-                      : passwordStrength.label === 'Regular'
+                      : passwordStrength.label === 'Fair'
                         ? 'text-yellow-400'
-                        : passwordStrength.label === 'Buena'
+                        : passwordStrength.label === 'Good'
                           ? 'text-cyan-400'
-                          : passwordStrength.label === 'Excelente'
+                          : passwordStrength.label === 'Excellent'
                             ? 'text-green-400'
                             : 'text-gray-500'
                   }`}
@@ -280,7 +397,7 @@ function RegisterForm() {
             htmlFor="confirmPassword"
             className="block text-sm font-medium text-gray-300"
           >
-            Confirmar Contraseña <span className="text-red-400">*</span>
+            Confirm Password <span className="text-red-400">*</span>
           </label>
           <div className="mt-1 relative">
             <input
@@ -298,7 +415,7 @@ function RegisterForm() {
                     ? 'border-green-500/50 focus:ring-green-500/50 focus:border-green-500/50'
                     : 'border-red-500/50 focus:ring-red-500/50 focus:border-red-500/50'
               }`}
-              placeholder="Repite tu contraseña"
+              placeholder="Repeat your password"
             />
             <button
               type="button"
@@ -353,12 +470,12 @@ function RegisterForm() {
               {passwordsMatch ? (
                 <>
                   <span>✓</span>
-                  <span>Las contraseñas coinciden</span>
+                  <span>Passwords match</span>
                 </>
               ) : (
                 <>
                   <span>✗</span>
-                  <span>Las contraseñas no coinciden</span>
+                  <span>Passwords do not match</span>
                 </>
               )}
             </div>
@@ -374,13 +491,13 @@ function RegisterForm() {
             className="h-4 w-4 mt-1 bg-gray-800 border-gray-700 rounded text-cyan-500 focus:ring-cyan-500/50"
           />
           <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
-            Acepto los{' '}
+            I agree to the{' '}
             <Link href="/terms" className="text-cyan-400 hover:text-cyan-300">
-              términos de servicio
+              terms of service
             </Link>{' '}
-            y la{' '}
+            and{' '}
             <Link href="/privacy" className="text-cyan-400 hover:text-cyan-300">
-              política de privacidad
+              privacy policy
             </Link>
           </label>
         </div>
@@ -391,7 +508,8 @@ function RegisterForm() {
             disabled={
               loading ||
               !passwordsMatch ||
-              passwordStrength.checks[0]?.passed === false
+              passwordStrength.checks[0]?.passed === false ||
+              !householdName.trim()
             }
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
@@ -413,10 +531,10 @@ function RegisterForm() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Creando cuenta...
+                Creating account...
               </span>
             ) : (
-              'Crear Cuenta Gratis'
+              'Create Free Account'
             )}
           </button>
         </div>
@@ -429,7 +547,7 @@ function RegisterForm() {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-gray-900 text-gray-500">
-              O regístrate con
+              Or sign up with
             </span>
           </div>
         </div>
@@ -472,32 +590,30 @@ function RegisterForm() {
             <span className="ml-2">Apple</span>
           </button>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-500">
-          Próximamente disponible
-        </p>
+        <p className="mt-3 text-center text-xs text-gray-500">Coming soon</p>
       </div>
 
       {/* Benefits */}
       <div className="mt-6 pt-6 border-t border-gray-800">
         <p className="text-center text-sm text-gray-400 mb-4">
-          Tu cuenta gratuita incluye:
+          Your free account includes:
         </p>
         <ul className="space-y-2 text-sm text-gray-400">
           <li className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            Hasta 3 cuentas bancarias
+            Up to 3 bank accounts
           </li>
           <li className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            Categorización automática con IA
+            AI-powered automatic categorization
           </li>
           <li className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            Resumen diario personalizado
+            Personalized daily summary
           </li>
           <li className="flex items-center gap-2">
             <span className="text-green-400">✓</span>
-            Alertas de gastos inusuales
+            Unusual spending alerts
           </li>
         </ul>
       </div>
@@ -528,12 +644,12 @@ function LoginLink() {
 
   return (
     <p className="mt-4 text-center text-sm text-gray-400">
-      ¿Ya tienes cuenta?{' '}
+      Already have an account?{' '}
       <Link
         href={loginHref}
         className="text-cyan-400 hover:text-cyan-300 font-medium"
       >
-        Inicia sesión
+        Sign in
       </Link>
     </p>
   );
@@ -557,17 +673,17 @@ export default function RegisterPage(): React.ReactElement | null {
           </span>
         </Link>
         <h2 className="text-center text-2xl font-bold text-white">
-          Tu instrucción financiera se está preparando.
+          Set up your household budget
         </h2>
         <p className="mt-3 text-center text-sm text-gray-400 max-w-sm mx-auto">
-          Cuéntanos sobre tus ingresos, gastos y deudas. Nosotros nos encargamos
-          del resto.
+          Tell us about your income, expenses and debts. We&apos;ll take care of
+          the rest.
         </p>
         <Suspense
           fallback={
             <p className="mt-4 text-center text-sm text-gray-400">
-              ¿Ya tienes cuenta?{' '}
-              <span className="text-cyan-400">Inicia sesión</span>
+              Already have an account?{' '}
+              <span className="text-cyan-400">Sign in</span>
             </p>
           }
         >

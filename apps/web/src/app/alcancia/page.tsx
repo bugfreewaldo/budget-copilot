@@ -24,13 +24,12 @@ interface Deposit {
 
 // Fun piggy messages based on savings progress
 function getPiggyMessage(percent: number, _name: string): string {
-  if (percent === 0) return `¡Oink! Estoy vacío... ¡Aliméntame con ahorros!`;
-  if (percent < 25) return `¡Oink oink! Apenas empezando... ¡Sigue así!`;
-  if (percent < 50) return `¡Oink! Me estoy llenando... ¡Qué rico!`;
-  if (percent < 75) return `¡OINK! ¡Ya casi llegamos a la meta!`;
-  if (percent < 100)
-    return `¡OINK OINK! ¡Estoy a punto de reventar de felicidad!`;
-  return `🎉 ¡META ALCANZADA! ¡Soy el cerdito más feliz del mundo!`;
+  if (percent === 0) return `Oink! I'm empty... Feed me some savings!`;
+  if (percent < 25) return `Oink oink! Just getting started... Keep it up!`;
+  if (percent < 50) return `Oink! I'm filling up... How exciting!`;
+  if (percent < 75) return `OINK! We're almost at the goal!`;
+  if (percent < 100) return `OINK OINK! I'm about to burst with happiness!`;
+  return `🎉 GOAL REACHED! I'm the happiest piggy in the world!`;
 }
 
 // Get piggy size class based on fullness
@@ -257,17 +256,17 @@ function AnimatedPiggy({
 
 // Format cents to currency
 function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
+  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
 }
 
 // Piggy colors available
 const PIGGY_COLORS = [
-  { name: 'Rosa Clásico', class: 'text-pink-400', bg: 'bg-pink-400' },
-  { name: 'Dorado', class: 'text-yellow-500', bg: 'bg-yellow-500' },
-  { name: 'Azul', class: 'text-blue-400', bg: 'bg-blue-400' },
-  { name: 'Verde', class: 'text-green-400', bg: 'bg-green-400' },
-  { name: 'Morado', class: 'text-purple-400', bg: 'bg-purple-400' },
-  { name: 'Naranja', class: 'text-orange-400', bg: 'bg-orange-400' },
+  { name: 'Classic Pink', class: 'text-pink-400', bg: 'bg-pink-400' },
+  { name: 'Gold', class: 'text-yellow-500', bg: 'bg-yellow-500' },
+  { name: 'Blue', class: 'text-blue-400', bg: 'bg-blue-400' },
+  { name: 'Green', class: 'text-green-400', bg: 'bg-green-400' },
+  { name: 'Purple', class: 'text-purple-400', bg: 'bg-purple-400' },
+  { name: 'Orange', class: 'text-orange-400', bg: 'bg-orange-400' },
 ];
 
 export default function AlcanciaPage(): React.JSX.Element {
@@ -417,17 +416,17 @@ export default function AlcanciaPage(): React.JSX.Element {
           <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1 lg:mb-2 flex items-center gap-3">
-                <span className="text-4xl">🐷</span> Mi Alcancía
+                <span className="text-4xl">🐷</span> My Piggy Bank
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                ¡Ahorra monedita a monedita y alcanza tus metas!
+                Save coin by coin and reach your goals!
               </p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white rounded-xl font-medium transition-all"
             >
-              <span>+</span> Nueva Alcancía
+              <span>+</span> New Piggy Bank
             </button>
           </div>
 
@@ -435,7 +434,7 @@ export default function AlcanciaPage(): React.JSX.Element {
             <div className="text-center py-12">
               <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-900/50 rounded-xl border border-gray-800">
                 <div className="w-5 h-5 border-2 border-pink-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-400">Cargando alcancías...</p>
+                <p className="text-gray-400">Loading piggy banks...</p>
               </div>
             </div>
           ) : piggies.length === 0 ? (
@@ -443,17 +442,17 @@ export default function AlcanciaPage(): React.JSX.Element {
             <div className="text-center py-16">
               <div className="text-8xl mb-6 animate-bounce">🐷</div>
               <h2 className="text-2xl font-bold text-white mb-3">
-                ¡Crea tu primera alcancía!
+                Create your first piggy bank!
               </h2>
               <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                Las alcancías te ayudan a ahorrar para metas específicas. ¡Es
-                como tener un cerdito guardando tus monedas!
+                Piggy banks help you save for specific goals. It's like having a
+                little pig keeping your coins!
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-6 py-3 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white rounded-xl font-medium transition-all text-lg"
               >
-                🐷 Crear Mi Primera Alcancía
+                🐷 Create My First Piggy Bank
               </button>
             </div>
           ) : (
@@ -461,7 +460,7 @@ export default function AlcanciaPage(): React.JSX.Element {
               {/* Piggy List */}
               <div className="lg:col-span-1 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  Mis Alcancías
+                  My Piggy Banks
                 </h3>
                 {piggies.map((piggy) => {
                   const percent =
@@ -528,13 +527,13 @@ export default function AlcanciaPage(): React.JSX.Element {
                           {selectedPiggy.name}
                         </h2>
                         <p className="text-gray-400">
-                          Meta: {formatCents(selectedPiggy.targetAmountCents)}
+                          Goal: {formatCents(selectedPiggy.targetAmountCents)}
                         </p>
                       </div>
                       <button
                         onClick={() => setDeleteConfirm(selectedPiggy)}
                         className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        title="Romper alcancía"
+                        title="Break piggy bank"
                       >
                         <svg
                           className="w-5 h-5"
@@ -574,7 +573,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                         <div className="text-2xl font-bold text-pink-400">
                           {formatCents(selectedPiggy.currentAmountCents)}
                         </div>
-                        <div className="text-xs text-gray-500">Ahorrado</div>
+                        <div className="text-xs text-gray-500">Saved</div>
                       </div>
                       <div className="text-center p-4 bg-gray-800/50 rounded-xl">
                         <div className="text-2xl font-bold text-orange-400">
@@ -583,7 +582,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                               selectedPiggy.currentAmountCents
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">Falta</div>
+                        <div className="text-xs text-gray-500">Remaining</div>
                       </div>
                       <div className="text-center p-4 bg-gray-800/50 rounded-xl">
                         <div
@@ -591,7 +590,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                         >
                           {progressPercent.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-gray-500">Progreso</div>
+                        <div className="text-xs text-gray-500">Progress</div>
                       </div>
                     </div>
 
@@ -600,14 +599,14 @@ export default function AlcanciaPage(): React.JSX.Element {
                       onClick={() => setShowDepositModal(true)}
                       className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
                     >
-                      <span className="text-2xl">🪙</span> Agregar Dinero
+                      <span className="text-2xl">🪙</span> Add Money
                     </button>
 
                     {/* Recent Deposits */}
                     {selectedPiggyDeposits.length > 0 && (
                       <div className="mt-6">
                         <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                          Últimos Depósitos
+                          Recent Deposits
                         </h4>
                         <div className="space-y-2 max-h-48 overflow-y-auto">
                           {selectedPiggyDeposits.slice(0, 10).map((deposit) => (
@@ -618,7 +617,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                               <div className="flex items-center gap-2">
                                 <span>🪙</span>
                                 <span className="text-gray-300">
-                                  {deposit.note || 'Depósito'}
+                                  {deposit.note || 'Deposit'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-3">
@@ -628,7 +627,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                                 <span className="text-xs text-gray-600">
                                   {new Date(
                                     deposit.createdAt
-                                  ).toLocaleDateString('es-MX')}
+                                  ).toLocaleDateString('en-US')}
                                 </span>
                               </div>
                             </div>
@@ -652,26 +651,26 @@ export default function AlcanciaPage(): React.JSX.Element {
             />
             <div className="relative bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span>🐷</span> Nueva Alcancía
+                <span>🐷</span> New Piggy Bank
               </h3>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Nombre de la meta
+                    Goal name
                   </label>
                   <input
                     type="text"
                     value={newPiggyName}
                     onChange={(e) => setNewPiggyName(e.target.value)}
-                    placeholder="Ej: Vacaciones, iPhone, Emergencias..."
+                    placeholder="E.g.: Vacation, iPhone, Emergencies..."
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Meta de ahorro
+                    Savings goal
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
@@ -689,7 +688,7 @@ export default function AlcanciaPage(): React.JSX.Element {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    Color del cerdito
+                    Piggy color
                   </label>
                   <div className="flex gap-2 flex-wrap">
                     {PIGGY_COLORS.map((color) => (
@@ -713,14 +712,14 @@ export default function AlcanciaPage(): React.JSX.Element {
                   onClick={() => setShowCreateModal(false)}
                   className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={handleCreatePiggy}
                   disabled={!newPiggyName.trim() || !newPiggyTarget}
                   className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Crear Alcancía
+                  Create Piggy Bank
                 </button>
               </div>
             </div>
@@ -736,7 +735,7 @@ export default function AlcanciaPage(): React.JSX.Element {
             />
             <div className="relative bg-gray-900 rounded-2xl border border-gray-800 p-6 w-full max-w-md">
               <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span>🪙</span> Agregar a {selectedPiggy.name}
+                <span>🪙</span> Add to {selectedPiggy.name}
               </h3>
 
               <div className="space-y-4">
@@ -761,13 +760,13 @@ export default function AlcanciaPage(): React.JSX.Element {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Nota (opcional)
+                    Note (optional)
                   </label>
                   <input
                     type="text"
                     value={depositNote}
                     onChange={(e) => setDepositNote(e.target.value)}
-                    placeholder="Ej: Ahorro de esta semana"
+                    placeholder="E.g.: This week's savings"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-pink-500"
                   />
                 </div>
@@ -775,7 +774,7 @@ export default function AlcanciaPage(): React.JSX.Element {
                 {/* Quick amounts */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    Montos rápidos
+                    Quick amounts
                   </label>
                   <div className="flex gap-2 flex-wrap">
                     {[10, 50, 100, 200, 500].map((amount) => (
@@ -796,14 +795,14 @@ export default function AlcanciaPage(): React.JSX.Element {
                   onClick={() => setShowDepositModal(false)}
                   className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium transition-all"
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   onClick={handleDeposit}
                   disabled={!depositAmount || parseFloat(depositAmount) <= 0}
                   className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <span>🐷</span> ¡Depositar!
+                  <span>🐷</span> Deposit!
                 </button>
               </div>
             </div>
@@ -815,10 +814,10 @@ export default function AlcanciaPage(): React.JSX.Element {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeletePiggy}
-          title="Romper Alcancía"
-          message={`¿Seguro que quieres romper la alcancía "${deleteConfirm?.name}"? Esto eliminará todo el historial de depósitos.`}
-          confirmText="Romper"
-          cancelText="Cancelar"
+          title="Break Piggy Bank"
+          message={`Are you sure you want to break the piggy bank "${deleteConfirm?.name}"? This will delete all deposit history.`}
+          confirmText="Break"
+          cancelText="Cancel"
           variant="danger"
         />
       </div>

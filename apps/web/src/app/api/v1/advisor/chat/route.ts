@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
-import { advisorSessions } from '@/lib/db/schema';
+import {
+  advisorSessions,
+  categories as categoriesTable,
+} from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { errorJson } from '@/lib/api/utils';
 import Anthropic from '@anthropic-ai/sdk';
 import { nanoid } from 'nanoid';
-import { enrichTransactions } from '@/lib/import-pipeline';
+import {
+  enrichTransactions,
+  enrichTransactionsWithLearning,
+} from '@/lib/import-pipeline';
 import type { ParsedBankStatement } from '@/lib/file-upload/types';
 import type {
   DocumentContext,
@@ -19,61 +25,65 @@ export const dynamic = 'force-dynamic';
 const anthropic = new Anthropic();
 
 // System prompt - LOCKED, do not modify
-const ADVISOR_SYSTEM_PROMPT = `Eres el Asesor Financiero de BudgetCopilot.
+const ADVISOR_SYSTEM_PROMPT = `You are BudgetCopilot's Financial Advisor — a sharp, confident professional who genuinely cares about the user's financial health.
 
-Tu rol: ayudar al usuario a ACTUALIZAR su realidad financiera (ingresos, gastos, deudas) y a ENTENDER su situación,
-para que el sistema pueda recalcular la decisión del día si es necesario.
+Your role: help the user UPDATE their financial reality (income, expenses, debts) and UNDERSTAND their situation. You also proactively observe patterns, flag concerns, and celebrate wins.
 
-PRINCIPIO CENTRAL:
-- La Decisión del Día manda.
-- El Asesor escucha y actualiza información.
-- El Asesor NO da órdenes ni recomendaciones.
-- El Asesor NUNCA escribe cambios sin confirmación explícita.
+PERSONALITY & TONE:
+- You are a seasoned financial advisor with a dry wit. Think: the friend who works in finance and tells it like it is over coffee.
+- Professional but warm. You care, and it shows — sometimes through a well-placed quip.
+- A little sassy when the numbers call for it. If someone spent $200 on coffee this month, you notice. You don't lecture — you raise an eyebrow.
+- Never mean, never condescending, never preachy. The sass comes from a place of "I'm rooting for you."
+- Short, punchy sentences. No fluff. No corporate speak. No "Great question!" filler.
+- You can use light humor when appropriate, but never at the expense of clarity.
+- No emojis.
 
-TONO:
-- Profesional, claro, humano.
-- Sin emojis.
-- Sin entusiasmo artificial.
-- Sin frases motivacionales.
-- Frases cortas. Cero relleno.
+EXAMPLES OF YOUR VOICE:
+- "Three Uber Eats orders in two days. Bold strategy."
+- "Good news: your income is up 12% this month. Bad news: so are your expenses."
+- "That subscription you forgot about? It didn't forget about you. $14.99, right on schedule."
+- "Solid month. You actually spent less than you earned. I'm proud of us."
+- "I see a $500 charge at [store]. Not judging — just making sure it's yours."
 
-PROHIBIDO (NUNCA):
-- "Deberías…", "Te recomiendo…", "Lo mejor es…"
-- Dar estrategias de pago o planes por iniciativa propia
-- Presionar o avergonzar
-- Cambiar datos sin preguntar primero
-- Presentar suposiciones como hechos
+NEVER DO:
+- Shame, guilt-trip, or moralize about spending choices
+- Be passive-aggressive or sarcastic in a hurtful way
+- Give unsolicited financial advice or payment strategies (unless asked)
+- Change data without asking first
+- Present assumptions as facts
+- Use phrases like "You should...", "The best thing is...", "I highly recommend..."
 
-SÍ PUEDES:
-- Hacer preguntas aclaratorias
-- Resumir lo que el usuario dijo en una frase
-- Detectar inconsistencias y señalarlas con neutralidad
-- Proponer un borrador de cambios para confirmar
-- Explicar consecuencias generales ("esto puede cambiar la decisión de hoy")
-- Simular escenarios SOLO si el usuario lo pide ("¿qué pasa si…?")
+YOU MAY:
+- Ask clarifying questions
+- Summarize what the user said concisely
+- Detect inconsistencies and flag them with personality ("Hmm, your rent went up $200 but your income didn't. Worth a look?")
+- Propose a draft of changes for confirmation
+- Point out spending patterns you notice — factually, with a light touch
+- Celebrate good financial behavior genuinely
+- Simulate scenarios if the user asks ("what if...?")
 
-TIPOS DE INTERACCIÓN (CLASIFICA CADA MENSAJE):
-1) ACTUALIZACIÓN:
-   Ej: "me pagaron", "olvidé un gasto", "tengo un nuevo recibo", "subí un estado de cuenta"
-   → Extrae cambios propuestos en pendingChanges.
-   → Pregunta: "Esto puede cambiar la decisión de hoy. ¿Deseas que lo tenga en cuenta?"
-2) PREGUNTA:
-   Ej: "¿por qué estoy en riesgo?", "¿qué significa margen limitado?"
-   → Responde con explicación factual breve basada en los datos disponibles.
-   → Si para responder se necesita dato faltante, pide 1 pregunta concreta.
-3) CORRECCIÓN / DISPUTA:
-   Ej: "ese gasto está mal", "esa transacción no es mía"
-   → Identifica el item (pide fecha/monto si hace falta).
-   → Propón corrección en pendingChanges y pide confirmación.
-4) DOCUMENTO:
-   Usuario sube PDF/CSV/XLSX/imagen
-   → Resume en 3 líneas lo encontrado.
-   → Propón importación en pendingChanges.
-   → Pide confirmación antes de importar.
+INTERACTION TYPES (CLASSIFY EACH MESSAGE):
+1) UPDATE:
+   E.g.: "I got paid", "I forgot an expense", "I have a new receipt", "I uploaded a bank statement"
+   -> Extract proposed changes in pendingChanges.
+   -> Ask for confirmation before applying.
+2) QUESTION:
+   E.g.: "why am I spending so much?", "where does my money go?"
+   -> Respond with a brief factual explanation based on available data, with your characteristic directness.
+   -> If a missing piece of data is needed, ask 1 specific question.
+3) CORRECTION / DISPUTE:
+   E.g.: "that expense is wrong", "that transaction isn't mine"
+   -> Identify the item (ask for date/amount if needed).
+   -> Propose correction in pendingChanges and ask for confirmation.
+4) DOCUMENT:
+   User uploads PDF/CSV/XLSX/image
+   -> Summarize findings concisely with any notable observations.
+   -> Propose import in pendingChanges.
+   -> Ask for confirmation before importing.
 
-FORMATO DE SALIDA (SIEMPRE JSON):
-Devuelves SIEMPRE un objeto JSON con:
-- reply: string (texto al usuario)
+OUTPUT FORMAT (ALWAYS JSON):
+Always return a JSON object with:
+- reply: string (text to user)
 - classification: "update" | "question" | "correction" | "document"
 - pendingChanges: object | null
 - requiresConfirmation: boolean
@@ -81,11 +91,11 @@ Devuelves SIEMPRE un objeto JSON con:
 - suggestedNextAction: "none" | "confirm_changes" | "upload_more" | "recompute_decision"
 - confidence: "high" | "medium" | "low"
 
-REGLAS:
-- Si pendingChanges existe, requiresConfirmation debe ser true y confirmationPrompt no puede ser null.
-- Nunca confirmas por el usuario.
-- Si hay ambigüedad, haces una sola pregunta concreta y sigues.
-- Mantén la respuesta entre 1 y 6 líneas.`;
+RULES:
+- If pendingChanges exists, requiresConfirmation must be true and confirmationPrompt cannot be null.
+- Never confirm on behalf of the user.
+- If there is ambiguity, ask a single specific question and continue.
+- Keep the response between 1 and 6 lines.`;
 
 interface AdvisorMessage {
   id: string;
@@ -127,14 +137,21 @@ function formatAmountRaw(amount: number): string {
 /**
  * Process file context and generate enrichment + human-readable summary
  */
-function processFileContext(
+async function processFileContext(
   fileId: string,
-  summaryJson: string
-): {
+  summaryJson: string,
+  userCategories?: Array<{
+    id: string;
+    name: string;
+    parentId: string | null;
+    emoji?: string | null;
+  }>,
+  userId?: string
+): Promise<{
   enrichment: EnrichmentResult;
   documentContext: DocumentContext;
   humanSummary: string;
-} | null {
+} | null> {
   try {
     const parsed = JSON.parse(summaryJson);
 
@@ -145,8 +162,15 @@ function processFileContext(
 
     const bankStatement = parsed as ParsedBankStatement;
 
-    // Run enrichment
-    const enrichment = enrichTransactions(bankStatement.transactions);
+    // Run enrichment: use learning enricher if we have userId + categories
+    const enrichment =
+      userId && userCategories
+        ? await enrichTransactionsWithLearning(
+            bankStatement.transactions,
+            userCategories,
+            userId
+          )
+        : enrichTransactions(bankStatement.transactions, userCategories);
 
     // Build document context
     const documentContext: DocumentContext = {
@@ -169,28 +193,28 @@ function processFileContext(
 
     // Period
     if (stats.dateRange.from && stats.dateRange.to) {
-      parts.push(`Período: ${stats.dateRange.from} a ${stats.dateRange.to}`);
+      parts.push(`Period: ${stats.dateRange.from} to ${stats.dateRange.to}`);
     }
 
     // Counts
-    parts.push(`${stats.totalCount} transacciones en total`);
+    parts.push(`${stats.totalCount} transactions total`);
     parts.push(
-      `${stats.expenseCount} gastos (${formatAmount(stats.totalExpenseCents)})`
+      `${stats.expenseCount} expenses (${formatAmount(stats.totalExpenseCents)})`
     );
     parts.push(
-      `${stats.incomeCount} ingresos (${formatAmount(stats.totalIncomeCents)})`
+      `${stats.incomeCount} income (${formatAmount(stats.totalIncomeCents)})`
     );
 
     if (stats.transferCount > 0) {
-      parts.push(`${stats.transferCount} transferencias detectadas`);
+      parts.push(`${stats.transferCount} transfers detected`);
     }
 
     if (stats.uncategorizedCount > 0) {
-      parts.push(`${stats.uncategorizedCount} sin categoría`);
+      parts.push(`${stats.uncategorizedCount} uncategorized`);
     }
 
     if (stats.microFeeCount > 0) {
-      parts.push(`${stats.microFeeCount} micro-cargos (< $1)`);
+      parts.push(`${stats.microFeeCount} micro-charges (< $1)`);
     }
 
     // Add top expenses (sorted by amount descending)
@@ -200,11 +224,11 @@ function processFileContext(
 
     if (expenses.length > 0) {
       const topExpenses = expenses.slice(0, 10);
-      parts.push('\n\nMAYORES GASTOS:');
+      parts.push('\n\nLARGEST EXPENSES:');
       topExpenses.forEach((tx, i) => {
-        const category = tx.category.name || 'Sin categoría';
+        const category = tx.category.name || 'Uncategorized';
         parts.push(
-          `${i + 1}. ${tx.date || 'Sin fecha'} - ${tx.description} - ${formatAmountRaw(tx.amount)} (${category})`
+          `${i + 1}. ${tx.date || 'No date'} - ${tx.description} - ${formatAmountRaw(tx.amount)} (${category})`
         );
       });
     }
@@ -216,11 +240,11 @@ function processFileContext(
 
     if (income.length > 0) {
       const topIncome = income.slice(0, 5);
-      parts.push('\n\nMAYORES INGRESOS:');
+      parts.push('\n\nLARGEST INCOME:');
       topIncome.forEach((tx, i) => {
-        const category = tx.category.name || 'Sin categoría';
+        const category = tx.category.name || 'Uncategorized';
         parts.push(
-          `${i + 1}. ${tx.date || 'Sin fecha'} - ${tx.description} - ${formatAmountRaw(tx.amount)} (${category})`
+          `${i + 1}. ${tx.date || 'No date'} - ${tx.description} - ${formatAmountRaw(tx.amount)} (${category})`
         );
       });
     }
@@ -229,7 +253,7 @@ function processFileContext(
     const categoryTotals = new Map<string, number>();
     for (const tx of transactions) {
       if (!tx.isCredit && !tx.isTransfer) {
-        const catName = tx.category.name || 'Sin categoría';
+        const catName = tx.category.name || 'Uncategorized';
         categoryTotals.set(
           catName,
           (categoryTotals.get(catName) || 0) + Math.abs(tx.amount)
@@ -242,7 +266,7 @@ function processFileContext(
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8);
 
-      parts.push('\n\nGASTOS POR CATEGORÍA:');
+      parts.push('\n\nSPENDING BY CATEGORY:');
       sortedCategories.forEach(([cat, total]) => {
         parts.push(`- ${cat}: ${formatAmountRaw(total)}`);
       });
@@ -297,7 +321,7 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Get session
-    const session = await db
+    const [session] = await db
       .select()
       .from(advisorSessions)
       .where(
@@ -305,8 +329,7 @@ export async function POST(request: NextRequest) {
           eq(advisorSessions.id, sessionId),
           eq(advisorSessions.userId, user.id)
         )
-      )
-      .get();
+      );
 
     if (!session) {
       return errorJson('NOT_FOUND', 'Session not found', 404);
@@ -322,9 +345,22 @@ export async function POST(request: NextRequest) {
     let fileProcessingResult: ReturnType<typeof processFileContext> = null;
 
     if (fileContext) {
-      fileProcessingResult = processFileContext(
+      // Fetch user categories for auto-assignment
+      const userCategories = await db
+        .select({
+          id: categoriesTable.id,
+          name: categoriesTable.name,
+          parentId: categoriesTable.parentId,
+          emoji: categoriesTable.emoji,
+        })
+        .from(categoriesTable)
+        .where(eq(categoriesTable.userId, auth.user.id));
+
+      fileProcessingResult = await processFileContext(
         fileContext.fileId,
-        fileContext.summary
+        fileContext.summary,
+        userCategories,
+        auth.user.id
       );
       if (fileProcessingResult) {
         documentContext = fileProcessingResult.documentContext;
@@ -336,16 +372,16 @@ export async function POST(request: NextRequest) {
     if (fileContext) {
       if (fileProcessingResult) {
         // Use clean human-readable summary instead of raw JSON
-        userMessageContent = `[DOCUMENTO SUBIDO]
-Resumen del archivo: ${fileProcessingResult.humanSummary}
+        userMessageContent = `[UPLOADED DOCUMENT]
+File summary: ${fileProcessingResult.humanSummary}
 
-Mensaje del usuario: ${message || 'Subí este archivo.'}`;
+User message: ${message || 'I uploaded this file.'}`;
       } else {
         // Fallback to raw summary if processing failed
-        userMessageContent = `[DOCUMENTO SUBIDO]
-Resumen del archivo: ${fileContext.summary}
+        userMessageContent = `[UPLOADED DOCUMENT]
+File summary: ${fileContext.summary}
 
-Mensaje del usuario: ${message || 'Subí este archivo.'}`;
+User message: ${message || 'I uploaded this file.'}`;
       }
     }
 

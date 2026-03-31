@@ -33,10 +33,10 @@ interface Invite {
 }
 
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
-  owner: { label: 'Propietario', color: 'bg-purple-500/20 text-purple-400' },
-  admin: { label: 'Administrador', color: 'bg-cyan-500/20 text-cyan-400' },
-  member: { label: 'Miembro', color: 'bg-green-500/20 text-green-400' },
-  viewer: { label: 'Solo lectura', color: 'bg-gray-500/20 text-gray-400' },
+  owner: { label: 'Owner', color: 'bg-purple-500/20 text-purple-400' },
+  admin: { label: 'Admin', color: 'bg-cyan-500/20 text-cyan-400' },
+  member: { label: 'Member', color: 'bg-green-500/20 text-green-400' },
+  viewer: { label: 'Viewer', color: 'bg-gray-500/20 text-gray-400' },
 };
 
 export default function FamiliaPage(): React.ReactElement {
@@ -72,7 +72,7 @@ export default function FamiliaPage(): React.ReactElement {
       }
     } catch (err) {
       console.error('Failed to load households:', err);
-      setError('No se pudieron cargar los hogares');
+      setError('Failed to load households');
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export default function FamiliaPage(): React.ReactElement {
       setSelectedHousehold(data.household);
     } catch (err) {
       console.error('Failed to create household:', err);
-      setError('Error al crear el hogar');
+      setError('Failed to create household');
     } finally {
       setIsSubmitting(false);
     }
@@ -157,7 +157,7 @@ export default function FamiliaPage(): React.ReactElement {
       setGeneratedInvite(data.invite);
     } catch (err) {
       console.error('Failed to generate invite:', err);
-      setError('Error al generar la invitación');
+      setError('Failed to generate invite');
     } finally {
       setIsSubmitting(false);
     }
@@ -178,7 +178,7 @@ export default function FamiliaPage(): React.ReactElement {
 
   // Format date
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('es-ES', {
+    return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -204,10 +204,10 @@ export default function FamiliaPage(): React.ReactElement {
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
                 <span className="text-4xl">👨‍👩‍👧‍👦</span>
-                Mi Familia
+                My Family
               </h1>
               <p className="text-gray-400 mt-2">
-                Comparte tus finanzas con tu familia
+                Share your finances with your family
               </p>
             </div>
             <button
@@ -227,7 +227,7 @@ export default function FamiliaPage(): React.ReactElement {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Crear Hogar
+              Create Household
             </button>
           </div>
 
@@ -241,16 +241,16 @@ export default function FamiliaPage(): React.ReactElement {
             <div className="bg-gray-900 rounded-2xl p-12 text-center border border-gray-800">
               <div className="text-6xl mb-4">🏠</div>
               <h2 className="text-xl font-semibold text-white mb-2">
-                No tienes un hogar todavía
+                You don't have a household yet
               </h2>
               <p className="text-gray-400 mb-6">
-                Crea un hogar para invitar a tu familia a compartir las finanzas
+                Create a household to invite your family to share finances
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium"
               >
-                Crear Mi Primer Hogar
+                Create My First Household
               </button>
             </div>
           ) : (
@@ -291,7 +291,7 @@ export default function FamiliaPage(): React.ReactElement {
                             {ROLE_LABELS[selectedHousehold.role]?.label}
                           </span>
                           <span className="text-gray-500 text-sm">
-                            {members.length} miembro
+                            {members.length} member
                             {members.length !== 1 ? 's' : ''}
                           </span>
                         </div>
@@ -379,7 +379,7 @@ export default function FamiliaPage(): React.ReactElement {
               <div className="bg-gray-900 rounded-2xl max-w-md w-full">
                 <div className="p-6 border-b border-gray-800">
                   <h2 className="text-xl font-semibold text-white">
-                    Crear Nuevo Hogar
+                    Create New Household
                   </h2>
                 </div>
                 <form
@@ -388,13 +388,13 @@ export default function FamiliaPage(): React.ReactElement {
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Nombre del Hogar
+                      Household Name
                     </label>
                     <input
                       type="text"
                       value={newHouseholdName}
                       onChange={(e) => setNewHouseholdName(e.target.value)}
-                      placeholder="Ej: Familia García"
+                      placeholder="E.g.: The Smith Family"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       required
                     />
@@ -405,14 +405,14 @@ export default function FamiliaPage(): React.ReactElement {
                       onClick={() => setShowCreateModal(false)}
                       className="flex-1 py-3 bg-gray-800 text-gray-300 rounded-xl font-medium hover:bg-gray-700"
                     >
-                      Cancelar
+                      Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isSubmitting || !newHouseholdName.trim()}
                       className="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium disabled:opacity-50"
                     >
-                      {isSubmitting ? 'Creando...' : 'Crear Hogar'}
+                      {isSubmitting ? 'Creating...' : 'Create Household'}
                     </button>
                   </div>
                 </form>
@@ -426,7 +426,7 @@ export default function FamiliaPage(): React.ReactElement {
               <div className="bg-gray-900 rounded-2xl max-w-md w-full">
                 <div className="p-6 border-b border-gray-800">
                   <h2 className="text-xl font-semibold text-white">
-                    Invitar a {selectedHousehold?.name}
+                    Invite to {selectedHousehold?.name}
                   </h2>
                 </div>
 
@@ -437,7 +437,7 @@ export default function FamiliaPage(): React.ReactElement {
                   >
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Correo electrónico (opcional)
+                        Email (optional)
                       </label>
                       <input
                         type="email"
@@ -447,7 +447,7 @@ export default function FamiliaPage(): React.ReactElement {
                         className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                       <p className="mt-1 text-xs text-gray-500">
-                        Si lo dejas vacío, cualquiera con el enlace puede unirse
+                        If you leave it empty, anyone with the link can join
                       </p>
                     </div>
 
@@ -476,14 +476,14 @@ export default function FamiliaPage(): React.ReactElement {
                         onClick={() => setShowInviteModal(false)}
                         className="flex-1 py-3 bg-gray-800 text-gray-300 rounded-xl font-medium hover:bg-gray-700"
                       >
-                        Cancelar
+                        Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isSubmitting}
                         className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-medium disabled:opacity-50"
                       >
-                        {isSubmitting ? 'Generando...' : 'Generar Enlace'}
+                        {isSubmitting ? 'Generating...' : 'Generate Link'}
                       </button>
                     </div>
                   </form>
@@ -491,7 +491,7 @@ export default function FamiliaPage(): React.ReactElement {
                   <div className="p-6 space-y-4">
                     <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                       <p className="text-green-400 text-sm mb-2">
-                        ¡Enlace de invitación creado!
+                        Invite link created!
                       </p>
                       <div className="flex gap-2">
                         <input
@@ -508,13 +508,13 @@ export default function FamiliaPage(): React.ReactElement {
                               : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           }`}
                         >
-                          {copySuccess ? '¡Copiado!' : 'Copiar'}
+                          {copySuccess ? 'Copied!' : 'Copy'}
                         </button>
                       </div>
                     </div>
 
                     <p className="text-sm text-gray-400">
-                      Este enlace expira el{' '}
+                      This link expires on{' '}
                       {formatDate(generatedInvite.expiresAt)}
                     </p>
 
@@ -526,7 +526,7 @@ export default function FamiliaPage(): React.ReactElement {
                       }}
                       className="w-full py-3 bg-gray-800 text-gray-300 rounded-xl font-medium hover:bg-gray-700"
                     >
-                      Cerrar
+                      Close
                     </button>
                   </div>
                 )}

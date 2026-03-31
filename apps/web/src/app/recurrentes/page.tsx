@@ -45,36 +45,36 @@ interface DebtSummary {
 // ============================================================================
 
 const BILL_TYPES = [
-  { value: 'mortgage', label: 'Hipoteca', emoji: '🏠' },
-  { value: 'rent', label: 'Alquiler', emoji: '🏢' },
+  { value: 'mortgage', label: 'Mortgage', emoji: '🏠' },
+  { value: 'rent', label: 'Rent', emoji: '🏢' },
   { value: 'auto_loan', label: 'Auto', emoji: '🚗' },
-  { value: 'credit_card', label: 'Tarjeta de Crédito', emoji: '💳' },
-  { value: 'personal_loan', label: 'Préstamo Personal', emoji: '💰' },
-  { value: 'student_loan', label: 'Préstamo Estudiantil', emoji: '🎓' },
-  { value: 'utility', label: 'Servicios', emoji: '💡' },
-  { value: 'insurance', label: 'Seguro', emoji: '🛡️' },
-  { value: 'subscription', label: 'Suscripción', emoji: '📺' },
-  { value: 'other', label: 'Otro', emoji: '📝' },
+  { value: 'credit_card', label: 'Credit Card', emoji: '💳' },
+  { value: 'personal_loan', label: 'Personal Loan', emoji: '💰' },
+  { value: 'student_loan', label: 'Student Loan', emoji: '🎓' },
+  { value: 'utility', label: 'Utilities', emoji: '💡' },
+  { value: 'insurance', label: 'Insurance', emoji: '🛡️' },
+  { value: 'subscription', label: 'Subscription', emoji: '📺' },
+  { value: 'other', label: 'Other', emoji: '📝' },
 ];
 
 const INCOME_SOURCES = [
-  { value: 'salary', label: 'Salario', emoji: '💼' },
+  { value: 'salary', label: 'Salary', emoji: '💼' },
   { value: 'freelance', label: 'Freelance', emoji: '💻' },
-  { value: 'business', label: 'Negocio', emoji: '🏪' },
-  { value: 'investment', label: 'Inversiones', emoji: '📈' },
-  { value: 'rental', label: 'Alquiler', emoji: '🏠' },
-  { value: 'side_hustle', label: 'Trabajo Extra', emoji: '🌙' },
-  { value: 'bonus', label: 'Bono', emoji: '🎁' },
-  { value: 'other', label: 'Otro', emoji: '💵' },
+  { value: 'business', label: 'Business', emoji: '🏪' },
+  { value: 'investment', label: 'Investments', emoji: '📈' },
+  { value: 'rental', label: 'Rent', emoji: '🏠' },
+  { value: 'side_hustle', label: 'Side Hustle', emoji: '🌙' },
+  { value: 'bonus', label: 'Bonus', emoji: '🎁' },
+  { value: 'other', label: 'Other', emoji: '💵' },
 ];
 
 const FREQUENCIES = [
-  { value: 'weekly', label: 'Semanal' },
-  { value: 'biweekly', label: 'Cada 2 semanas' },
-  { value: 'semimonthly', label: 'Quincenal' },
-  { value: 'monthly', label: 'Mensual' },
-  { value: 'quarterly', label: 'Trimestral' },
-  { value: 'annually', label: 'Anual' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Biweekly' },
+  { value: 'semimonthly', label: 'Semi-monthly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'annually', label: 'Annual' },
 ];
 
 // ============================================================================
@@ -328,9 +328,9 @@ export default function RecurrentesPage(): React.ReactElement {
   }
 
   function formatCurrency(cents: number): string {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'MXN',
+      currency: 'USD',
     }).format(cents / 100);
   }
 
@@ -372,10 +372,10 @@ export default function RecurrentesPage(): React.ReactElement {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             <span className="mr-2">🔄</span>
-            Transacciones Recurrentes
+            Recurring Transactions
           </h1>
           <p className="text-gray-400">
-            Gestiona tus pagos e ingresos fijos para un mejor control financiero
+            Manage your fixed payments and income for better financial control
           </p>
         </div>
 
@@ -383,32 +383,33 @@ export default function RecurrentesPage(): React.ReactElement {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-xl p-6 border border-red-500/30">
             <div className="text-red-400 text-sm font-medium mb-1">
-              Gastos Fijos Mensuales
+              Monthly Fixed Expenses
             </div>
             <div className="text-2xl font-bold text-white">
               {formatCurrency(totalMonthlyBills)}
             </div>
             <div className="text-gray-400 text-sm mt-1">
-              {bills.filter((b) => b.status === 'active').length} pagos activos
+              {bills.filter((b) => b.status === 'active').length} active
+              payments
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-xl p-6 border border-green-500/30">
             <div className="text-green-400 text-sm font-medium mb-1">
-              Ingresos Fijos Mensuales
+              Monthly Fixed Income
             </div>
             <div className="text-2xl font-bold text-white">
               {formatCurrency(totalMonthlyIncome)}
             </div>
             <div className="text-gray-400 text-sm mt-1">
-              {incomes.filter((i) => i.status === 'active').length} ingresos
-              activos
+              {incomes.filter((i) => i.status === 'active').length} active
+              income
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-cyan-500/20 to-purple-500/10 rounded-xl p-6 border border-cyan-500/30">
             <div className="text-cyan-400 text-sm font-medium mb-1">
-              Balance Neto Mensual
+              Monthly Net Balance
             </div>
             <div
               className={`text-2xl font-bold ${totalMonthlyIncome - totalMonthlyBills >= 0 ? 'text-green-400' : 'text-red-400'}`}
@@ -416,7 +417,7 @@ export default function RecurrentesPage(): React.ReactElement {
               {formatCurrency(totalMonthlyIncome - totalMonthlyBills)}
             </div>
             <div className="text-gray-400 text-sm mt-1">
-              Ingresos - Gastos fijos
+              Income - Fixed expenses
             </div>
           </div>
         </div>
@@ -425,7 +426,7 @@ export default function RecurrentesPage(): React.ReactElement {
         {totalMonthlyIncome > 0 && (
           <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl p-6 border border-purple-500/20 mb-8">
             <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span>💡</span> Ideas para tu Balance Mensual
+              <span>💡</span> Ideas for Your Monthly Balance
             </h2>
 
             {(() => {
@@ -456,11 +457,11 @@ export default function RecurrentesPage(): React.ReactElement {
                 return (
                   <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
                     <p className="text-red-400 font-medium mb-2">
-                      Tu balance neto es negativo o cero
+                      Your net balance is negative or zero
                     </p>
                     <p className="text-gray-300 text-sm">
-                      Considera reducir gastos o buscar fuentes adicionales de
-                      ingreso antes de pensar en inversiones o ahorro.
+                      Consider reducing expenses or finding additional sources
+                      of income before thinking about investments or savings.
                     </p>
                   </div>
                 );
@@ -472,22 +473,22 @@ export default function RecurrentesPage(): React.ReactElement {
                   {hasDebt && (
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                       <h3 className="text-amber-400 font-medium mb-2 flex items-center gap-2">
-                        <span>💳</span> Estrategia de Deudas
+                        <span>💳</span> Debt Strategy
                       </h3>
                       <div className="text-gray-300 text-sm space-y-2">
                         <p>
-                          Tienes{' '}
+                          You have{' '}
                           <span className="text-white font-medium">
-                            {debtSummary.count} deuda(s)
+                            {debtSummary.count} debt(s)
                           </span>{' '}
-                          con un total de{' '}
+                          with a total of{' '}
                           <span className="text-red-400 font-medium">
                             {formatCurrency(totalDebt * 100)}
                           </span>
                         </p>
                         {minPayment > 0 && (
                           <p>
-                            Pago minimo mensual:{' '}
+                            Monthly minimum payment:{' '}
                             <span className="text-amber-400 font-medium">
                               {formatCurrency(minPayment * 100)}
                             </span>
@@ -495,27 +496,28 @@ export default function RecurrentesPage(): React.ReactElement {
                         )}
                         <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
                           <p className="text-cyan-400 font-medium mb-1">
-                            Escenario de pago acelerado:
+                            Accelerated payment scenario:
                           </p>
                           <p>
-                            Si destinas{' '}
+                            If you allocate{' '}
                             <span className="text-green-400 font-medium">
                               {formatCurrency(allocatedDebt * 100)}
                             </span>{' '}
-                            (30% de tu balance) extra a tus deudas cada mes:
+                            (30% of your balance) extra to your debts each
+                            month:
                           </p>
                           <ul className="list-disc list-inside mt-2 space-y-1 text-gray-400">
                             <li>
-                              Pagaras tu deuda en aproximadamente{' '}
+                              You'll pay off your debt in approximately{' '}
                               <span className="text-white">
                                 {Math.ceil(
                                   totalDebt / (allocatedDebt + minPayment)
                                 )}{' '}
-                                meses
+                                months
                               </span>
                             </li>
                             <li>
-                              Ahorraras intereses significativos a largo plazo
+                              You'll save significant interest in the long run
                             </li>
                           </ul>
                         </div>
@@ -526,17 +528,17 @@ export default function RecurrentesPage(): React.ReactElement {
                   {/* Emergency Fund */}
                   <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
                     <h3 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-                      <span>🛡️</span> Fondo de Emergencia
+                      <span>🛡️</span> Emergency Fund
                     </h3>
                     <div className="text-gray-300 text-sm space-y-2">
                       <p>
-                        Basado en tus gastos fijos mensuales, tu fondo de
-                        emergencia deberia ser:
+                        Based on your monthly fixed expenses, your emergency
+                        fund should be:
                       </p>
                       <div className="grid grid-cols-2 gap-3 mt-2">
                         <div className="p-3 bg-gray-900/50 rounded-lg">
                           <p className="text-xs text-gray-400">
-                            Minimo (3 meses)
+                            Minimum (3 months)
                           </p>
                           <p className="text-lg font-bold text-blue-400">
                             {formatCurrency(emergencyFund3Months * 100)}
@@ -544,7 +546,7 @@ export default function RecurrentesPage(): React.ReactElement {
                         </div>
                         <div className="p-3 bg-gray-900/50 rounded-lg">
                           <p className="text-xs text-gray-400">
-                            Ideal (6 meses)
+                            Ideal (6 months)
                           </p>
                           <p className="text-lg font-bold text-cyan-400">
                             {formatCurrency(emergencyFund6Months * 100)}
@@ -552,29 +554,29 @@ export default function RecurrentesPage(): React.ReactElement {
                         </div>
                       </div>
                       <p className="mt-2">
-                        Ahorrando{' '}
+                        Saving{' '}
                         <span className="text-green-400 font-medium">
                           {formatCurrency(allocatedEmergency * 100)}
                         </span>{' '}
-                        (20% de tu balance) mensualmente:
+                        (20% of your balance) monthly:
                       </p>
                       <ul className="list-disc list-inside text-gray-400">
                         <li>
-                          Alcanzas el minimo en{' '}
+                          You'll reach the minimum in{' '}
                           <span className="text-white">
                             {Math.ceil(
                               emergencyFund3Months / allocatedEmergency
                             )}{' '}
-                            meses
+                            months
                           </span>
                         </li>
                         <li>
-                          Alcanzas el ideal en{' '}
+                          You'll reach the ideal in{' '}
                           <span className="text-white">
                             {Math.ceil(
                               emergencyFund6Months / allocatedEmergency
                             )}{' '}
-                            meses
+                            months
                           </span>
                         </li>
                       </ul>
@@ -584,7 +586,7 @@ export default function RecurrentesPage(): React.ReactElement {
                   {/* Investment Ideas */}
                   <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                     <h3 className="text-green-400 font-medium mb-2 flex items-center gap-2">
-                      <span>📈</span> Ideas de Inversion
+                      <span>📈</span> Investment Ideas
                     </h3>
                     <div className="text-gray-300 text-sm space-y-2">
                       <p>
@@ -592,18 +594,17 @@ export default function RecurrentesPage(): React.ReactElement {
                         <span className="text-green-400 font-medium">
                           {formatCurrency(allocatedInvest * 100)}
                         </span>{' '}
-                        ({investPercent}% de tu balance) puedes considerar:
+                        ({investPercent}% of your balance) you can consider:
                       </p>
                       <div className="mt-3 space-y-2">
                         <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
                           <span className="text-xl">🏦</span>
                           <div>
                             <p className="text-white font-medium">
-                              CETES / Bonos
+                              Treasury Bills / Bonds
                             </p>
                             <p className="text-xs text-gray-400">
-                              Bajo riesgo, rendimiento fijo, ideal para
-                              principiantes
+                              Low risk, fixed return, ideal for beginners
                             </p>
                           </div>
                         </div>
@@ -611,11 +612,11 @@ export default function RecurrentesPage(): React.ReactElement {
                           <span className="text-xl">📊</span>
                           <div>
                             <p className="text-white font-medium">
-                              Fondos Indexados (ETFs)
+                              Index Funds (ETFs)
                             </p>
                             <p className="text-xs text-gray-400">
-                              Diversificacion automatica, riesgo moderado,
-                              crecimiento a largo plazo
+                              Automatic diversification, moderate risk,
+                              long-term growth
                             </p>
                           </div>
                         </div>
@@ -623,18 +624,18 @@ export default function RecurrentesPage(): React.ReactElement {
                           <span className="text-xl">🌎</span>
                           <div>
                             <p className="text-white font-medium">
-                              Bolsa de Valores
+                              Stock Market
                             </p>
                             <p className="text-xs text-gray-400">
-                              Mayor riesgo, mayor potencial de retorno, requiere
-                              educacion financiera
+                              Higher risk, higher return potential, requires
+                              financial education
                             </p>
                           </div>
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-3 italic">
-                        * Estas son ideas generales. Consulta con un asesor
-                        financiero antes de invertir.
+                        * These are general ideas. Consult a financial advisor
+                        before investing.
                       </p>
                     </div>
                   </div>
@@ -642,10 +643,10 @@ export default function RecurrentesPage(): React.ReactElement {
                   {/* Suggested Allocation */}
                   <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
                     <h3 className="text-purple-400 font-medium mb-2 flex items-center gap-2">
-                      <span>🎯</span> Distribucion Sugerida de tu Balance
+                      <span>🎯</span> Suggested Distribution of Your Balance
                     </h3>
                     <p className="text-gray-400 text-sm mb-3">
-                      Balance disponible:{' '}
+                      Available balance:{' '}
                       <span className="text-white font-bold">
                         {formatCurrency(netBalance * 100)}
                       </span>
@@ -654,7 +655,7 @@ export default function RecurrentesPage(): React.ReactElement {
                       {hasDebt && (
                         <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
                           <span className="text-gray-300">
-                            Pago extra deudas (30%)
+                            Extra debt payments (30%)
                           </span>
                           <span className="text-amber-400 font-medium">
                             {formatCurrency(allocatedDebt * 100)}
@@ -663,7 +664,7 @@ export default function RecurrentesPage(): React.ReactElement {
                       )}
                       <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
                         <span className="text-gray-300">
-                          Fondo emergencia (20%)
+                          Emergency fund (20%)
                         </span>
                         <span className="text-blue-400 font-medium">
                           {formatCurrency(allocatedEmergency * 100)}
@@ -671,7 +672,7 @@ export default function RecurrentesPage(): React.ReactElement {
                       </div>
                       <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
                         <span className="text-gray-300">
-                          Ahorro general ({savingsPercent}%)
+                          General savings ({savingsPercent}%)
                         </span>
                         <span className="text-cyan-400 font-medium">
                           {formatCurrency(allocatedSavings * 100)}
@@ -679,14 +680,14 @@ export default function RecurrentesPage(): React.ReactElement {
                       </div>
                       <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
                         <span className="text-gray-300">
-                          Inversiones ({investPercent}%)
+                          Investments ({investPercent}%)
                         </span>
                         <span className="text-green-400 font-medium">
                           {formatCurrency(allocatedInvest * 100)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-2 bg-gray-800/50 rounded border-t border-gray-700 mt-2">
-                        <span className="text-gray-300">Libre disposicion</span>
+                        <span className="text-gray-300">Discretionary</span>
                         <span className="text-gray-400 font-medium">
                           {formatCurrency(
                             (netBalance -
@@ -717,7 +718,7 @@ export default function RecurrentesPage(): React.ReactElement {
                   : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              💸 Gastos ({bills.length})
+              💸 Expenses ({bills.length})
             </button>
             <button
               onClick={() => setActiveTab('income')}
@@ -727,7 +728,7 @@ export default function RecurrentesPage(): React.ReactElement {
                   : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >
-              💰 Ingresos ({incomes.length})
+              💰 Income ({incomes.length})
             </button>
           </div>
 
@@ -738,7 +739,7 @@ export default function RecurrentesPage(): React.ReactElement {
             }}
             className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
           >
-            + Agregar {activeTab === 'bills' ? 'Gasto' : 'Ingreso'}
+            + Add {activeTab === 'bills' ? 'Expense' : 'Income'}
           </button>
         </div>
 
@@ -749,10 +750,10 @@ export default function RecurrentesPage(): React.ReactElement {
               <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-white">
-                    {editingItem ? 'Editar' : 'Agregar'}{' '}
+                    {editingItem ? 'Edit' : 'Add'}{' '}
                     {activeTab === 'bills'
-                      ? 'Gasto Recurrente'
-                      : 'Ingreso Recurrente'}
+                      ? 'Recurring Expense'
+                      : 'Recurring Income'}
                   </h2>
                   <button
                     onClick={resetForm}
@@ -786,7 +787,7 @@ export default function RecurrentesPage(): React.ReactElement {
                         onChange={(e) =>
                           setBillForm({ ...billForm, name: e.target.value })
                         }
-                        placeholder="Ej: Netflix, Luz, Renta"
+                        placeholder="E.g.: Netflix, Utilities, Rent"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                       />
                     </div>
@@ -829,7 +830,7 @@ export default function RecurrentesPage(): React.ReactElement {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm text-gray-400 mb-1">
-                          Dia de pago
+                          Pay day
                         </label>
                         <select
                           value={billForm.dueDay}
@@ -885,20 +886,20 @@ export default function RecurrentesPage(): React.ReactElement {
                         className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
                       />
                       <label htmlFor="autoPay" className="text-gray-300">
-                        Pago automatico
+                        Auto-pay
                       </label>
                     </div>
 
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">
-                        Notas (opcional)
+                        Notes (optional)
                       </label>
                       <textarea
                         value={billForm.notes}
                         onChange={(e) =>
                           setBillForm({ ...billForm, notes: e.target.value })
                         }
-                        placeholder="Notas adicionales..."
+                        placeholder="Additional notes..."
                         rows={2}
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 resize-none"
                       />
@@ -909,7 +910,7 @@ export default function RecurrentesPage(): React.ReactElement {
                       disabled={!billForm.name || !billForm.amount}
                       className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {editingItem ? 'Guardar Cambios' : 'Agregar Gasto'}
+                      {editingItem ? 'Save Changes' : 'Add Expense'}
                     </button>
                   </div>
                 ) : (
@@ -924,7 +925,7 @@ export default function RecurrentesPage(): React.ReactElement {
                         onChange={(e) =>
                           setIncomeForm({ ...incomeForm, name: e.target.value })
                         }
-                        placeholder="Ej: Salario, Freelance"
+                        placeholder="E.g.: Salary, Freelance"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                       />
                     </div>
@@ -973,7 +974,7 @@ export default function RecurrentesPage(): React.ReactElement {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm text-gray-400 mb-1">
-                          Dia de pago
+                          Pay day
                         </label>
                         <select
                           value={incomeForm.payDay}
@@ -1039,13 +1040,13 @@ export default function RecurrentesPage(): React.ReactElement {
                         className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
                       />
                       <label htmlFor="isVariable" className="text-gray-300">
-                        Monto variable (aproximado)
+                        Variable amount (aproximado)
                       </label>
                     </div>
 
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">
-                        Notas (opcional)
+                        Notes (optional)
                       </label>
                       <textarea
                         value={incomeForm.notes}
@@ -1055,7 +1056,7 @@ export default function RecurrentesPage(): React.ReactElement {
                             notes: e.target.value,
                           })
                         }
-                        placeholder="Notas adicionales..."
+                        placeholder="Additional notes..."
                         rows={2}
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 resize-none"
                       />
@@ -1066,7 +1067,7 @@ export default function RecurrentesPage(): React.ReactElement {
                       disabled={!incomeForm.name || !incomeForm.amount}
                       className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {editingItem ? 'Guardar Cambios' : 'Agregar Ingreso'}
+                      {editingItem ? 'Save Changes' : 'Add Income'}
                     </button>
                   </div>
                 )}
@@ -1086,9 +1087,9 @@ export default function RecurrentesPage(): React.ReactElement {
               bills.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
                   <div className="text-4xl mb-4">💸</div>
-                  <p>No tienes gastos recurrentes registrados</p>
+                  <p>You don't have any recurring expenses</p>
                   <p className="text-sm mt-1">
-                    Agrega tus pagos fijos para un mejor control
+                    Add your fixed payments for better control
                   </p>
                 </div>
               ) : (
@@ -1177,9 +1178,9 @@ export default function RecurrentesPage(): React.ReactElement {
             ) : incomes.length === 0 ? (
               <div className="text-center py-12 text-gray-400">
                 <div className="text-4xl mb-4">💰</div>
-                <p>No tienes ingresos recurrentes registrados</p>
+                <p>You don't have any recurring income</p>
                 <p className="text-sm mt-1">
-                  Agrega tu salario y otras fuentes de ingreso
+                  Add your salary and other income sources
                 </p>
               </div>
             ) : (
@@ -1275,12 +1276,12 @@ export default function RecurrentesPage(): React.ReactElement {
           onConfirm={handleDelete}
           title={
             deleteConfirm?.type === 'bill'
-              ? 'Eliminar Gasto Recurrente'
-              : 'Eliminar Ingreso Recurrente'
+              ? 'Delete Recurring Expense'
+              : 'Delete Recurring Income'
           }
-          message={`¿Estás seguro de eliminar "${deleteConfirm?.item.name}"? Esta acción no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          message={`Are you sure you want to delete "${deleteConfirm?.item.name}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
           variant="danger"
           isLoading={isDeleting}
         />

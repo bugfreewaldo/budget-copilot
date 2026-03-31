@@ -98,7 +98,7 @@ export function CreateCategoryModal({
             id="create-category-title"
             className="text-xl font-semibold text-white mb-4 flex items-center gap-2"
           >
-            <span>➕</span> Crear Categoría
+            <span>➕</span> Create Category
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -107,7 +107,7 @@ export function CreateCategoryModal({
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Nombre <span className="text-red-400">*</span>
+                Name <span className="text-red-400">*</span>
               </label>
               <input
                 ref={nameInputRef}
@@ -118,7 +118,7 @@ export function CreateCategoryModal({
                 maxLength={64}
                 disabled={loading}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
-                placeholder="ej., Supermercado"
+                placeholder="e.g., Groceries"
               />
             </div>
 
@@ -127,7 +127,7 @@ export function CreateCategoryModal({
                 htmlFor="parent"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Categoría Padre (Opcional)
+                Parent Category (Optional)
               </label>
               <select
                 id="parent"
@@ -136,7 +136,7 @@ export function CreateCategoryModal({
                 disabled={loading}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
               >
-                <option value="">Ninguna</option>
+                <option value="">None</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -152,14 +152,14 @@ export function CreateCategoryModal({
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || !name.trim()}
                 className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {loading ? 'Creando...' : '✓ Crear'}
+                {loading ? 'Creating...' : '✓ Create'}
               </button>
             </div>
           </form>

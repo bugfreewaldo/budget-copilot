@@ -27,6 +27,7 @@ const createTransactionSchema = z.object({
   accountId: idSchema,
   cleared: z.boolean().optional().default(false),
   notes: z.string().max(1000).optional().nullable(),
+  sensitive: z.boolean().optional().default(false),
 });
 
 /**
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
       accountId: data.accountId,
       cleared: data.cleared,
       notes: data.notes || null,
+      sensitive: data.sensitive,
       createdAt: now,
       updatedAt: now,
     });

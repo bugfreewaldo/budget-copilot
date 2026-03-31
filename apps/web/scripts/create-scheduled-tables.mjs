@@ -1,8 +1,8 @@
 /**
- * Create scheduled_bills and scheduled_income tables in libSQL
+ * Create scheduled_bills and scheduled_income tables in Neon PostgreSQL
  */
 
-import { createClient } from '@libsql/client';
+import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -11,19 +11,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../.env.local') });
 
 async function main() {
-  const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN;
+  const url = process.env.DATABASE_URL;
 
   if (!url) {
-    console.error('Missing LIBSQL_URL environment variable');
+    console.error('Missing DATABASE_URL environment variable');
     process.exit(1);
   }
 
-  console.log('🔄 Connecting to libSQL...');
-  const client = createClient({ url, authToken });
+  console.log('Connecting to Neon PostgreSQL...');
+  const sql = neon(url);
 
-  console.log('📝 Creating scheduled_bills table...');
-  await client.execute(`
+  console.log('Creating scheduled_bills table...');
+  await sql`
     CREATE TABLE IF NOT EXISTS scheduled_bills (
       id TEXT PRIMARY KEY NOT NULL,
       user_id TEXT NOT NULL,
@@ -43,14 +42,14 @@ async function main() {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     )
-  `);
+  `;
 
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_bill_user_idx ON scheduled_bills(user_id)`);
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_bill_due_idx ON scheduled_bills(due_day)`);
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_bill_status_idx ON scheduled_bills(status)`);
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_bill_user_idx ON scheduled_bills(user_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_bill_due_idx ON scheduled_bills(due_day)`;
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_bill_status_idx ON scheduled_bills(status)`;
 
-  console.log('📝 Creating scheduled_income table...');
-  await client.execute(`
+  console.log('Creating scheduled_income table...');
+  await sql`
     CREATE TABLE IF NOT EXISTS scheduled_income (
       id TEXT PRIMARY KEY NOT NULL,
       user_id TEXT NOT NULL,
@@ -68,22 +67,20 @@ async function main() {
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL
     )
-  `);
+  `;
 
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_income_user_idx ON scheduled_income(user_id)`);
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_income_payday_idx ON scheduled_income(pay_day)`);
-  await client.execute(`CREATE INDEX IF NOT EXISTS scheduled_income_status_idx ON scheduled_income(status)`);
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_income_user_idx ON scheduled_income(user_id)`;
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_income_payday_idx ON scheduled_income(pay_day)`;
+  await sql`CREATE INDEX IF NOT EXISTS scheduled_income_status_idx ON scheduled_income(status)`;
 
-  console.log('✅ Tables created successfully!');
+  console.log('Tables created successfully!');
 
-  // Verify
-  const bills = await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scheduled_bills'");
-  const income = await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='scheduled_income'");
-  console.log('📋 Verification:');
-  console.log('  - scheduled_bills:', bills.rows.length > 0 ? '✓' : '✗');
-  console.log('  - scheduled_income:', income.rows.length > 0 ? '✓' : '✗');
-
-  client.close();
+  // Verify using PostgreSQL information_schema
+  const bills = await sql`SELECT table_name FROM information_schema.tables WHERE table_name = 'scheduled_bills' AND table_schema = 'public'`;
+  const income = await sql`SELECT table_name FROM information_schema.tables WHERE table_name = 'scheduled_income' AND table_schema = 'public'`;
+  console.log('Verification:');
+  console.log('  - scheduled_bills:', bills.length > 0 ? 'exists' : 'missing');
+  console.log('  - scheduled_income:', income.length > 0 ? 'exists' : 'missing');
 }
 
 main().catch(console.error);

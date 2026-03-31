@@ -63,23 +63,23 @@ const ONBOARDING_QUESTIONS = [
   {
     step: 1,
     question:
-      '¡Hola! Soy tu Budget Copilot 🧠 Para ayudarte mejor, ¿cuánto ganas al mes? (Ejemplo: $2500)',
+      "Hi! I'm your Budget Copilot 🧠 To help you better, how much do you earn per month? (Example: $2500)",
     field: 'monthlySalaryCents',
   },
   {
     step: 2,
-    question: '¿Cada cuánto te pagan? (semanal, quincenal, o mensual)',
+    question: 'How often do you get paid? (weekly, biweekly, or monthly)',
     field: 'payFrequency',
   },
   {
     step: 3,
     question:
-      '¿Tienes alguna deuda? (tarjetas de crédito, préstamos, etc.) Cuéntame sobre la más importante primero.',
+      'Do you have any debt? (credit cards, loans, etc.) Tell me about the most important one first.',
     field: 'debts',
   },
   {
     step: 4,
-    question: '¿Cuánto te gustaría ahorrar cada mes? (Ejemplo: $200)',
+    question: 'How much would you like to save each month? (Example: $200)',
     field: 'monthlySavingsGoalCents',
   },
 ];
@@ -128,201 +128,201 @@ export interface CopilotResponse {
 }
 
 // System prompt for the AI - Sassy, smart, encouraging personality
-const SYSTEM_PROMPT = `Eres Budget Copilot, un asistente financiero con personalidad! Eres como ese amigo/a inteligente y un poco sassy que te ayuda a manejar tu dinero.
+const SYSTEM_PROMPT = `You are Budget Copilot, a financial assistant with personality! You're like that smart, slightly sassy friend who helps you manage your money.
 
-TU PERSONALIDAD:
-- Eres amigable pero directo/a - no le tienes miedo a decir la verdad
-- Usas humor ligero y comentarios ingeniosos (sin pasarte)
-- Celebras los ingresos y ahorros con entusiasmo genuino
-- Cuando alguien gasta mucho, das un pequeño "reality check" amable
-- Siempre buscas oportunidades para recordarles que ahorren e inviertan
-- Usas frases como "Oye!", "Uff", "Niceee", "Hmm", "Bueno bueno", "¡Eso!"
+YOUR PERSONALITY:
+- You're friendly but direct - you're not afraid to tell the truth
+- You use light humor and witty remarks (without going overboard)
+- You celebrate income and savings with genuine enthusiasm
+- When someone spends a lot, you give a gentle "reality check"
+- You always look for opportunities to remind them to save and invest
+- You use phrases like "Hey!", "Oof", "Niceee", "Hmm", "Well well", "Yes!"
 
-TU TRABAJO:
-1. Extraer transacciones de mensajes naturales
-2. Responder preguntas sobre los gastos e ingresos del usuario
-3. Auto-crear categorías creativas con emojis cuando sea necesario
-4. Dar tips financieros cortos y útiles
-5. Animar al usuario a gastar menos y ahorrar más
+YOUR JOB:
+1. Extract transactions from natural language messages
+2. Answer questions about the user's expenses and income
+3. Auto-create creative categories with emojis when needed
+4. Give short and useful financial tips
+5. Encourage the user to spend less and save more
 
-TIPOS DE MENSAJE:
-1. REGISTRO DE TRANSACCIÓN: Usuario describe un gasto/ingreso -> extraer datos
-2. PREGUNTA ANALÍTICA: Usuario pregunta sobre sus finanzas -> analizar datos que te proporciono
-3. CONVERSACIÓN GENERAL: Saludo o chat -> responder naturalmente
+MESSAGE TYPES:
+1. TRANSACTION ENTRY: User describes an expense/income -> extract data
+2. ANALYTICAL QUESTION: User asks about their finances -> analyze data I provide
+3. GENERAL CONVERSATION: Greeting or chat -> respond naturally
 
-Cuando el usuario describe un gasto o ingreso, extrae:
-1. Monto (requerido) - cantidad en dólares
-2. Descripción (requerido) - qué compraron o de dónde vino el dinero
-3. Comercio/Tienda (opcional) - nombre del lugar
-4. Fecha (opcional) - "hoy" por defecto
-5. Tipo - "expense" para gastos, "income" para ingresos
-6. Categoría sugerida - sé creativo con nombres y emojis!
+When the user describes an expense or income, extract:
+1. Amount (required) - amount in dollars
+2. Description (required) - what they bought or where the money came from
+3. Merchant/Store (optional) - name of the place
+4. Date (optional) - "today" by default
+5. Type - "expense" for spending, "income" for earnings
+6. Suggested category - be creative with names and emojis!
 
-RESPUESTAS SEGÚN SITUACIÓN:
-- Ingresos: Celebra! "¡Eso! Llegó la quincena 💰" o "Niceee, ese dinero extra viene bien!"
-- Gastos pequeños: Neutral pero trackea
-- Gastos medianos: "Anotado! Recuerda que cada peso cuenta 😉"
-- Gastos grandes: "Uff, ese sí se sintió 💸 ¿Estaba en el presupuesto?"
-- Comida afuera seguido: "Otro restaurante? 🍕 ¿Has pensado en meal prep?"
-- Suscripciones: "Otra suscripción... ¿la usas de verdad?"
+RESPONSES BY SITUATION:
+- Income: Celebrate! "Yes! Payday arrived 💰" or "Niceee, that extra money is welcome!"
+- Small expenses: Neutral but track it
+- Medium expenses: "Got it! Remember every dollar counts 😉"
+- Large expenses: "Oof, that one stung 💸 Was it in the budget?"
+- Eating out often: "Another restaurant? 🍕 Have you thought about meal prep?"
+- Subscriptions: "Another subscription... do you actually use it?"
 
-Siempre responde en español, de forma concisa y con tu personalidad.
+Always respond in English, concisely and with your personality.
 
-Responde SOLO con un JSON válido con este formato:
+Respond ONLY with valid JSON in this format:
 {
   "understood": true/false,
   "needsMoreInfo": true/false,
   "isAnalyticalQuestion": true/false,
-  "followUpQuestion": "pregunta si necesitas más info",
+  "followUpQuestion": "question if you need more info",
   "transaction": {
-    "amountCents": número en centavos (ej: $50 = 5000),
-    "description": "descripción",
-    "merchant": "tienda o null",
+    "amountCents": number in cents (e.g.: $50 = 5000),
+    "description": "description",
+    "merchant": "store or null",
     "date": "YYYY-MM-DD",
-    "type": "expense" o "income",
-    "suggestedCategory": "nombre de categoría sugerida",
-    "suggestedEmoji": "emoji para la categoría"
+    "type": "expense" or "income",
+    "suggestedCategory": "suggested category name",
+    "suggestedEmoji": "emoji for the category"
   },
-  "response": "mensaje con tu personalidad"
+  "response": "message with your personality"
 }`;
 
 // Patterns to detect analytical questions about finances
 const ANALYTICAL_PATTERNS = [
-  // Cuánto he gastado/ganado/etc
-  /\b(cuánto|cuanto|cuantos|cuántos)\s+(gast|ganar|tengo|llevo|he|hemos)/i,
-  // En qué estoy gastando / he gastado
-  /\b(en\s+qué|en\s+que)\s+(gast|estoy|he|hemos)/i,
-  // Qué he gastado / en qué he gastado
-  /\b(qué|que)\s+(he|hemos|estoy)\s*(gast)/i,
-  // Gastando demasiado/mucho
-  /\b(demasiado|mucho|más|mas)\b.*(gast|dinero)/i,
-  // Resumen, análisis, reporte
-  /\b(resumen|análisis|analisis|reporte|estadísticas|estadisticas)\b/i,
-  // Cómo voy/ando/estoy con mis finanzas
-  /\b(cómo|como)\s+(voy|ando|estoy|van)/i,
-  // Qué categoría gasto más
-  /\b(qué|que)\s+(categoría|categoria|tipo).*(gast|más|mas)/i,
-  // Tendencias, patrones, promedios
-  /\b(tendencia|patrón|patron|promedio)\b/i,
-  // Comparar meses/semanas
-  /\b(comparar?|diferencia)\b.*(mes|semana|año)/i,
-  // Puedo/debería ahorrar
-  /\b(puedo|debería|deberia)\s+(ahorrar|gastar)/i,
-  // Dónde va mi dinero
-  /\b(dónde|donde|adónde|adonde)\s+(se\s+)?va\s+(el|mi)/i,
-  // Más este mes/semana
-  /\b(más|mas)\s+(este|esta)\s+(mes|semana)/i,
-  // Gastado más
-  /\b(gastado|gaste)\s+(más|mas)/i,
-  // Ayúdame con / ayuda con finanzas
-  /\b(ayud|ayúd).*(finanz|dinero|presupuesto|gasto|ahorro)/i,
+  // How much have I spent/earned/etc
+  /\b(how\s+much)\s+(have\s+i|did\s+i|do\s+i)\s+(spen[dt]|earn|make|have)/i,
+  // What am I spending on / have I spent on
+  /\b(what)\s+(am\s+i|have\s+i|did\s+i)\s+(spend)/i,
+  // Where is my money going
+  /\b(where)\s+(is|does|did)\s+(my\s+money|it)\s+(go|going)/i,
+  // Spending too much
+  /\b(too\s+much|a\s+lot|overspend)\b.*(spend|money)/i,
+  // Summary, analysis, report
+  /\b(summary|analysis|report|statistics|breakdown)\b/i,
+  // How am I doing with my finances
+  /\b(how)\s+(am\s+i|are\s+my)\s+(doing|finances|budget)/i,
+  // What category do I spend most on
+  /\b(what|which)\s+(category|type).*(spend|most)/i,
+  // Trends, patterns, averages
+  /\b(trend|pattern|average)\b/i,
+  // Compare months/weeks
+  /\b(compar|difference)\b.*(month|week|year)/i,
+  // Can I / should I save
+  /\b(can\s+i|should\s+i)\s+(save|spend)/i,
+  // More this month/week
+  /\b(more)\s+(this)\s+(month|week)/i,
+  // Spent more
+  /\b(spent|spend)\s+(more|most)/i,
+  // Help me with finances
+  /\b(help).*(financ|money|budget|spend|sav)/i,
 ];
 
 // Patterns to detect advice/recommendation questions
 const ADVICE_PATTERNS = [
-  /\b(qué|que)\s+(me\s+)?(recomiend|suger|aconse)/i,
-  /\b(cómo|como)\s+(puedo|podría|debería|debo)\s+(ahorrar|invertir|mejorar|empezar|iniciar|crear|hacer)/i,
-  /\b(tips?|consejos?|recomendaci)/i,
-  /\b(fondo\s+de\s+emergencia|emergencias)/i,
-  /\b(ahorrar|invertir|mejorar)\s+(más|mejor|mis)/i,
-  /\b(estrategia|plan)\s+(de\s+)?(ahorro|financ|presupuesto)/i,
-  /\b(deber[ií]a)\s+(yo\s+)?(hacer|empezar|iniciar|ahorrar|invertir)/i,
-  /\b(ayud|ayúd).*(ahorr|invert|presupuest|financ)/i,
-  /\bcomo\s+ahorr/i,
+  /\b(what)\s+(do\s+you\s+)?(recommend|suggest|advise)/i,
+  /\b(how)\s+(can\s+i|could\s+i|should\s+i|do\s+i)\s+(save|invest|improve|start|begin|create|make)/i,
+  /\b(tips?|advice|recommendation)/i,
+  /\b(emergency\s+fund|emergencies)/i,
+  /\b(save|invest|improve)\s+(more|better|my)/i,
+  /\b(strategy|plan)\s+(for\s+)?(saving|financ|budget)/i,
+  /\b(should\s+i)\s+(do|start|begin|save|invest)/i,
+  /\b(help).*(sav|invest|budget|financ)/i,
+  /\bhow\s+to\s+sav/i,
 ];
 
 // Category mapping with emojis for auto-creation
 const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
-  Compras: {
+  Shopping: {
     patterns: [
-      'ropa',
-      'zapatos',
+      'clothes',
+      'clothing',
+      'shoes',
       'nike',
       'zara',
       'h&m',
       'adidas',
-      'tienda',
+      'store',
       'mall',
-      'centro comercial',
+      'shopping center',
       'amazon',
-      'compré',
-      'compras',
+      'bought',
+      'shopping',
     ],
     emoji: '🛍️',
   },
-  Supermercado: {
+  Groceries: {
     patterns: [
-      'super',
-      'supermercado',
-      'mercado',
+      'grocery',
+      'groceries',
+      'supermarket',
+      'market',
       'walmart',
       'costco',
-      'alimentos',
-      'verduras',
-      'frutas',
-      'rey',
+      'food',
+      'vegetables',
+      'fruits',
       'pricesmart',
-      'groceries',
+      'trader joe',
+      'whole foods',
     ],
     emoji: '🛒',
   },
-  Restaurantes: {
+  Restaurants: {
     patterns: [
-      'restaurante',
-      'almuerzo',
-      'cena',
-      'desayuno',
+      'restaurant',
+      'lunch',
+      'dinner',
+      'breakfast',
       'pizza',
       'sushi',
-      'hamburguesa',
+      'hamburger',
       'mcdonald',
       'burger',
       'kfc',
-      'pollo',
-      'comí',
-      'comida',
+      'chicken',
+      'ate',
+      'meal',
     ],
     emoji: '🍽️',
   },
-  Café: {
+  Coffee: {
     patterns: [
-      'café',
       'coffee',
+      'cafe',
       'starbucks',
       'dunkin',
-      'cafetería',
+      'coffeehouse',
       'latte',
       'cappuccino',
     ],
     emoji: '☕',
   },
-  Transporte: {
+  Transportation: {
     patterns: [
       'uber',
       'taxi',
-      'gasolina',
       'gas',
-      'estacionamiento',
+      'gasoline',
+      'parking',
       'metro',
       'bus',
-      'transporte',
-      'didi',
-      'cabify',
-      'indriver',
+      'transit',
+      'lyft',
+      'rideshare',
     ],
     emoji: '🚗',
   },
-  Entretenimiento: {
+  Entertainment: {
     patterns: [
-      'cine',
-      'juegos',
-      'concierto',
-      'película',
-      'entretenimiento',
-      'fiesta',
+      'movie',
+      'movies',
+      'games',
+      'concert',
+      'film',
+      'entertainment',
+      'party',
       'bar',
       'club',
-      'diversión',
+      'fun',
     ],
     emoji: '🎬',
   },
@@ -340,187 +340,172 @@ const CATEGORY_CONFIG: Record<string, { patterns: string[]; emoji: string }> = {
     ],
     emoji: '📺',
   },
-  Salud: {
+  Health: {
     patterns: [
-      'farmacia',
-      'medicina',
+      'pharmacy',
+      'medicine',
       'doctor',
       'hospital',
-      'dentista',
-      'médico',
-      'salud',
-      'consulta',
-      'medicamentos',
+      'dentist',
+      'medical',
+      'health',
+      'appointment',
+      'medication',
     ],
     emoji: '🏥',
   },
-  Servicios: {
+  Utilities: {
     patterns: [
-      'luz',
-      'agua',
+      'electric',
+      'water',
       'internet',
-      'teléfono',
+      'phone',
       'cable',
-      'electricidad',
-      'servicios',
-      'gas natural',
-      'factura',
+      'electricity',
+      'utilities',
+      'natural gas',
+      'bill',
     ],
     emoji: '💡',
   },
-  Gimnasio: {
+  Gym: {
     patterns: [
       'gym',
-      'gimnasio',
       'fitness',
-      'ejercicio',
+      'exercise',
+      'workout',
       'yoga',
-      'deporte',
+      'sport',
       'crossfit',
-      'entrenamiento',
+      'training',
     ],
     emoji: '💪',
   },
-  Belleza: {
+  Beauty: {
     patterns: [
-      'peluquería',
-      'salón',
-      'uñas',
-      'barbería',
+      'hair salon',
+      'salon',
+      'nails',
+      'barber',
       'spa',
-      'belleza',
-      'corte',
-      'maquillaje',
+      'beauty',
+      'haircut',
+      'makeup',
       'skincare',
     ],
     emoji: '💅',
   },
-  Educación: {
+  Education: {
     patterns: [
-      'libro',
-      'curso',
-      'escuela',
-      'universidad',
-      'clase',
-      'educación',
+      'book',
+      'course',
+      'school',
+      'university',
+      'class',
+      'education',
       'udemy',
-      'platzi',
       'coursera',
-      'estudio',
+      'study',
+      'tuition',
     ],
     emoji: '📚',
   },
-  Suscripciones: {
-    patterns: ['suscripción', 'membresía', 'mensual', 'anual', 'premium'],
+  Subscriptions: {
+    patterns: ['subscription', 'membership', 'monthly', 'annual', 'premium'],
     emoji: '🔄',
   },
-  Regalos: {
-    patterns: ['regalo', 'cumpleaños', 'navidad', 'presente', 'sorpresa'],
+  Gifts: {
+    patterns: ['gift', 'birthday', 'christmas', 'present', 'surprise'],
     emoji: '🎁',
   },
-  Viajes: {
+  Travel: {
     patterns: [
       'hotel',
-      'vuelo',
-      'viaje',
+      'flight',
+      'trip',
       'airbnb',
-      'avión',
-      'vacaciones',
-      'hospedaje',
-      'pasaje',
-      'boleto',
+      'airplane',
+      'vacation',
+      'lodging',
+      'ticket',
+      'travel',
     ],
     emoji: '✈️',
   },
-  Mascotas: {
-    patterns: [
-      'mascota',
-      'perro',
-      'gato',
-      'veterinario',
-      'comida mascota',
-      'pet',
-      'vet',
-    ],
+  Pets: {
+    patterns: ['pet', 'dog', 'cat', 'veterinarian', 'pet food', 'vet'],
     emoji: '🐾',
   },
-  Hogar: {
+  Home: {
     patterns: [
-      'casa',
-      'hogar',
-      'muebles',
-      'decoración',
-      'electrodoméstico',
-      'limpieza',
-      'ferretería',
+      'house',
+      'home',
+      'furniture',
+      'decor',
+      'appliance',
+      'cleaning',
+      'hardware store',
     ],
     emoji: '🏠',
   },
-  Tecnología: {
+  Technology: {
     patterns: [
-      'celular',
+      'phone',
       'laptop',
-      'computadora',
+      'computer',
       'tech',
       'gadget',
-      'electrónica',
+      'electronics',
       'apple',
       'samsung',
     ],
     emoji: '📱',
   },
-  Seguros: {
-    patterns: ['seguro', 'póliza', 'insurance', 'cobertura'],
+  Insurance: {
+    patterns: ['insurance', 'policy', 'coverage', 'premium'],
     emoji: '🛡️',
   },
-  Salario: {
+  Salary: {
     patterns: [
-      'salario',
-      'sueldo',
-      'quincena',
-      'pago',
-      'nómina',
-      'ingreso',
-      'trabajo',
+      'salary',
+      'wages',
+      'paycheck',
+      'payment',
+      'payroll',
+      'income',
+      'work',
     ],
     emoji: '💰',
   },
   Freelance: {
     patterns: [
       'freelance',
-      'proyecto',
-      'cliente',
-      'trabajo extra',
+      'project',
+      'client',
+      'side job',
       'side hustle',
-      'consultoría',
+      'consulting',
     ],
     emoji: '💻',
   },
-  Inversiones: {
+  Investments: {
     patterns: [
-      'inversión',
-      'dividendo',
-      'interés',
-      'rendimiento',
-      'acciones',
-      'cripto',
+      'investment',
+      'dividend',
+      'interest',
+      'return',
+      'stocks',
+      'crypto',
       'bitcoin',
     ],
     emoji: '📈',
   },
-  Deudas: {
-    patterns: [
-      'deuda',
-      'préstamo',
-      'tarjeta',
-      'crédito',
-      'pago tarjeta',
-      'cuota',
-    ],
+  Debt: {
+    patterns: ['debt', 'loan', 'card', 'credit', 'card payment', 'installment'],
     emoji: '💳',
   },
-  Ahorro: {
-    patterns: ['ahorro', 'guardé', 'aparté', 'reserva', 'fondo', 'emergencia'],
+  Savings: {
+    patterns: ['savings', 'saved', 'set aside', 'reserve', 'fund', 'emergency'],
     emoji: '🐷',
   },
 };
@@ -637,13 +622,14 @@ async function processOnboardingResponse(
 
         const formattedSalary = (salaryCents / 100).toFixed(2);
         return {
-          message: `Perfecto! $${formattedSalary} al mes. ${ONBOARDING_QUESTIONS[1].question}`,
+          message: `Perfect! $${formattedSalary} per month. ${ONBOARDING_QUESTIONS[1].question}`,
           isOnboarding: true,
           onboardingStep: 2,
         };
       }
       return {
-        message: 'No entendí el monto. ¿Cuánto ganas al mes? (Ejemplo: $2500)',
+        message:
+          "I didn't understand the amount. How much do you earn per month? (Example: $2500)",
         isOnboarding: true,
         onboardingStep: 1,
       };
@@ -652,16 +638,17 @@ async function processOnboardingResponse(
     case 2: {
       // Pay frequency
       let frequency: string | null = null;
-      if (lowerMessage.includes('semanal') || lowerMessage.includes('semana')) {
+      if (lowerMessage.includes('weekly') || lowerMessage.includes('week')) {
         frequency = 'weekly';
       } else if (
-        lowerMessage.includes('quincen') ||
-        lowerMessage.includes('bi')
+        lowerMessage.includes('biweekly') ||
+        lowerMessage.includes('bi-weekly') ||
+        lowerMessage.includes('every two weeks')
       ) {
         frequency = 'biweekly';
       } else if (
-        lowerMessage.includes('mensual') ||
-        lowerMessage.includes('mes')
+        lowerMessage.includes('monthly') ||
+        lowerMessage.includes('month')
       ) {
         frequency = 'monthly';
       }
@@ -679,18 +666,18 @@ async function processOnboardingResponse(
 
         const freqText =
           frequency === 'weekly'
-            ? 'semanalmente'
+            ? 'weekly'
             : frequency === 'biweekly'
-              ? 'quincenalmente'
-              : 'mensualmente';
+              ? 'biweekly'
+              : 'monthly';
         return {
-          message: `Entendido, te pagan ${freqText}. ${ONBOARDING_QUESTIONS[2].question}`,
+          message: `Got it, you get paid ${freqText}. ${ONBOARDING_QUESTIONS[2].question}`,
           isOnboarding: true,
           onboardingStep: 3,
         };
       }
       return {
-        message: '¿Semanal, quincenal o mensual?',
+        message: 'Weekly, biweekly, or monthly?',
         isOnboarding: true,
         onboardingStep: 2,
       };
@@ -699,8 +686,8 @@ async function processOnboardingResponse(
     case 3: // Debts
       if (
         lowerMessage.includes('no') ||
-        lowerMessage.includes('ninguna') ||
-        lowerMessage.includes('nada')
+        lowerMessage.includes('none') ||
+        lowerMessage.includes('nothing')
       ) {
         await db
           .update(userProfiles)
@@ -708,7 +695,7 @@ async function processOnboardingResponse(
           .where(eq(userProfiles.userId, userId));
         saveDatabase();
         return {
-          message: `¡Excelente! Sin deudas es un gran comienzo 🎉 ${ONBOARDING_QUESTIONS[3].question}`,
+          message: `Excellent! No debt is a great start 🎉 ${ONBOARDING_QUESTIONS[3].question}`,
           isOnboarding: true,
           onboardingStep: 4,
         };
@@ -720,7 +707,7 @@ async function processOnboardingResponse(
         .where(eq(userProfiles.userId, userId));
       saveDatabase();
       return {
-        message: `Entendido, registré eso. Puedes agregar más deudas después en la sección de Deudas. ${ONBOARDING_QUESTIONS[3].question}`,
+        message: `Got it, I noted that. You can add more debts later in the Debts section. ${ONBOARDING_QUESTIONS[3].question}`,
         isOnboarding: true,
         onboardingStep: 4,
       };
@@ -743,7 +730,7 @@ async function processOnboardingResponse(
 
         const formattedSavings = (savingsCents / 100).toFixed(2);
         return {
-          message: `¡Genial! Meta de ahorro: $${formattedSavings}/mes 🐷\n\n¡Ya estás listo! Ahora puedes decirme tus gastos e ingresos. Por ejemplo: "Gasté $30 en almuerzo" o "Recibí mi quincena de $1500"`,
+          message: `Great! Savings goal: $${formattedSavings}/month 🐷\n\nYou're all set! Now you can tell me about your expenses and income. For example: "Spent $30 on lunch" or "Got my paycheck of $1500"`,
           isOnboarding: false,
           onboardingStep: 5,
         };
@@ -751,7 +738,7 @@ async function processOnboardingResponse(
       // Skip savings if they say no/skip
       if (
         lowerMessage.includes('no') ||
-        lowerMessage.includes('saltar') ||
+        lowerMessage.includes('skip') ||
         lowerMessage.includes('skip')
       ) {
         await db
@@ -765,14 +752,14 @@ async function processOnboardingResponse(
         saveDatabase();
         return {
           message:
-            '¡Listo! Puedes configurar tu meta de ahorro después.\n\nAhora cuéntame: ¿qué gastaste hoy? 💸',
+            'Done! You can set your savings goal later.\n\nNow tell me: what did you spend today? 💸',
           isOnboarding: false,
           onboardingStep: 5,
         };
       }
       return {
         message:
-          '¿Cuánto te gustaría ahorrar cada mes? (Ejemplo: $200, o escribe "saltar" para omitir)',
+          'How much would you like to save each month? (Example: $200, or type "skip" to skip)',
         isOnboarding: true,
         onboardingStep: 4,
       };
@@ -780,7 +767,7 @@ async function processOnboardingResponse(
 
     default:
       return {
-        message: '¡Listo para ayudarte! ¿Qué gastaste hoy?',
+        message: 'Ready to help! What did you spend today?',
         isOnboarding: false,
       };
   }
@@ -897,7 +884,7 @@ async function getSpendingSummary(
       totalExpenses += Math.abs(amount);
       // Track by category
       const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
-      const catKey = cat?.name || 'Sin categoría';
+      const catKey = cat?.name || 'Uncategorized';
       if (!categoryTotals[catKey]) {
         categoryTotals[catKey] = {
           name: catKey,
@@ -1073,7 +1060,7 @@ async function getTopExpensesByCategory(
   for (const tx of userTxs) {
     if (tx.date >= startDateStr && tx.type === 'expense') {
       const cat = tx.categoryId ? catMap.get(tx.categoryId) : null;
-      const catName = cat?.name || 'Sin categoría';
+      const catName = cat?.name || 'Uncategorized';
 
       if (!byCategory[catName]) {
         byCategory[catName] = [];
@@ -1116,15 +1103,15 @@ async function processAnalyticalQuestion(
   // Build recurring expenses section (subscription-like patterns from actual transactions)
   const recurringSection =
     recurringExpenses.length > 0
-      ? `\nGASTOS RECURRENTES DETECTADOS (${recurringExpenses.length} patrones, ~$${totalRecurringCost.toFixed(2)}/mes estimado):
+      ? `\nRECURRING EXPENSES DETECTED (${recurringExpenses.length} patterns, ~$${totalRecurringCost.toFixed(2)}/month estimated):
 ${recurringExpenses
   .slice(0, 10)
   .map(
     (r, i) =>
-      `${i + 1}. ${r.name}: $${r.amount.toFixed(2)} x ${r.count} veces (~$${r.monthlyEstimate.toFixed(2)}/mes)`
+      `${i + 1}. ${r.name}: $${r.amount.toFixed(2)} x ${r.count} times (~$${r.monthlyEstimate.toFixed(2)}/month)`
   )
   .join('\n')}`
-      : '\nGASTOS RECURRENTES: No se detectaron patrones de suscripciones';
+      : '\nRECURRING EXPENSES: No subscription patterns detected';
 
   // Build top expenses per category section
   const topExpensesSection = Object.entries(topExpensesByCategory)
@@ -1132,32 +1119,32 @@ ${recurringExpenses
     .map(([catName, expenses]) => {
       const topExpense = expenses[0];
       return topExpense
-        ? `${catName}: Mayor gasto "$${topExpense.description}" $${topExpense.amount.toFixed(2)}`
+        ? `${catName}: Top expense "$${topExpense.description}" $${topExpense.amount.toFixed(2)}`
         : null;
     })
     .filter(Boolean)
     .join('\n');
 
   const dataContext = `
-DATOS DEL USUARIO (últimos 30 días):
-- Total gastado: $${summary.totalExpenses.toFixed(2)}
-- Total ingresos: $${summary.totalIncome.toFixed(2)}
+USER DATA (last 30 days):
+- Total spent: $${summary.totalExpenses.toFixed(2)}
+- Total income: $${summary.totalIncome.toFixed(2)}
 - Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
 
-GASTOS POR CATEGORÍA (ordenados de mayor a menor):
+EXPENSES BY CATEGORY (sorted highest to lowest):
 ${summary.byCategory
   .slice(0, 10)
   .map(
     (c, i) =>
-      `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)} (${c.count} transacciones)`
+      `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)} (${c.count} transactions)`
   )
   .join('\n')}
 
-MAYORES GASTOS POR CATEGORÍA:
+TOP EXPENSES BY CATEGORY:
 ${topExpensesSection}
 ${recurringSection}
 
-ÚLTIMAS TRANSACCIONES:
+RECENT TRANSACTIONS:
 ${summary.recentTransactions
   .slice(0, 5)
   .map(
@@ -1171,13 +1158,13 @@ ${summary.recentTransactions
 
 ${dataContext}
 
-El usuario está haciendo una pregunta sobre sus finanzas. Usa los datos anteriores para responder de forma útil, específica y con tu personalidad.
+The user is asking a question about their finances. Use the data above to respond in a helpful, specific way with your personality.
 
-Responde con JSON:
+Respond with JSON:
 {
   "understood": true,
   "isAnalyticalQuestion": true,
-  "response": "tu respuesta analítica con datos específicos"
+  "response": "your analytical response with specific data"
 }`;
 
   // Try AI first
@@ -1214,7 +1201,7 @@ Responde con JSON:
   if (summary.byCategory.length === 0) {
     return {
       message:
-        'Hmm, no tienes transacciones registradas todavía. ¡Cuéntame qué gastaste hoy y empecemos a trackear! 📊',
+        "Hmm, you don't have any transactions recorded yet. Tell me what you spent today and let's start tracking! 📊",
       needsMoreInfo: false,
     };
   }
@@ -1226,12 +1213,12 @@ Responde con JSON:
     100
   ).toFixed(0);
 
-  let response = `📊 Bueno, veamos tus números...\n\n`;
-  response += `En los últimos 30 días gastaste $${summary.totalExpenses.toFixed(2)}\n\n`;
-  response += `Tu gasto más fuerte es ${topCategory.emoji || ''} ${topCategory.name} con $${topCategory.total.toFixed(2)} (${percentOfTotal}% del total) 👀\n\n`;
+  let response = `📊 Alright, let's look at your numbers...\n\n`;
+  response += `In the last 30 days you spent $${summary.totalExpenses.toFixed(2)}\n\n`;
+  response += `Your biggest spending is ${topCategory.emoji || ''} ${topCategory.name} at $${topCategory.total.toFixed(2)} (${percentOfTotal}% of total) 👀\n\n`;
 
   if (topThree.length > 1) {
-    response += `Top 3 categorías:\n`;
+    response += `Top 3 categories:\n`;
     topThree.forEach((c, i) => {
       response += `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}\n`;
     });
@@ -1240,9 +1227,9 @@ Responde con JSON:
   if (summary.totalIncome > 0) {
     const savings = summary.totalIncome - summary.totalExpenses;
     if (savings > 0) {
-      response += `\n💪 ¡Bien! Ahorraste $${savings.toFixed(2)} este mes.`;
+      response += `\n💪 Nice! You saved $${savings.toFixed(2)} this month.`;
     } else {
-      response += `\n⚠️ Ojo: gastaste $${Math.abs(savings).toFixed(2)} más de lo que ganaste.`;
+      response += `\n⚠️ Heads up: you spent $${Math.abs(savings).toFixed(2)} more than you earned.`;
     }
   }
 
@@ -1269,17 +1256,17 @@ async function processAdviceQuestion(
 
   // Build context for AI
   const dataContext = `
-DATOS DEL USUARIO:
-- Salario mensual: ${profile.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'No especificado'}
-- Frecuencia de pago: ${profile.payFrequency || 'No especificada'}
-- Meta de ahorro mensual: ${profile.monthlySavingsGoalCents ? `$${(profile.monthlySavingsGoalCents / 100).toFixed(2)}` : 'No especificada'}
+USER DATA:
+- Monthly salary: ${profile.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'Not specified'}
+- Pay frequency: ${profile.payFrequency || 'Not specified'}
+- Monthly savings goal: ${profile.monthlySavingsGoalCents ? `$${(profile.monthlySavingsGoalCents / 100).toFixed(2)}` : 'Not specified'}
 
-RESUMEN ÚLTIMOS 30 DÍAS:
-- Total gastado: $${summary.totalExpenses.toFixed(2)}
-- Total ingresos: $${summary.totalIncome.toFixed(2)}
+LAST 30 DAYS SUMMARY:
+- Total spent: $${summary.totalExpenses.toFixed(2)}
+- Total income: $${summary.totalIncome.toFixed(2)}
 - Balance: $${(summary.totalIncome - summary.totalExpenses).toFixed(2)}
 
-PRINCIPALES GASTOS:
+TOP EXPENSES:
 ${summary.byCategory
   .slice(0, 5)
   .map((c, i) => `${i + 1}. ${c.emoji || ''} ${c.name}: $${c.total.toFixed(2)}`)
@@ -1290,20 +1277,20 @@ ${summary.byCategory
 
 ${dataContext}
 
-El usuario está pidiendo consejos o recomendaciones financieras. Usa los datos anteriores para dar consejos personalizados, específicos y prácticos. Sé motivador pero realista.
+The user is asking for financial advice or recommendations. Use the data above to give personalized, specific, and practical advice. Be motivating but realistic.
 
-TEMAS COMUNES Y CÓMO RESPONDER:
-- Fondo de emergencias: Recomienda 3-6 meses de gastos. Calcula basándote en sus gastos.
-- Ahorro: Sugiere la regla 50/30/20 o un porcentaje basado en su situación.
-- Reducir gastos: Identifica categorías donde gasta mucho y sugiere alternativas.
-- Inversiones: Solo menciona si ya tiene fondo de emergencias. Sugiere empezar simple.
-- Deudas: Priorizar pagar deudas de alto interés primero.
+COMMON TOPICS AND HOW TO RESPOND:
+- Emergency fund: Recommend 3-6 months of expenses. Calculate based on their spending.
+- Savings: Suggest the 50/30/20 rule or a percentage based on their situation.
+- Cutting expenses: Identify categories where they spend a lot and suggest alternatives.
+- Investments: Only mention if they already have an emergency fund. Suggest starting simple.
+- Debt: Prioritize paying off high-interest debt first.
 
-Responde con JSON:
+Respond with JSON:
 {
   "understood": true,
   "isAdviceQuestion": true,
-  "response": "tu consejo personalizado con datos específicos del usuario"
+  "response": "your personalized advice with specific user data"
 }`;
 
   // Try AI first
@@ -1341,89 +1328,89 @@ Responde con JSON:
   let response = '';
 
   // Detect what type of advice they want
-  if (lowerMessage.includes('emergencia') || lowerMessage.includes('fondo')) {
+  if (lowerMessage.includes('emergency') || lowerMessage.includes('fund')) {
     // Emergency fund advice
     const monthlyExpenses = summary.totalExpenses;
     const recommendedFund3 = monthlyExpenses * 3;
     const recommendedFund6 = monthlyExpenses * 6;
 
-    response = `💡 Fondo de Emergencias\n\n`;
-    response += `Basándome en tus gastos de $${monthlyExpenses.toFixed(2)}/mes, te recomiendo:\n\n`;
-    response += `• Mínimo: $${recommendedFund3.toFixed(2)} (3 meses de gastos)\n`;
-    response += `• Ideal: $${recommendedFund6.toFixed(2)} (6 meses de gastos)\n\n`;
+    response = `💡 Emergency Fund\n\n`;
+    response += `Based on your expenses of $${monthlyExpenses.toFixed(2)}/month, I recommend:\n\n`;
+    response += `• Minimum: $${recommendedFund3.toFixed(2)} (3 months of expenses)\n`;
+    response += `• Ideal: $${recommendedFund6.toFixed(2)} (6 months of expenses)\n\n`;
 
     if (profile.monthlySalaryCents) {
       const salary = profile.monthlySalaryCents / 100;
       const suggested20 = salary * 0.2;
       const monthsTo3 = Math.ceil(recommendedFund3 / suggested20);
-      response += `Si ahorras 20% de tu salario ($${suggested20.toFixed(2)}/mes), llegarías a tu meta en ~${monthsTo3} meses 💪\n\n`;
+      response += `If you save 20% of your salary ($${suggested20.toFixed(2)}/month), you'd reach your goal in ~${monthsTo3} months 💪\n\n`;
     }
 
-    response += `Tip: Abre una cuenta separada SOLO para emergencias. ¡No la toques a menos que sea real emergencia!`;
-  } else if (lowerMessage.includes('ahorr')) {
+    response += `Tip: Open a separate account ONLY for emergencies. Don't touch it unless it's a real emergency!`;
+  } else if (lowerMessage.includes('sav')) {
     // Savings advice
-    response = `🐷 Tips para Ahorrar\n\n`;
+    response = `🐷 Tips for Saving\n\n`;
 
     if (summary.byCategory.length > 0) {
       const topSpending = summary.byCategory[0];
-      response += `Tu mayor gasto es ${topSpending.emoji || ''} ${topSpending.name} ($${topSpending.total.toFixed(2)}). `;
+      response += `Your biggest expense is ${topSpending.emoji || ''} ${topSpending.name} ($${topSpending.total.toFixed(2)}). `;
 
       if (
         topSpending.name.toLowerCase().includes('restaurant') ||
-        topSpending.name.toLowerCase().includes('café') ||
-        topSpending.name.toLowerCase().includes('comida')
+        topSpending.name.toLowerCase().includes('coffee') ||
+        topSpending.name.toLowerCase().includes('food')
       ) {
-        response += `¿Has pensado en cocinar más en casa? Podrías ahorrar hasta 50% 🍳\n\n`;
+        response += `Have you thought about cooking more at home? You could save up to 50% 🍳\n\n`;
       } else if (
         topSpending.name.toLowerCase().includes('streaming') ||
-        topSpending.name.toLowerCase().includes('suscripc')
+        topSpending.name.toLowerCase().includes('subscript')
       ) {
-        response += `Revisa si usas todas esas suscripciones. ¡Cancela las que no uses! 📺\n\n`;
+        response += `Check if you use all those subscriptions. Cancel the ones you don't! 📺\n\n`;
       } else {
-        response += `Busca alternativas más económicas o reduce la frecuencia.\n\n`;
+        response += `Look for cheaper alternatives or reduce the frequency.\n\n`;
       }
     }
 
-    response += `La regla 50/30/20:\n`;
-    response += `• 50% necesidades (renta, servicios, comida)\n`;
-    response += `• 30% gustos (entretenimiento, restaurantes)\n`;
-    response += `• 20% ahorro e inversión\n\n`;
+    response += `The 50/30/20 rule:\n`;
+    response += `• 50% needs (rent, utilities, food)\n`;
+    response += `• 30% wants (entertainment, restaurants)\n`;
+    response += `• 20% savings and investments\n\n`;
 
     if (profile.monthlySalaryCents) {
       const salary = profile.monthlySalaryCents / 100;
-      response += `Con tu salario, eso sería ~$${(salary * 0.2).toFixed(2)}/mes para ahorrar.`;
+      response += `With your salary, that would be ~$${(salary * 0.2).toFixed(2)}/month for savings.`;
     }
   } else if (
-    lowerMessage.includes('invert') ||
-    lowerMessage.includes('inversión')
+    lowerMessage.includes('invest') ||
+    lowerMessage.includes('investment')
   ) {
     // Investment advice
-    response = `📈 Sobre Inversiones\n\n`;
-    response += `Antes de invertir, asegúrate de tener:\n`;
-    response += `1. ✅ Fondo de emergencias (3-6 meses de gastos)\n`;
-    response += `2. ✅ Deudas de alto interés pagadas\n\n`;
-    response += `Si ya tienes eso, empieza simple:\n`;
-    response += `• Principiante: Fondos indexados (ETFs) de bajo costo\n`;
-    response += `• Diversifica: No pongas todo en una sola cosa\n`;
-    response += `• Largo plazo: Invierte dinero que no necesitarás en 5+ años\n\n`;
-    response += `⚠️ Nunca inviertas dinero que no puedas perder. ¡Infórmate bien primero!`;
+    response = `📈 About Investments\n\n`;
+    response += `Before investing, make sure you have:\n`;
+    response += `1. ✅ Emergency fund (3-6 months of expenses)\n`;
+    response += `2. ✅ High-interest debt paid off\n\n`;
+    response += `If you have that covered, start simple:\n`;
+    response += `• Beginner: Low-cost index funds (ETFs)\n`;
+    response += `• Diversify: Don't put everything in one basket\n`;
+    response += `• Long term: Invest money you won't need for 5+ years\n\n`;
+    response += `⚠️ Never invest money you can't afford to lose. Do your research first!`;
   } else {
     // General financial advice
-    response = `💰 Consejos Generales\n\n`;
+    response = `💰 General Tips\n\n`;
 
     if (
       summary.totalIncome > 0 &&
       summary.totalExpenses > summary.totalIncome
     ) {
-      response += `⚠️ Estás gastando más de lo que ganas. Prioridad #1: reducir gastos.\n\n`;
+      response += `⚠️ You're spending more than you earn. Priority #1: cut expenses.\n\n`;
     }
 
-    response += `Orden de prioridades financieras:\n`;
-    response += `1. 🏦 Fondo de emergencias (3-6 meses)\n`;
-    response += `2. 💳 Pagar deudas (empezando por las de mayor interés)\n`;
-    response += `3. 🐷 Ahorrar 20% de tus ingresos\n`;
-    response += `4. 📈 Invertir para el futuro\n\n`;
-    response += `¿Sobre qué tema específico quieres que profundicemos? 🤔`;
+    response += `Financial priority order:\n`;
+    response += `1. 🏦 Emergency fund (3-6 months)\n`;
+    response += `2. 💳 Pay off debt (starting with highest interest)\n`;
+    response += `3. 🐷 Save 20% of your income\n`;
+    response += `4. 📈 Invest for the future\n\n`;
+    response += `What specific topic would you like to dive deeper into? 🤔`;
   }
 
   return {
@@ -1482,16 +1469,16 @@ export async function processMessage(
 
   let defaultAccount = userAccounts[0];
 
-  // Auto-create "Efectivo" account if no accounts exist
+  // Auto-create "Cash" account if no accounts exist
   if (!defaultAccount) {
     const newAccount = await accountRepo.createAccount(db, {
       userId,
-      name: 'Efectivo',
+      name: 'Cash',
       type: 'cash',
     });
     if (!newAccount) {
       return {
-        message: 'Error al crear la cuenta. Por favor intenta de nuevo.',
+        message: 'Error creating account. Please try again.',
         needsMoreInfo: false,
       };
     }
@@ -1592,7 +1579,7 @@ export async function processMessage(
             2
           );
           return {
-            message: `$${formattedAmount} en "${txData.description}". ¿En qué categoría lo pongo: ${topTwo[0].emoji} ${topTwo[0].name} o ${topTwo[1].emoji} ${topTwo[1].name}?`,
+            message: `$${formattedAmount} for "${txData.description}". Which category should I put it in: ${topTwo[0].emoji} ${topTwo[0].name} or ${topTwo[1].emoji} ${topTwo[1].name}?`,
             needsCategoryConfirmation: true,
             categoryOptions: topTwo.map((c) => ({
               name: c.name,
@@ -1695,7 +1682,7 @@ export async function processMessage(
       categoryId: transaction.categoryId,
       accountId: defaultAccount.id,
       cleared: false,
-      notes: transaction.merchant ? `Comercio: ${transaction.merchant}` : null,
+      notes: transaction.merchant ? `Merchant: ${transaction.merchant}` : null,
     });
 
     // Save database after mutation
@@ -1705,10 +1692,10 @@ export async function processMessage(
       2
     );
     const categoryText = categoryName
-      ? ` en ${categoryEmoji || ''} ${categoryName}`
+      ? ` in ${categoryEmoji || ''} ${categoryName}`
       : '';
     const categoryCreatedText = categoryAutoCreated
-      ? ` (creé esta categoría para ti!)`
+      ? ` (created this category for you!)`
       : '';
 
     // Generate a sassy response based on transaction type and amount
@@ -1716,9 +1703,9 @@ export async function processMessage(
     if (!sassyResponse) {
       if (transaction.type === 'income') {
         const incomeResponses = [
-          `¡Eso! Llegaron $${formattedAmount} 💰 ${categoryText}. ¡A invertir una parte!`,
-          `Niceee! $${formattedAmount}${categoryText}. ¿Ya pensaste cuánto vas a ahorrar? 🐷`,
-          `¡Ka-ching! $${formattedAmount}${categoryText}. Recuerda: paga tus deudas primero 😉`,
+          `Yes! $${formattedAmount} coming in 💰 ${categoryText}. Time to invest some of it!`,
+          `Niceee! $${formattedAmount}${categoryText}. Have you thought about how much you'll save? 🐷`,
+          `Ka-ching! $${formattedAmount}${categoryText}. Remember: pay off your debts first 😉`,
         ];
         sassyResponse =
           incomeResponses[Math.floor(Math.random() * incomeResponses.length)];
@@ -1726,23 +1713,23 @@ export async function processMessage(
         const amountDollars = Math.abs(transaction.amountCents) / 100;
         if (amountDollars < 20) {
           const smallResponses = [
-            `Listo! $${formattedAmount}${categoryText}. Pequeños gastos suman, ojo 👀`,
-            `Anotado! $${formattedAmount}${categoryText}.`,
+            `Done! $${formattedAmount}${categoryText}. Small expenses add up, watch out 👀`,
+            `Noted! $${formattedAmount}${categoryText}.`,
           ];
           sassyResponse =
             smallResponses[Math.floor(Math.random() * smallResponses.length)];
         } else if (amountDollars < 100) {
           const mediumResponses = [
-            `$${formattedAmount}${categoryText}. Cada peso cuenta 💪`,
-            `Registrado! $${formattedAmount}${categoryText}. ¿Estaba planeado? 🤔`,
+            `$${formattedAmount}${categoryText}. Every dollar counts 💪`,
+            `Logged! $${formattedAmount}${categoryText}. Was that planned? 🤔`,
           ];
           sassyResponse =
             mediumResponses[Math.floor(Math.random() * mediumResponses.length)];
         } else {
           const largeResponses = [
-            `Uff, $${formattedAmount}${categoryText} 💸 ¿Estaba en el presupuesto?`,
-            `$${formattedAmount}${categoryText}. Ese sí se sintió... 🫣`,
-            `Bueno bueno, $${formattedAmount}${categoryText}. Espero que valiera la pena 😅`,
+            `Oof, $${formattedAmount}${categoryText} 💸 Was that in the budget?`,
+            `$${formattedAmount}${categoryText}. That one stung... 🫣`,
+            `Well well, $${formattedAmount}${categoryText}. I hope it was worth it 😅`,
           ];
           sassyResponse =
             largeResponses[Math.floor(Math.random() * largeResponses.length)];
@@ -1768,9 +1755,9 @@ export async function processMessage(
 
   // Fallback response with personality
   const fallbackResponses = [
-    '¿Puedes decirme el monto y en qué gastaste? 🤔',
-    'Oye, no entendí bien. ¿Cuánto fue y en qué?',
-    'Hmm, necesito más info. ¿Monto y descripción? 💭',
+    'Can you tell me the amount and what you spent on? 🤔',
+    "Hey, I didn't quite get that. How much was it and what for?",
+    'Hmm, I need more info. Amount and description? 💭',
   ];
   return {
     message:
@@ -1838,22 +1825,22 @@ function parseMoneyToCents(moneyStr: string): number {
 function extractTransactionFromText(text: string): any {
   const lowerText = text.toLowerCase();
 
-  // Extract amount - patterns like "$50", "$2,500", "$2,500.00", "50 dólares"
+  // Extract amount - patterns like "$50", "$2,500", "$2,500.00", "50 dollars"
   const amountPatterns = [
     // $2,500.00 or $2500.00 or $2,500 or $2500
     /\$\s*([\d,]+(?:\.\d{1,2})?)/,
-    // 2,500 dólares or 2500 dollars
-    /([\d,]+(?:\.\d{1,2})?)\s*(?:dólares?|dolares?|pesos?|usd|balboas?)/i,
-    // gasté 2500 or gasté $2500
-    /gast[eéo]\s+\$?([\d,]+(?:\.\d{1,2})?)/i,
-    // 2500 en or 2500 de
-    /([\d,]+(?:\.\d{1,2})?)\s+(?:en|de)/i,
-    // Me pagaron 2500 or pagaron $2500
-    /pagar?on?\s+\$?([\d,]+(?:\.\d{1,2})?)/i,
-    // quincena 2500 or quincena de $2500
-    /quincena\s+(?:de\s+)?\$?([\d,]+(?:\.\d{1,2})?)/i,
-    // salario 2500 or salario de $2500
-    /salario\s+(?:de\s+)?\$?([\d,]+(?:\.\d{1,2})?)/i,
+    // 2,500 dollars or 2500 dollars
+    /([\d,]+(?:\.\d{1,2})?)\s*(?:dollars?|bucks?|usd)/i,
+    // spent 2500 or spent $2500
+    /spent?\s+\$?([\d,]+(?:\.\d{1,2})?)/i,
+    // 2500 on or 2500 for
+    /([\d,]+(?:\.\d{1,2})?)\s+(?:on|for)/i,
+    // paid me 2500 or paid $2500
+    /paid?\s+(?:me\s+)?\$?([\d,]+(?:\.\d{1,2})?)/i,
+    // paycheck 2500 or paycheck of $2500
+    /paycheck\s+(?:of\s+)?\$?([\d,]+(?:\.\d{1,2})?)/i,
+    // salary 2500 or salary of $2500
+    /salary\s+(?:of\s+)?\$?([\d,]+(?:\.\d{1,2})?)/i,
   ];
 
   let amountCents: number | null = null;
@@ -1867,13 +1854,13 @@ function extractTransactionFromText(text: string): any {
 
   // Extract date
   let date = new Date().toISOString().split('T')[0];
-  if (lowerText.includes('ayer')) {
+  if (lowerText.includes('yesterday')) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     date = yesterday.toISOString().split('T')[0];
   } else if (
-    lowerText.includes('anteayer') ||
-    lowerText.includes('ante ayer')
+    lowerText.includes('day before yesterday') ||
+    lowerText.includes('two days ago')
   ) {
     const dayBeforeYesterday = new Date();
     dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
@@ -1882,7 +1869,7 @@ function extractTransactionFromText(text: string): any {
 
   // Determine if it's income or expense
   const isIncome =
-    /recib[íi]|cobr[eé]|gan[eé]|ingreso|salario|quincena|sueldo|pago.*recibido|me\s+pagar?on?|depositar?on?|bonificaci[oó]n|bono|transferencia.*recib/i.test(
+    /receiv(ed|e)|collect(ed)?|earn(ed)?|income|salary|paycheck|wages|payment.*received|got\s+paid|deposit(ed)?|bonus|transfer.*receiv/i.test(
       lowerText
     );
   const type = isIncome ? 'income' : 'expense';
@@ -1893,9 +1880,9 @@ function extractTransactionFromText(text: string): any {
 
   // Common patterns for what was purchased
   const descPatterns = [
-    /(?:en|de)\s+(.+?)(?:\s+por|\s+en|\s+con|\s+\$|$)/i,
-    /gast[eéo]\s+(?:\$?\d+(?:[.,]\d{2})?)\s+(?:en|de)\s+(.+)/i,
-    /compr[eéo]\s+(.+?)(?:\s+por|\s+en|\s+\$|$)/i,
+    /(?:on|for|at)\s+(.+?)(?:\s+for|\s+at|\s+with|\s+\$|$)/i,
+    /spent?\s+(?:\$?\d+(?:[.,]\d{2})?)\s+(?:on|for|at)\s+(.+)/i,
+    /bought\s+(.+?)(?:\s+for|\s+at|\s+\$|$)/i,
   ];
 
   for (const pattern of descPatterns) {
@@ -1911,14 +1898,14 @@ function extractTransactionFromText(text: string): any {
     description =
       text
         .replace(/\$?\d+(?:[.,]\d{2})?/g, '')
-        .replace(/hoy|ayer|anteayer/gi, '')
-        .replace(/gast[eéo]/gi, '')
-        .trim() || 'Gasto';
+        .replace(/today|yesterday|day before yesterday/gi, '')
+        .replace(/spent?/gi, '')
+        .trim() || 'Expense';
   }
 
   // Try to extract merchant name (capitalized words, brand names)
   const merchantMatch = text.match(
-    /(?:en|de)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/
+    /(?:at|from)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)/
   );
   if (merchantMatch) {
     merchant = merchantMatch[1];
@@ -1930,19 +1917,19 @@ function extractTransactionFromText(text: string): any {
   // Determine if we have enough info
   const needsMoreInfo = !amountCents;
   const missingFields: string[] = [];
-  if (!amountCents) missingFields.push('monto');
+  if (!amountCents) missingFields.push('amount');
 
   if (needsMoreInfo) {
     const needsInfoResponses = [
-      'Oye, ¿cuánto fue?',
-      '¿Cuánto gastaste? 🤔',
-      'Me falta el monto!',
+      'Hey, how much was it?',
+      'How much did you spend? 🤔',
+      "I'm missing the amount!",
     ];
     return {
       understood: false,
       needsMoreInfo: true,
       missingFields,
-      followUpQuestion: '¿Cuánto gastaste?',
+      followUpQuestion: 'How much did you spend?',
       response:
         needsInfoResponses[
           Math.floor(Math.random() * needsInfoResponses.length)
@@ -1994,10 +1981,10 @@ function suggestCategoryFromText(text: string): string | null {
  */
 export function getQuickActions(): Array<{ text: string; example: string }> {
   return [
-    { text: 'Registrar gasto', example: 'Gasté $30 en almuerzo' },
-    { text: 'Compras', example: 'Compré ropa por $150 en Zara' },
-    { text: 'Transporte', example: '$15 de Uber' },
-    { text: 'Supermercado', example: 'Super $80' },
+    { text: 'Log expense', example: 'Spent $30 on lunch' },
+    { text: 'Shopping', example: 'Bought clothes for $150 at Zara' },
+    { text: 'Transportation', example: '$15 Uber ride' },
+    { text: 'Groceries', example: 'Groceries $80' },
   ];
 }
 

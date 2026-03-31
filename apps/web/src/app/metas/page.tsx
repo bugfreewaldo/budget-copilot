@@ -16,25 +16,25 @@ import { Sidebar } from '@/components/layout';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const GOAL_TYPE_LABELS: Record<GoalType, { label: string; emoji: string }> = {
-  savings: { label: 'Ahorro', emoji: '💰' },
-  debt_payoff: { label: 'Pago de Deuda', emoji: '💳' },
-  purchase: { label: 'Compra', emoji: '🛍️' },
-  emergency_fund: { label: 'Fondo de Emergencia', emoji: '🆘' },
-  investment: { label: 'Inversión', emoji: '📈' },
-  other: { label: 'Otro', emoji: '🎯' },
+  savings: { label: 'Savings', emoji: '💰' },
+  debt_payoff: { label: 'Debt Payoff', emoji: '💳' },
+  purchase: { label: 'Purchase', emoji: '🛍️' },
+  emergency_fund: { label: 'Emergency Fund', emoji: '🆘' },
+  investment: { label: 'Investment', emoji: '📈' },
+  other: { label: 'Other', emoji: '🎯' },
 };
 
 const STATUS_LABELS: Record<GoalStatus, { label: string; color: string }> = {
-  active: { label: 'Activa', color: 'bg-blue-500/20 text-blue-400' },
-  completed: { label: 'Completada', color: 'bg-green-500/20 text-green-400' },
-  paused: { label: 'Pausada', color: 'bg-yellow-500/20 text-yellow-400' },
-  abandoned: { label: 'Abandonada', color: 'bg-gray-500/20 text-gray-400' },
+  active: { label: 'Active', color: 'bg-blue-500/20 text-blue-400' },
+  completed: { label: 'Completed', color: 'bg-green-500/20 text-green-400' },
+  paused: { label: 'Paused', color: 'bg-yellow-500/20 text-yellow-400' },
+  abandoned: { label: 'Abandoned', color: 'bg-gray-500/20 text-gray-400' },
 };
 
 function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(cents / 100);
@@ -49,18 +49,18 @@ function getProgressColor(percent: number, onTrack: boolean): string {
 }
 
 function getDaysRemaining(targetDate: string | null): string {
-  if (!targetDate) return 'Sin fecha límite';
+  if (!targetDate) return 'No deadline';
   const target = new Date(targetDate);
   const now = new Date();
   const diff = Math.ceil(
     (target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
   );
-  if (diff < 0) return 'Vencida';
-  if (diff === 0) return 'Hoy';
-  if (diff === 1) return 'Mañana';
-  if (diff < 30) return `${diff} días`;
-  if (diff < 365) return `${Math.floor(diff / 30)} meses`;
-  return `${Math.floor(diff / 365)} años`;
+  if (diff < 0) return 'Overdue';
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff < 30) return `${diff} days`;
+  if (diff < 365) return `${Math.floor(diff / 30)} months`;
+  return `${Math.floor(diff / 365)} years`;
 }
 
 export default function MetasPage(): React.ReactElement {
@@ -184,25 +184,25 @@ export default function MetasPage(): React.ReactElement {
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
         <div className="text-6xl mb-6">🎯</div>
         <h2 className="text-2xl font-bold text-white mb-2">
-          {isNetworkError ? 'API no disponible' : 'Error al cargar'}
+          {isNetworkError ? 'API unavailable' : 'Failed to load'}
         </h2>
         <p className="text-gray-400 text-center max-w-md mb-6">
           {isNetworkError
-            ? 'El servidor no está disponible. Intenta recargar la página.'
-            : 'Hubo un problema al cargar las metas. Intenta recargar la página.'}
+            ? 'The server is unavailable. Try reloading the page.'
+            : 'There was a problem loading goals. Try reloading the page.'}
         </p>
         <div className="flex gap-4">
           <button
             onClick={() => refresh()}
             className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
           >
-            Reintentar
+            Retry
           </button>
           <Link
             href="/dashboard"
             className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Volver al Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -217,10 +217,10 @@ export default function MetasPage(): React.ReactElement {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-2">
-                <span>🎯</span> Seguimiento de Metas
+                <span>🎯</span> Goal Tracking
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                Visualiza tu progreso hacia tus sueños
+                Track your progress toward your dreams
               </p>
             </div>
             <button
@@ -240,7 +240,7 @@ export default function MetasPage(): React.ReactElement {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Nueva Meta
+              New Goal
             </button>
           </div>
         </div>
@@ -250,25 +250,23 @@ export default function MetasPage(): React.ReactElement {
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-20">
               <div className="text-8xl mb-6">🎯</div>
-              <h2 className="text-2xl font-bold mb-2">
-                ¡Empieza a soñar en grande!
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">Start dreaming big!</h2>
               <p className="text-gray-400 text-center max-w-md mb-8">
-                Define tus metas financieras y rastrea tu progreso. Ya sea
-                ahorrar para un viaje, un carro, o tu fondo de emergencia.
+                Define your financial goals and track your progress. Whether
+                saving for a trip, a car, or your emergency fund.
               </p>
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors"
                 >
-                  Crear mi primera meta
+                  Create my first goal
                 </button>
                 <Link
                   href="/dashboard"
                   className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  Usar el Copilot
+                  Use the Copilot
                 </Link>
               </div>
             </div>
@@ -277,25 +275,25 @@ export default function MetasPage(): React.ReactElement {
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Metas Activas</p>
+                  <p className="text-gray-400 text-sm mb-1">Active Goals</p>
                   <p className="text-3xl font-bold text-cyan-400">
                     {summary?.activeCount ?? 0}
                   </p>
                 </div>
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Meta Total</p>
+                  <p className="text-gray-400 text-sm mb-1">Total Goal</p>
                   <p className="text-3xl font-bold text-purple-400">
                     {summary ? formatCurrency(summary.totalTargetCents) : '$0'}
                   </p>
                 </div>
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Ahorrado</p>
+                  <p className="text-gray-400 text-sm mb-1">Saved</p>
                   <p className="text-3xl font-bold text-green-400">
                     {summary ? formatCurrency(summary.totalCurrentCents) : '$0'}
                   </p>
                 </div>
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                  <p className="text-gray-400 text-sm mb-1">Progreso General</p>
+                  <p className="text-gray-400 text-sm mb-1">Overall Progress</p>
                   <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold text-cyan-400">
                       {summary ? Math.round(summary.overallProgressPercent) : 0}
@@ -322,7 +320,7 @@ export default function MetasPage(): React.ReactElement {
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
                   >
-                    {status === 'all' ? 'Todas' : STATUS_LABELS[status].label}
+                    {status === 'all' ? 'All' : STATUS_LABELS[status].label}
                   </button>
                 ))}
               </div>
@@ -355,7 +353,7 @@ export default function MetasPage(): React.ReactElement {
                         <p className="text-3xl font-bold text-white">
                           {Math.round(goal.progressPercent)}%
                         </p>
-                        <p className="text-xs text-white/70">completado</p>
+                        <p className="text-xs text-white/70">completed</p>
                       </div>
                     </div>
 
@@ -397,7 +395,7 @@ export default function MetasPage(): React.ReactElement {
                       {/* Meta info */}
                       <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                         <div>
-                          <p className="text-gray-500">Tiempo restante</p>
+                          <p className="text-gray-500">Time remaining</p>
                           <p
                             className={`font-medium ${goal.targetDate && new Date(goal.targetDate) < new Date() ? 'text-red-400' : 'text-white'}`}
                           >
@@ -406,7 +404,7 @@ export default function MetasPage(): React.ReactElement {
                         </div>
                         <div>
                           <p className="text-gray-500">
-                            Aporte mensual sugerido
+                            Suggested monthly contribution
                           </p>
                           <p className="font-medium text-cyan-400">
                             {goal.recommendedMonthlyCents
@@ -429,7 +427,7 @@ export default function MetasPage(): React.ReactElement {
                               className={`relative inline-flex rounded-full h-2 w-2 ${goal.onTrack ? 'bg-green-500' : 'bg-orange-500'}`}
                             ></span>
                           </span>
-                          {goal.onTrack ? 'En camino' : 'Necesitas acelerar'}
+                          {goal.onTrack ? 'On track' : 'Need to accelerate'}
                         </div>
                       )}
 
@@ -488,14 +486,14 @@ export default function MetasPage(): React.ReactElement {
                                   }
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-700 text-green-400"
                                 >
-                                  Marcar completada
+                                  Mark as completed
                                 </button>
                               )}
                               <button
                                 onClick={() => setDeleteConfirm(goal)}
                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-700 text-red-400"
                               >
-                                Eliminar
+                                Delete
                               </button>
                             </div>
                           </div>
@@ -514,9 +512,9 @@ export default function MetasPage(): React.ReactElement {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold">Nueva Meta</h2>
+                <h2 className="text-xl font-bold">New Goal</h2>
                 <p className="text-sm text-gray-400">
-                  Define tu próximo objetivo financiero
+                  Define your next financial goal
                 </p>
               </div>
               <form onSubmit={handleAddGoal} className="p-6 space-y-4">
@@ -532,7 +530,7 @@ export default function MetasPage(): React.ReactElement {
                         setNewGoal({ ...newGoal, name: e.target.value })
                       }
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                      placeholder="Ej: Viaje a Europa"
+                      placeholder="E.g.: Trip to Europe"
                       required
                     />
                   </div>
@@ -555,7 +553,7 @@ export default function MetasPage(): React.ReactElement {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Descripción (opcional)
+                    Description (optional)
                   </label>
                   <textarea
                     value={newGoal.description}
@@ -563,14 +561,14 @@ export default function MetasPage(): React.ReactElement {
                       setNewGoal({ ...newGoal, description: e.target.value })
                     }
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500 resize-none"
-                    placeholder="¿Para qué es esta meta?"
+                    placeholder="What is this goal for?"
                     rows={2}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Tipo de Meta
+                    Goal Type
                   </label>
                   <select
                     value={newGoal.goal_type}
@@ -595,7 +593,7 @@ export default function MetasPage(): React.ReactElement {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Monto Meta
+                      Target Amount
                     </label>
                     <input
                       type="number"
@@ -614,7 +612,7 @@ export default function MetasPage(): React.ReactElement {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Monto Actual
+                      Current Amount
                     </label>
                     <input
                       type="number"
@@ -634,7 +632,7 @@ export default function MetasPage(): React.ReactElement {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Fecha Límite (opcional)
+                    Deadline (optional)
                   </label>
                   <input
                     type="date"
@@ -652,14 +650,14 @@ export default function MetasPage(): React.ReactElement {
                     onClick={() => setShowAddModal(false)}
                     className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Crear Meta'}
+                    {isSubmitting ? 'Saving...' : 'Create Goal'}
                   </button>
                 </div>
               </form>
@@ -672,10 +670,10 @@ export default function MetasPage(): React.ReactElement {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeleteGoal}
-          title="Eliminar Meta"
-          message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          title="Delete Goal"
+          message={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
           variant="danger"
           isLoading={isDeleting}
         />
@@ -691,7 +689,7 @@ export default function MetasPage(): React.ReactElement {
                       GOAL_TYPE_LABELS[showContributeModal.goalType]?.emoji}
                   </span>
                   <div>
-                    <h2 className="text-xl font-bold">Aportar a Meta</h2>
+                    <h2 className="text-xl font-bold">Contribute to Goal</h2>
                     <p className="text-sm text-gray-400">
                       {showContributeModal.name}
                     </p>
@@ -701,7 +699,7 @@ export default function MetasPage(): React.ReactElement {
               <form onSubmit={handleContribute} className="p-6 space-y-4">
                 <div className="bg-gray-800/50 rounded-lg p-4 mb-4">
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-400">Progreso actual</span>
+                    <span className="text-gray-400">Current progress</span>
                     <span className="text-white">
                       {Math.round(showContributeModal.progressPercent)}%
                     </span>
@@ -726,7 +724,7 @@ export default function MetasPage(): React.ReactElement {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Monto a Aportar
+                    Amount to Contribute
                   </label>
                   <input
                     type="number"
@@ -743,7 +741,7 @@ export default function MetasPage(): React.ReactElement {
                 </div>
 
                 <p className="text-center text-sm text-gray-400">
-                  Nuevo total:{' '}
+                  New total:{' '}
                   {formatCurrency(
                     showContributeModal.currentAmountCents +
                       (parseFloat(contribution.amount) || 0) * 100
@@ -756,14 +754,14 @@ export default function MetasPage(): React.ReactElement {
                     onClick={() => setShowContributeModal(null)}
                     className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Aportando...' : 'Aportar'}
+                    {isSubmitting ? 'Contributing...' : 'Contribute'}
                   </button>
                 </div>
               </form>

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     if (user.emailVerified) {
       return NextResponse.json({
-        message: 'Tu correo electrónico ya está verificado',
+        message: 'Your email is already verified',
       });
     }
 
@@ -35,12 +35,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message:
-        'Si tu correo no está verificado, te hemos enviado un enlace de verificación',
+        'If your email is not verified, we have sent you a verification link',
     });
   } catch (error) {
     console.error('Resend verification error:', error);
     const message =
-      error instanceof Error ? error.message : 'Error al enviar el correo';
+      error instanceof Error ? error.message : 'Failed to send email';
     return errorJson('INTERNAL_ERROR', message, 500);
   }
 }

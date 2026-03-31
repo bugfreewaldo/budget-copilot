@@ -16,6 +16,7 @@ import {
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { errorJson } from '@/lib/api/utils';
 import { type ParsedSummary, isBankStatement } from '@/lib/file-upload/types';
+import { learnPatternsFromImport } from '@/lib/import-pipeline/pattern-learner';
 
 export const dynamic = 'force-dynamic';
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Get session
-    const session = await db
+    const [session] = await db
       .select()
       .from(advisorSessions)
       .where(
@@ -141,8 +142,7 @@ export async function POST(request: NextRequest) {
           eq(advisorSessions.id, sessionId),
           eq(advisorSessions.userId, user.id)
         )
-      )
-      .get();
+      );
 
     if (!session) {
       return errorJson('NOT_FOUND', 'Session not found', 404);
@@ -157,19 +157,33 @@ export async function POST(request: NextRequest) {
     } else {
       return errorJson(
         'VALIDATION_ERROR',
-        'No hay cambios pendientes para confirmar.',
+        'No pending changes to confirm.',
         400
       );
     }
     const changesApplied: string[] = [];
 
-    // Get default account for transactions
-    const defaultAccount = await db
+    // Get or create default account for transactions
+    let [defaultAccount] = await db
       .select()
       .from(accounts)
       .where(eq(accounts.userId, user.id))
-      .limit(1)
-      .get();
+      .limit(1);
+
+    if (!defaultAccount) {
+      const accountId = nanoid();
+      await db.insert(accounts).values({
+        id: accountId,
+        userId: user.id,
+        name: 'Cash',
+        type: 'cash',
+        createdAt: Date.now(),
+      });
+      [defaultAccount] = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.id, accountId));
+    }
 
     // Apply transactions (only if we have an account)
     if (changes.transactions && defaultAccount) {
@@ -189,12 +203,12 @@ export async function POST(request: NextRequest) {
           updatedAt: Date.now(),
         });
         changesApplied.push(
-          `Transacción: ${txn.description} $${(txn.amountCents / 100).toFixed(2)}`
+          `Transaction: ${txn.description} $${(txn.amountCents / 100).toFixed(2)}`
         );
       }
     } else if (changes.transactions && !defaultAccount) {
       // No account available - skip transactions
-      changesApplied.push('Transacciones omitidas (no hay cuenta configurada)');
+      changesApplied.push('Transactions skipped (no account configured)');
     }
 
     // Apply transaction updates
@@ -212,7 +226,7 @@ export async function POST(request: NextRequest) {
               eq(transactions.userId, user.id)
             )
           );
-        changesApplied.push(`Transacción actualizada`);
+        changesApplied.push(`Transaction updated`);
       }
     }
 
@@ -220,23 +234,22 @@ export async function POST(request: NextRequest) {
     if (changes.transactionDeletions) {
       for (const txnId of changes.transactionDeletions) {
         // Get original transaction
-        const original = await db
+        const [original] = await db
           .select()
           .from(transactions)
           .where(
             and(eq(transactions.id, txnId), eq(transactions.userId, user.id))
-          )
-          .get();
+          );
 
         if (original) {
           await db
             .update(transactions)
             .set({
-              description: `[DISPUTADA] ${original.description}`,
+              description: `[DISPUTED] ${original.description}`,
               updatedAt: Date.now(),
             })
             .where(eq(transactions.id, txnId));
-          changesApplied.push(`Transacción disputada`);
+          changesApplied.push(`Transaction disputed`);
         }
       }
     }
@@ -244,11 +257,10 @@ export async function POST(request: NextRequest) {
     // Apply income changes
     if (changes.incomeChange) {
       // Check if profile exists
-      const existingProfile = await db
+      const [existingProfile] = await db
         .select()
         .from(userProfiles)
-        .where(eq(userProfiles.userId, user.id))
-        .get();
+        .where(eq(userProfiles.userId, user.id));
 
       if (existingProfile) {
         await db
@@ -268,7 +280,7 @@ export async function POST(request: NextRequest) {
         });
       }
       changesApplied.push(
-        `Ingreso actualizado: $${(changes.incomeChange.amountCents / 100).toFixed(2)}`
+        `Income updated: $${(changes.incomeChange.amountCents / 100).toFixed(2)}`
       );
     }
 
@@ -291,9 +303,7 @@ export async function POST(request: NextRequest) {
             .where(
               and(eq(debts.id, debtChange.debtId), eq(debts.userId, user.id))
             );
-          changesApplied.push(
-            `Deuda actualizada: ${debtChange.name || 'deuda'}`
-          );
+          changesApplied.push(`Debt updated: ${debtChange.name || 'debt'}`);
         } else if (debtChange.name) {
           // Map incoming type to valid debt type
           const validDebtTypes = [
@@ -325,7 +335,7 @@ export async function POST(request: NextRequest) {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           });
-          changesApplied.push(`Nueva deuda: ${debtChange.name}`);
+          changesApplied.push(`New debt: ${debtChange.name}`);
         }
       }
     }
@@ -353,7 +363,7 @@ export async function POST(request: NextRequest) {
               )
             );
           changesApplied.push(
-            `Gasto fijo actualizado: ${billChange.name || 'gasto'}`
+            `Recurring bill updated: ${billChange.name || 'bill'}`
           );
         } else if (billChange.name) {
           // Map incoming frequency to valid frequency
@@ -389,7 +399,7 @@ export async function POST(request: NextRequest) {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           });
-          changesApplied.push(`Nuevo gasto fijo: ${billChange.name}`);
+          changesApplied.push(`New recurring bill: ${billChange.name}`);
         }
       }
     }
@@ -409,7 +419,7 @@ export async function POST(request: NextRequest) {
           '[advisor/confirm] Invalid fileImport structure:',
           changes.fileImport
         );
-        changesApplied.push('Importación omitida (datos inválidos)');
+        changesApplied.push('Import skipped (invalid data)');
       } else {
         // Verify file ownership
         const file = await db.query.uploadedFiles.findFirst({
@@ -510,12 +520,36 @@ export async function POST(request: NextRequest) {
 
                 if (importedCount > 0) {
                   changesApplied.push(
-                    `${importedCount} transacciones importadas del archivo`
+                    `${importedCount} transactions imported from file`
                   );
+
+                  // Learn patterns from categorized transactions (fire-and-forget)
+                  if (categoryOverrides) {
+                    const categorizedTxs = parsedSummary.transactions
+                      .filter((t) => categoryOverrides[t.id]?.categoryId)
+                      .map((t) => ({
+                        description: t.description,
+                        categoryId: categoryOverrides[t.id]!.categoryId,
+                        categoryName: categoryOverrides[t.id]!.categoryName,
+                        source: 'pattern' as const,
+                      }));
+
+                    if (categorizedTxs.length > 0) {
+                      learnPatternsFromImport(user.id, categorizedTxs)
+                        .then(({ learned, updated }) => {
+                          console.log(
+                            `[patterns] Learned ${learned} new, updated ${updated} existing`
+                          );
+                        })
+                        .catch((err) => {
+                          console.error('[patterns] Failed to learn:', err);
+                        });
+                    }
+                  }
                 }
                 if (skippedCount > 0) {
                   changesApplied.push(
-                    `${skippedCount} transacciones ya importadas (omitidas)`
+                    `${skippedCount} transactions already imported (skipped)`
                   );
                 }
               }
@@ -524,13 +558,13 @@ export async function POST(request: NextRequest) {
                 '[advisor/confirm] Failed to process file import:',
                 err
               );
-              changesApplied.push('Error al importar archivo');
+              changesApplied.push('Error importing file');
             }
           }
         }
       }
     } else if (changes.fileImport && !defaultAccount) {
-      changesApplied.push('Importación omitida (no hay cuenta configurada)');
+      changesApplied.push('Import skipped (no account configured)');
     }
 
     // Determine if we should recompute decision
@@ -555,13 +589,13 @@ export async function POST(request: NextRequest) {
         changesApplied,
         decisionRecomputed,
         message: decisionRecomputed
-          ? 'Cambios aplicados. La decisión de hoy ha sido actualizada.'
-          : 'Cambios aplicados. No cambia la decisión de hoy.',
+          ? "Changes applied. Today's decision has been updated."
+          : "Changes applied. Today's decision remains the same.",
         redirectTo: decisionRecomputed ? '/dashboard' : null,
       },
     });
   } catch (error) {
     console.error('Failed to confirm pending changes:', error);
-    return errorJson('INTERNAL_ERROR', 'Error al aplicar cambios', 500);
+    return errorJson('INTERNAL_ERROR', 'Failed to apply changes', 500);
   }
 }

@@ -72,19 +72,19 @@ export function ImportStagingCard({
   return (
     <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-900/20">
       <h3 className="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-        Cambios a aplicar
+        Changes to apply
       </h3>
 
       <div className="mb-4 space-y-1 text-sm">
         <p className="text-gray-700 dark:text-gray-300">
-          <span className="font-medium">{selectedTransactions.length}</span>{' '}
-          transacciones nuevas
+          <span className="font-medium">{selectedTransactions.length}</span> new
+          transactions
         </p>
 
         {expenseCount > 0 && (
           <p className="ml-3 text-gray-600 dark:text-gray-400">
             <span className="text-red-600 dark:text-red-400">
-              {expenseCount} gastos
+              {expenseCount} expenses
             </span>{' '}
             ({formatCurrency(expenseCents)})
           </p>
@@ -93,7 +93,7 @@ export function ImportStagingCard({
         {incomeCount > 0 && (
           <p className="ml-3 text-gray-600 dark:text-gray-400">
             <span className="text-green-600 dark:text-green-400">
-              {incomeCount} ingresos
+              {incomeCount} income
             </span>{' '}
             ({formatCurrency(incomeCents)})
           </p>
@@ -101,13 +101,13 @@ export function ImportStagingCard({
 
         {transfersExcluded > 0 && (
           <p className="text-gray-500 dark:text-gray-500">
-            {transfersExcluded} transferencias excluidas
+            {transfersExcluded} transfers excluded
           </p>
         )}
 
         {microFeesExcluded > 0 && (
           <p className="text-gray-500 dark:text-gray-500">
-            {microFeesExcluded} micro-cargos excluidos
+            {microFeesExcluded} micro-fees excluded
           </p>
         )}
       </div>
@@ -119,7 +119,7 @@ export function ImportStagingCard({
           disabled={isLoading}
           className="flex-1"
         >
-          Cancelar
+          Cancel
         </Button>
         <Button
           variant="primary"
@@ -127,7 +127,7 @@ export function ImportStagingCard({
           disabled={isLoading || selectedTransactions.length === 0}
           className="flex-1"
         >
-          {isLoading ? 'Importando...' : 'Confirmar importacion'}
+          {isLoading ? 'Importing...' : 'Confirm import'}
         </Button>
       </div>
     </div>

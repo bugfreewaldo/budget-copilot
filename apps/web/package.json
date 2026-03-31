@@ -15,7 +15,7 @@
     "@aws-sdk/s3-request-presigner": "^3.699.0",
     "@budget-copilot/core": "workspace:*",
     "@budget-copilot/ui": "workspace:*",
-    "@libsql/client": "^0.15.15",
+    "@neondatabase/serverless": "^1.0.2",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
     "nanoid": "^5.0.4",

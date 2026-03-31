@@ -56,7 +56,7 @@ function formatCents(cents: number): string {
 }
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('es-ES', {
+  return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -234,18 +234,18 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
 
     primaryCommand = {
       type: 'freeze',
-      text: `CONGELA todo gasto. Te faltan ${formatCents(deficit)} para cubrir tus gastos fijos. Cualquier compra ahora significa un pago perdido.`,
+      text: `FREEZE all spending. You're ${formatCents(deficit)} short to cover your fixed bills. Any purchase now means a missed payment.`,
       amountCents: deficit,
     };
 
     nextAction = {
-      text: 'Ver qué gastos diferir',
+      text: 'See which bills to defer',
       url: '/gastos-fijos',
     };
 
     if (nextBill) {
       warnings.push(
-        `${nextBill.name} (${formatCents(nextBill.amountCents)}) vence ${nextBill.nextDueDate}. No puedes cubrirlo.`
+        `${nextBill.name} (${formatCents(nextBill.amountCents)}) is due ${nextBill.nextDueDate}. You can't cover it.`
       );
     }
   }
@@ -258,17 +258,17 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
     chosenPath =
       riskLevel === 'danger' ? 'DANGER_DAILY_LIMIT' : 'WARNING_DAILY_LIMIT';
 
-    const billAtRisk = nextBill?.name || 'tus gastos fijos';
+    const billAtRisk = nextBill?.name || 'your fixed bills';
 
     primaryCommand = {
       type: 'freeze',
-      text: `No excedas ${formatCents(dailySafe)}/día hasta ${formatDate(nextPayDate)}. Pasarte significa que ${billAtRisk} no se paga.`,
+      text: `Don't exceed ${formatCents(dailySafe)}/day until ${formatDate(nextPayDate)}. Going over means ${billAtRisk} won't get paid.`,
       amountCents: dailySafe,
       date: nextPayDate.toISOString().split('T')[0],
     };
 
     nextAction = {
-      text: 'Entendido',
+      text: 'Understood',
       url: '/dashboard',
     };
 
@@ -276,13 +276,13 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
       const daysUntilBill = daysBetween(today, new Date(nextBill.nextDueDate));
       if (daysUntilBill <= 3) {
         warnings.push(
-          `${nextBill.name} (${formatCents(nextBill.amountCents)}) vence en ${daysUntilBill} día${daysUntilBill !== 1 ? 's' : ''}.`
+          `${nextBill.name} (${formatCents(nextBill.amountCents)}) is due in ${daysUntilBill} day${daysUntilBill !== 1 ? 's' : ''}.`
         );
       }
     }
 
     if (riskLevel === 'danger') {
-      warnings.push(`Runway: ${runwayDays} días. Cada peso cuenta.`);
+      warnings.push(`Runway: ${runwayDays} days. Every dollar counts.`);
     }
   }
   // DEBT PATH
@@ -302,14 +302,14 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
 
       primaryCommand = {
         type: 'pay',
-        text: `Paga ${formatCents(extraPayment)} extra a ${highestAprDebt.name} hoy. Esto acelera tu fecha de libertad financiera.`,
+        text: `Pay ${formatCents(extraPayment)} extra toward ${highestAprDebt.name} today. This accelerates your debt-free date.`,
         amountCents: extraPayment,
         target: highestAprDebt.name,
         date: todayStr,
       };
 
       nextAction = {
-        text: 'Marcar como pagado',
+        text: 'Mark as paid',
         url: `/deudas/${highestAprDebt.id}`,
       };
     } else {
@@ -318,12 +318,12 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
 
       primaryCommand = {
         type: 'spend',
-        text: `Puedes gastar ${formatCents(weeklySafe)} esta semana. Esto mantiene tus gastos fijos cubiertos y tus pagos de deuda al día.`,
+        text: `You can spend ${formatCents(weeklySafe)} this week. This keeps your fixed bills covered and your debt payments on track.`,
         amountCents: weeklySafe,
       };
 
       nextAction = {
-        text: 'Entendido',
+        text: 'Understood',
         url: '/dashboard',
       };
     }
@@ -335,12 +335,12 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
 
     primaryCommand = {
       type: 'spend',
-      text: `Puedes gastar ${formatCents(weeklySafe)} esta semana. Esto mantiene todos tus gastos fijos cubiertos y tu runway arriba de 14 días.`,
+      text: `You can spend ${formatCents(weeklySafe)} this week. This keeps all your fixed bills covered and your runway above 14 days.`,
       amountCents: weeklySafe,
     };
 
     nextAction = {
-      text: 'Entendido',
+      text: 'Understood',
       url: '/dashboard',
     };
 
@@ -348,7 +348,7 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
       const daysUntilBill = daysBetween(today, new Date(nextBill.nextDueDate));
       if (daysUntilBill <= 5) {
         warnings.push(
-          `${nextBill.name} (${formatCents(nextBill.amountCents)}) vence en ${daysUntilBill} días. Estás cubierto.`
+          `${nextBill.name} (${formatCents(nextBill.amountCents)}) is due in ${daysUntilBill} days. You're covered.`
         );
       }
     }
@@ -379,7 +379,7 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
     if (extraPayment >= 2500) {
       // At least $25 extra
       suggestions.push(
-        `Si pagas ${formatCents(extraPayment)} extra a ${highestAprDebt.name}, podrías terminar ${monthsSaved} mes${monthsSaved > 1 ? 'es' : ''} antes.`
+        `If you pay ${formatCents(extraPayment)} extra toward ${highestAprDebt.name}, you could finish ${monthsSaved} month${monthsSaved > 1 ? 's' : ''} sooner.`
       );
     }
   }
@@ -387,11 +387,11 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
   // Runway suggestion
   if (suggestions.length === 0 && riskLevel === 'safe' && dailyBudget > 5000) {
     suggestions.push(
-      'Tu margen financiero es sólido. Considera ahorrar o pagar deuda extra.'
+      'Your financial margin is solid. Consider saving or making extra debt payments.'
     );
   } else if (suggestions.length === 0 && riskLevel === 'caution' && nextBill) {
     suggestions.push(
-      `Tienes gastos fijos próximos. Evita compras grandes hasta el ${nextBill.nextDueDate}.`
+      `You have upcoming fixed bills. Avoid large purchases until ${nextBill.nextDueDate}.`
     );
   } else if (
     suggestions.length === 0 &&
@@ -399,7 +399,7 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
     availableAfterBills > 0
   ) {
     suggestions.push(
-      'Tu presupuesto flexible hoy es $0, pero técnicamente tienes margen. Guárdalo para emergencias.'
+      'Your flexible budget today is $0, but technically you have margin. Save it for emergencies.'
     );
   }
 
@@ -410,7 +410,7 @@ async function computeDecision(userId: string): Promise<DecisionOutput> {
       0
     );
     suggestions.push(
-      `Tienes ${formatCents(totalDebt)} en deudas activas. Habla con tu asesor para optimizar tu estrategia de pago.`
+      `You have ${formatCents(totalDebt)} in active debts. Talk to your advisor to optimize your payment strategy.`
     );
   }
 
@@ -574,21 +574,21 @@ export async function GET(request: NextRequest) {
           isPaid: false,
           riskLevel: decision.riskLevel,
           warnings: decision.warnings.map((w) => {
-            if (w.includes('vence en')) {
-              const match = w.match(/vence en (\d+)/);
+            if (w.includes('due in')) {
+              const match = w.match(/due in (\d+)/);
               if (match) {
-                return `Gasto fijo vence en ${match[1]} días`;
+                return `Fixed bill due in ${match[1]} days`;
               }
             }
             if (w.includes('Runway') || w.includes('runway')) {
-              return 'Tu margen financiero es limitado';
+              return 'Your financial margin is limited';
             }
-            if (w.includes('peso cuenta')) {
-              return 'El margen actual no cubre todos los compromisos';
+            if (w.includes('dollar counts')) {
+              return "Current margin doesn't cover all commitments";
             }
-            return 'Hay poco espacio para errores esta semana';
+            return "There's little room for error this week";
           }),
-          teaser: 'Tu próxima acción financiera está lista.',
+          teaser: 'Your next financial action is ready.',
           hasExpiredDecision,
           hoursRemaining: 0,
         },

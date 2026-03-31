@@ -32,6 +32,7 @@ export function CreateTransactionModal({
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [sensitive, setSensitive] = useState(false);
   const [date, setDate] = useState(getToday());
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,12 +51,14 @@ export function CreateTransactionModal({
         setAmount((editingTransaction.amountCents / 100).toString());
         setDescription(editingTransaction.description);
         setCategoryId(editingTransaction.categoryId || '');
+        setSensitive(editingTransaction.sensitive ?? false);
         setDate(editingTransaction.date);
       } else {
         setType(defaultType);
         setAmount('');
         setDescription('');
         setCategoryId('');
+        setSensitive(false);
         setDate(getToday());
       }
 
@@ -94,20 +97,17 @@ export function CreateTransactionModal({
 
     const amountNum = parseFloat(amount);
     if (!amount.trim() || isNaN(amountNum) || amountNum === 0) {
-      showToast('Ingresa un monto válido', 'error');
+      showToast('Enter a valid amount', 'error');
       return;
     }
 
     if (!description.trim()) {
-      showToast('Ingresa una descripción', 'error');
+      showToast('Enter a description', 'error');
       return;
     }
 
     if (!accountId) {
-      showToast(
-        'Error: No se pudo crear la cuenta. Intenta de nuevo.',
-        'error'
-      );
+      showToast('Error: Could not create account. Please try again.', 'error');
       return;
     }
 
@@ -121,8 +121,9 @@ export function CreateTransactionModal({
           amountCents: Math.round(amountNum * 100),
           type,
           categoryId: categoryId || null,
+          sensitive,
         });
-        showToast('Transacción actualizada', 'success');
+        showToast('Transaction updated', 'success');
       } else {
         await createTransaction({
           date,
@@ -132,9 +133,10 @@ export function CreateTransactionModal({
           categoryId: categoryId || undefined,
           accountId,
           cleared: true,
+          sensitive,
         });
         showToast(
-          type === 'income' ? 'Ingreso registrado' : 'Gasto registrado',
+          type === 'income' ? 'Income recorded' : 'Expense recorded',
           'success'
         );
       }
@@ -145,8 +147,8 @@ export function CreateTransactionModal({
         error instanceof Error
           ? error.message
           : isEditing
-            ? 'Error al actualizar transacción'
-            : 'Error al crear transacción';
+            ? 'Failed to update transaction'
+            : 'Failed to create transaction';
       showToast(message, 'error');
     } finally {
       setLoading(false);
@@ -189,10 +191,10 @@ export function CreateTransactionModal({
           >
             <span>{isExpense ? '💸' : '💰'}</span>
             {isEditing
-              ? 'Editar Transacción'
+              ? 'Edit Transaction'
               : isExpense
-                ? 'Agregar Gasto'
-                : 'Agregar Ingreso'}
+                ? 'Add Expense'
+                : 'Add Income'}
           </h2>
 
           {/* Type Toggle */}
@@ -206,7 +208,7 @@ export function CreateTransactionModal({
                   : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700'
               }`}
             >
-              Gasto
+              Expense
             </button>
             <button
               type="button"
@@ -217,7 +219,7 @@ export function CreateTransactionModal({
                   : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700'
               }`}
             >
-              Ingreso
+              Income
             </button>
           </div>
 
@@ -228,7 +230,7 @@ export function CreateTransactionModal({
                 htmlFor="amount"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Monto <span className="text-red-400">*</span>
+                Amount <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -254,7 +256,7 @@ export function CreateTransactionModal({
                 htmlFor="description"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Descripción <span className="text-red-400">*</span>
+                Description <span className="text-red-400">*</span>
               </label>
               <input
                 id="description"
@@ -265,9 +267,7 @@ export function CreateTransactionModal({
                 disabled={loading}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
                 placeholder={
-                  isExpense
-                    ? 'ej., Compras en supermercado'
-                    : 'ej., Salario mensual'
+                  isExpense ? 'e.g., Grocery shopping' : 'e.g., Monthly salary'
                 }
               />
             </div>
@@ -278,7 +278,7 @@ export function CreateTransactionModal({
                 htmlFor="date"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Fecha
+                Date
               </label>
               <input
                 id="date"
@@ -296,7 +296,7 @@ export function CreateTransactionModal({
                 htmlFor="category"
                 className="block text-sm font-medium text-gray-300 mb-1"
               >
-                Categoría
+                Category
               </label>
               <select
                 id="category"
@@ -305,14 +305,59 @@ export function CreateTransactionModal({
                 disabled={loading}
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
               >
-                <option value="">Sin categoría</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.emoji} {cat.name}
-                  </option>
-                ))}
+                <option value="">No category</option>
+                {(() => {
+                  const parents = categories
+                    .filter((c) => !c.parentId)
+                    .sort((a, b) => a.name.localeCompare(b.name));
+                  return parents.map((parent) => {
+                    const children = categories
+                      .filter((c) => c.parentId === parent.id)
+                      .sort((a, b) => a.name.localeCompare(b.name));
+                    if (children.length > 0) {
+                      return (
+                        <optgroup
+                          key={parent.id}
+                          label={`${parent.emoji || ''} ${parent.name}`}
+                        >
+                          <option value={parent.id}>
+                            {parent.emoji || ''} {parent.name} (general)
+                          </option>
+                          {children.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.emoji || ''} {child.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    }
+                    return (
+                      <option key={parent.id} value={parent.id}>
+                        {parent.emoji || ''} {parent.name}
+                      </option>
+                    );
+                  });
+                })()}
               </select>
             </div>
+
+            {/* Sensitive Toggle */}
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={sensitive}
+                  onChange={(e) => setSensitive(e.target.checked)}
+                  disabled={loading}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-700 rounded-full peer-checked:bg-purple-500 transition-colors"></div>
+                <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-gray-300 rounded-full peer-checked:translate-x-4 peer-checked:bg-white transition-transform"></div>
+              </div>
+              <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
+                🔒 Hide description
+              </span>
+            </label>
 
             {/* Buttons */}
             <div className="flex justify-end gap-3 mt-6">
@@ -322,7 +367,7 @@ export function CreateTransactionModal({
                 disabled={loading}
                 className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 type="submit"
@@ -336,10 +381,10 @@ export function CreateTransactionModal({
                 }`}
               >
                 {loading
-                  ? 'Guardando...'
+                  ? 'Saving...'
                   : isEditing
-                    ? '✓ Guardar Cambios'
-                    : `✓ ${isExpense ? 'Agregar Gasto' : 'Agregar Ingreso'}`}
+                    ? '✓ Save Changes'
+                    : `✓ ${isExpense ? 'Add Expense' : 'Add Income'}`}
               </button>
             </div>
           </form>

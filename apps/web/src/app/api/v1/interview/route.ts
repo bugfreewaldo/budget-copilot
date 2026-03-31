@@ -8,12 +8,12 @@ import { errorJson } from '@/lib/api/utils';
 
 export const dynamic = 'force-dynamic';
 
-// Initial message (authority tone, Spanish - context setting, ONE TIME ONLY)
-const INITIAL_MESSAGE = `Te haré algunas preguntas para entender tu situación financiera.
-Responde lo que sepas. Los estimados son suficientes. Ajustaremos si es necesario.
+// Initial message (authority tone - context setting, ONE TIME ONLY)
+const INITIAL_MESSAGE = `I'll ask you a few questions to understand your financial situation.
+Answer what you know. Estimates are fine. We'll adjust if needed.
 
-¿Cuánto dinero tienes disponible ahora mismo?
-Incluye lo que tengas en cuentas o efectivo que puedas usar hoy.`;
+How much money do you have available right now?
+Include anything in accounts or cash you can use today.`;
 
 // Initialize empty extracted data
 function initializeExtractedData() {
@@ -40,11 +40,10 @@ export async function GET(request: NextRequest) {
     const db = getDb();
 
     // Check for existing session
-    const existingSession = await db
+    const [existingSession] = await db
       .select()
       .from(interviewSessions)
-      .where(eq(interviewSessions.userId, userId))
-      .get();
+      .where(eq(interviewSessions.userId, userId));
 
     if (existingSession) {
       const conversationHistory = existingSession.conversationHistory
@@ -124,7 +123,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({
       data: {
         success: true,
-        message: 'Entrevista reiniciada. Comienza de nuevo para empezar.',
+        message: 'Interview reset. Start over to begin again.',
       },
     });
   } catch (error) {

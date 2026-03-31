@@ -104,7 +104,7 @@ export function CategoryPickerModal({
         <div className="p-4 border-b border-gray-800 flex-shrink-0">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <span>📂</span> Seleccionar Categoría
+              <span>📂</span> Select Category
             </h3>
             <button
               onClick={onClose}
@@ -143,7 +143,7 @@ export function CategoryPickerModal({
             </svg>
             <input
               type="text"
-              placeholder="Buscar categoría..."
+              placeholder="Search category..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoFocus
@@ -166,7 +166,7 @@ export function CategoryPickerModal({
             <span className="text-xl w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg">
               ➖
             </span>
-            <span className="font-medium">Sin categoría</span>
+            <span className="font-medium">No category</span>
           </button>
 
           {/* Search Results (flat list) */}
@@ -196,7 +196,7 @@ export function CategoryPickerModal({
                 <div className="text-center py-8">
                   <span className="text-4xl mb-3 block">🔍</span>
                   <p className="text-gray-400">
-                    No se encontraron categorías con "{searchQuery}"
+                    No categories found for "{searchQuery}"
                   </p>
                 </div>
               )}
@@ -260,7 +260,7 @@ export function CategoryPickerModal({
         {/* Footer */}
         <div className="p-4 border-t border-gray-800 flex-shrink-0">
           <p className="text-sm text-gray-500 text-center">
-            {categories.length} categorías disponibles
+            {categories.length} categories available
           </p>
         </div>
       </div>

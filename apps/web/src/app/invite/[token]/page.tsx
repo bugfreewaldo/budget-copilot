@@ -20,9 +20,9 @@ interface InviteDetails {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Administrador',
-  member: 'Miembro',
-  viewer: 'Solo lectura',
+  admin: 'Admin',
+  member: 'Member',
+  viewer: 'Viewer',
 };
 
 export default function InvitePage(): React.ReactElement {
@@ -55,7 +55,7 @@ export default function InvitePage(): React.ReactElement {
         setIsAuthenticated(authRes.ok);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : 'No se pudo cargar la invitación'
+          err instanceof Error ? err.message : 'Failed to load the invitation'
         );
       } finally {
         setLoading(false);
@@ -84,7 +84,7 @@ export default function InvitePage(): React.ReactElement {
       router.push('/familia');
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Error al aceptar la invitación'
+        err instanceof Error ? err.message : 'Failed to accept the invitation'
       );
       setIsAccepting(false);
     }
@@ -106,14 +106,14 @@ export default function InvitePage(): React.ReactElement {
         <div key="error" className="max-w-md w-full text-center">
           <div className="text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-white mb-2">
-            Invitación Inválida
+            Invalid Invitation
           </h1>
           <p className="text-gray-400 mb-6">{error}</p>
           <Link
             href="/login"
             className="inline-block px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium"
           >
-            Ir a Iniciar Sesión
+            Go to Sign In
           </Link>
         </div>
       )}
@@ -129,9 +129,9 @@ export default function InvitePage(): React.ReactElement {
               <span className="text-4xl">👨‍👩‍👧‍👦</span>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">
-              Invitación a Hogar
+              Household Invitation
             </h1>
-            <p className="text-gray-400">Te han invitado a unirte</p>
+            <p className="text-gray-400">You've been invited to join</p>
           </div>
 
           {/* Household Info */}
@@ -141,20 +141,20 @@ export default function InvitePage(): React.ReactElement {
             </h2>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">Tu rol:</span>
+                <span className="text-gray-400">Your role:</span>
                 <span className="text-cyan-400 font-medium">
                   {ROLE_LABELS[invite?.role || ''] || invite?.role}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">Miembros actuales:</span>
+                <span className="text-gray-400">Current members:</span>
                 <span className="text-white">
                   {invite?.household.memberCount}
                 </span>
               </div>
               {invite?.invitedBy && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Invitado por:</span>
+                  <span className="text-gray-400">Invited by:</span>
                   <span className="text-white">
                     {invite.invitedBy.name || invite.invitedBy.email}
                   </span>
@@ -180,7 +180,7 @@ export default function InvitePage(): React.ReactElement {
                 {isAccepting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Uniéndose...
+                    Joining...
                   </>
                 ) : (
                   <>
@@ -197,7 +197,7 @@ export default function InvitePage(): React.ReactElement {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    Unirme al Hogar
+                    Join Household
                   </>
                 )}
               </button>
@@ -205,26 +205,26 @@ export default function InvitePage(): React.ReactElement {
                 href="/dashboard"
                 className="block w-full py-3 bg-gray-800 text-gray-300 text-center rounded-xl font-medium hover:bg-gray-700"
               >
-                Cancelar
+                Cancel
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               <p className="text-center text-gray-400 text-sm">
-                Crea una cuenta o inicia sesión para unirte a este hogar
+                Create an account or sign in to join this household
               </p>
               <div className="space-y-3">
                 <Link
                   href={`/register?redirect=/invite/${token}`}
                   className="block w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-center rounded-xl font-medium transition-all"
                 >
-                  Crear Cuenta
+                  Create Account
                 </Link>
                 <Link
                   href={`/login?redirect=/invite/${token}`}
                   className="block w-full py-3 bg-gray-800 text-gray-300 text-center rounded-xl font-medium hover:bg-gray-700"
                 >
-                  Ya tengo cuenta
+                  I already have an account
                 </Link>
               </div>
             </div>
@@ -232,9 +232,9 @@ export default function InvitePage(): React.ReactElement {
 
           {/* Footer */}
           <p className="mt-6 text-center text-xs text-gray-500">
-            Esta invitación expira el{' '}
+            This invitation expires on{' '}
             {invite?.expiresAt
-              ? new Date(invite.expiresAt).toLocaleDateString('es-ES')
+              ? new Date(invite.expiresAt).toLocaleDateString('en-US')
               : ''}
           </p>
         </div>

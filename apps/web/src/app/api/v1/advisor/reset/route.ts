@@ -8,11 +8,11 @@ import { errorJson } from '@/lib/api/utils';
 export const dynamic = 'force-dynamic';
 
 // Initial message for the advisor (same as in main route)
-const INITIAL_MESSAGE = `Este es tu espacio para actualizar tu situación financiera.
+const INITIAL_MESSAGE = `This is your space to update your financial situation.
 
-Puedes subir documentos, aclarar gastos, o hacer preguntas.
+You can upload documents, clarify expenses, or ask questions.
 
-Si algo cambia lo suficiente, la decisión de hoy se ajustará automáticamente.`;
+If something changes enough, today's decision will adjust automatically.`;
 
 /**
  * POST /api/v1/advisor/reset - Reset advisor session
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     // Get session
-    const session = await db
+    const [session] = await db
       .select()
       .from(advisorSessions)
       .where(
@@ -49,8 +49,7 @@ export async function POST(request: NextRequest) {
           eq(advisorSessions.id, sessionId),
           eq(advisorSessions.userId, user.id)
         )
-      )
-      .get();
+      );
 
     if (!session) {
       return errorJson('NOT_FOUND', 'Session not found', 404);
@@ -69,7 +68,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       data: {
         success: true,
-        message: 'Sesión reiniciada',
+        message: 'Session reset',
         session: {
           id: sessionId,
           conversationHistory: [],

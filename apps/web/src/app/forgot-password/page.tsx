@@ -25,10 +25,10 @@ export default function ForgotPasswordPage(): React.ReactElement {
         setSuccess(true);
       } else {
         const data = await res.json();
-        setError(data.message || 'Error al procesar la solicitud.');
+        setError(data.message || 'Failed to process the request.');
       }
     } catch {
-      setError('Error de conexión. Por favor intenta de nuevo.');
+      setError('Connection error. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -75,20 +75,20 @@ export default function ForgotPasswordPage(): React.ReactElement {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">
-                Revisa tu correo
+                Check your email
               </h3>
               <p className="text-gray-400 mb-6">
-                Si existe una cuenta con el correo <strong>{email}</strong>, te
-                hemos enviado instrucciones para restablecer tu contraseña.
+                If an account exists with the email <strong>{email}</strong>, we
+                have sent you instructions to reset your password.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                El enlace expirará en 1 hora.
+                The link will expire in 1 hour.
               </p>
               <Link
                 href="/login"
                 className="inline-flex justify-center py-3 px-6 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 transition-all"
               >
-                Volver al Login
+                Back to Login
               </Link>
             </div>
           </div>
@@ -114,10 +114,10 @@ export default function ForgotPasswordPage(): React.ReactElement {
           </span>
         </Link>
         <h2 className="text-center text-3xl font-bold text-white">
-          ¿Olvidaste tu contraseña?
+          Forgot your password?
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
-          Te enviaremos un enlace para restablecerla
+          We&apos;ll send you a link to reset it
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-300"
               >
-                Correo Electrónico
+                Email
               </label>
               <div className="mt-1">
                 <input
@@ -147,7 +147,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-                  placeholder="tu@email.com"
+                  placeholder="you@email.com"
                 />
               </div>
             </div>
@@ -176,10 +176,10 @@ export default function ForgotPasswordPage(): React.ReactElement {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    Enviando...
+                    Sending...
                   </span>
                 ) : (
-                  'Enviar Enlace'
+                  'Send Link'
                 )}
               </button>
             </div>
@@ -190,7 +190,7 @@ export default function ForgotPasswordPage(): React.ReactElement {
               href="/login"
               className="text-sm text-cyan-400 hover:text-cyan-300"
             >
-              ← Volver al Login
+              ← Back to Login
             </Link>
           </div>
         </div>

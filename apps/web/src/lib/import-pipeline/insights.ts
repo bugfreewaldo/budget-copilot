@@ -43,7 +43,7 @@ function calculateSpendingByCategory(
     // Skip transfers
     if (tx.isTransfer) continue;
 
-    const categoryName = tx.category.name || 'Sin categoría';
+    const categoryName = tx.category.name || 'Uncategorized';
     const amountCents = Math.round(Math.abs(tx.amount) * 100);
 
     const existing = byCategory.get(categoryName) || {
@@ -236,8 +236,8 @@ function detectAnomalies(
         reason: 'unusually_high',
         details:
           medianValue > 0
-            ? `${(absAmount / medianValue).toFixed(1)}x el gasto típico`
-            : 'Monto inusualmente alto',
+            ? `${(absAmount / medianValue).toFixed(1)}x the typical expense`
+            : 'Unusually high amount',
       });
     }
 
@@ -251,7 +251,7 @@ function detectAnomalies(
           amountCents,
           date: tx.date,
           reason: 'round_number',
-          details: 'Cantidad redonda (posible cargo manual)',
+          details: 'Round number (possible manual charge)',
         });
       }
     }
@@ -288,7 +288,7 @@ function detectAnomalies(
             amountCents: Math.round(Math.abs(tx.amount) * 100),
             date: tx.date,
             reason: 'potential_duplicate',
-            details: 'Posible duplicado (mismo monto y fecha)',
+            details: 'Possible duplicate (same amount and date)',
           });
         }
       }

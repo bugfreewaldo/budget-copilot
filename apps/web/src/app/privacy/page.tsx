@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 export default function PrivacyPage(): React.ReactElement {
-  const [lang, setLang] = useState<'es' | 'en'>('es');
+  const [lang, setLang] = useState<'es' | 'en'>('en');
 
   const content = {
     es: {
@@ -25,8 +25,8 @@ export default function PrivacyPage(): React.ReactElement {
 **Datos Financieros:**
 • Transacciones que ingresas manualmente
 • Datos extraídos de capturas de pantalla o PDFs
-• Categorías y presupuestos que configuras
-• Metas de ahorro
+• Categories and budgets you set up
+• Savings goals
 
 **Datos de Uso:**
 • Cómo interactúas con la aplicación

@@ -75,13 +75,13 @@ function calculateWeather(
   if (budgetUsagePercent >= 100 || netPosition < 0) {
     return {
       emoji: '⛈️',
-      status: 'Alerta de Tormenta',
+      status: 'Storm Alert',
       message:
         netPosition < 0
-          ? `Gastos exceden ingresos por $${Math.abs(netPosition / 100).toFixed(0)}`
+          ? `Expenses exceed income by $${Math.abs(netPosition / 100).toFixed(0)}`
           : hasBudgets
-            ? 'Presupuesto agotado. Evita compras grandes.'
-            : 'Has gastado todo tu ingreso. ¡Cuidado!',
+            ? 'Budget exhausted. Avoid large purchases.'
+            : 'You have spent all your income. Be careful!',
       color: 'from-purple-500 to-red-500',
       bgColor: 'bg-red-900/30',
     };
@@ -90,10 +90,10 @@ function calculateWeather(
   if (budgetUsagePercent >= 80) {
     return {
       emoji: '🌧️',
-      status: 'Día Lluvioso',
+      status: 'Rainy Day',
       message: hasBudgets
-        ? `Presupuesto al ${budgetUsagePercent.toFixed(0)}%. Cuidado con los gastos.`
-        : `Has gastado ${budgetUsagePercent.toFixed(0)}% de tus ingresos. Ve con calma.`,
+        ? `Budget at ${budgetUsagePercent.toFixed(0)}%. Watch your spending.`
+        : `You've spent ${budgetUsagePercent.toFixed(0)}% of your income. Take it easy.`,
       color: 'from-gray-400 to-blue-500',
       bgColor: 'bg-blue-900/30',
     };
@@ -102,8 +102,8 @@ function calculateWeather(
   if (budgetUsagePercent >= 50) {
     return {
       emoji: '⛅',
-      status: 'Parcialmente Nublado',
-      message: `Puedes gastar ~$${safeToSpendDaily} por día. ¡Planifica bien!`,
+      status: 'Partly Cloudy',
+      message: `You can spend ~$${safeToSpendDaily} per day. Plan wisely!`,
       color: 'from-blue-400 to-cyan-400',
       bgColor: 'bg-cyan-900/30',
     };
@@ -113,8 +113,8 @@ function calculateWeather(
   if (income === 0 && expenses === 0) {
     return {
       emoji: '🌤️',
-      status: 'Esperando Datos',
-      message: 'Agrega tus ingresos y gastos para ver tu clima financiero.',
+      status: 'Awaiting Data',
+      message: 'Add your income and expenses to see your financial weather.',
       color: 'from-gray-400 to-gray-500',
       bgColor: 'bg-gray-900/30',
     };
@@ -122,11 +122,11 @@ function calculateWeather(
 
   return {
     emoji: '☀️',
-    status: 'Cielos Despejados',
+    status: 'Clear Skies',
     message:
       safeToSpendDaily > 0
-        ? `¡Buen flujo de caja! Puedes gastar ~$${safeToSpendDaily} por día.`
-        : '¡Excelente control! Sigue así.',
+        ? `Great cash flow! You can spend ~$${safeToSpendDaily} per day.`
+        : 'Excellent control! Keep it up.',
     color: 'from-yellow-400 to-orange-400',
     bgColor: 'bg-amber-900/30',
   };
@@ -197,15 +197,15 @@ export function FinancialWeather({
         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-700/50">
           <div className="text-center">
             <p className="text-2xl font-bold text-green-400">
-              ${income.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+              ${income.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
-            <p className="text-xs text-gray-500">Ingresos</p>
+            <p className="text-xs text-gray-500">Income</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-red-400">
-              ${expenses.toLocaleString('es-MX', { maximumFractionDigits: 0 })}
+              ${expenses.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
-            <p className="text-xs text-gray-500">Gastos</p>
+            <p className="text-xs text-gray-500">Expenses</p>
           </div>
           <div className="text-center">
             <p
@@ -213,7 +213,7 @@ export function FinancialWeather({
             >
               {daysOfRunway > 30 ? '30+' : daysOfRunway}
             </p>
-            <p className="text-xs text-gray-500">Días de Margen</p>
+            <p className="text-xs text-gray-500">Days of Runway</p>
           </div>
         </div>
 
@@ -221,14 +221,14 @@ export function FinancialWeather({
         {totalBudget > 0 ? (
           <div className="mt-4 pt-4 border-t border-gray-700/50">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-400">Presupuesto Usado</span>
+              <span className="text-gray-400">Budget Used</span>
               <span className="text-white font-medium">
                 $
-                {totalSpent.toLocaleString('es-MX', {
+                {totalSpent.toLocaleString('en-US', {
                   maximumFractionDigits: 0,
                 })}{' '}
                 / $
-                {totalBudget.toLocaleString('es-MX', {
+                {totalBudget.toLocaleString('en-US', {
                   maximumFractionDigits: 0,
                 })}
               </span>
@@ -245,14 +245,14 @@ export function FinancialWeather({
         ) : income > 0 ? (
           <div className="mt-4 pt-4 border-t border-gray-700/50">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-400">Ingreso Gastado</span>
+              <span className="text-gray-400">Income Spent</span>
               <span className="text-white font-medium">
                 $
-                {expenses.toLocaleString('es-MX', {
+                {expenses.toLocaleString('en-US', {
                   maximumFractionDigits: 0,
                 })}{' '}
                 / $
-                {income.toLocaleString('es-MX', {
+                {income.toLocaleString('en-US', {
                   maximumFractionDigits: 0,
                 })}
               </span>

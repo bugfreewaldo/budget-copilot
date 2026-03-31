@@ -7,7 +7,9 @@ describe('Health Routes', () => {
 
   beforeAll(async () => {
     // Use in-memory database for tests
-    process.env.LIBSQL_URL = process.env.LIBSQL_URL || 'http://localhost:8080';
+    process.env.DATABASE_URL =
+      process.env.DATABASE_URL ||
+      'postgresql://localhost:5432/budget_copilot_test';
     server = await buildServer();
   });
 

@@ -43,15 +43,15 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
 }
 
 // ============================================================================
-// EMAIL TEMPLATES (Spanish)
+// EMAIL TEMPLATES
 // ============================================================================
 
 export function getWelcomeEmailHtml(name: string | null): string {
-  const greeting = name ? `¡Hola ${name}!` : '¡Hola!';
+  const greeting = name ? `Hi ${name}!` : 'Hi!';
 
   return `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,22 +72,22 @@ export function getWelcomeEmailHtml(name: string | null): string {
             <td style="padding: 40px;">
               <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">${greeting}</h2>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                ¡Bienvenido a <strong>${APP_NAME}</strong>! Estamos emocionados de tenerte con nosotros.
+                Welcome to <strong>${APP_NAME}</strong>! We're excited to have you with us.
               </p>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Con ${APP_NAME} podrás:
+                With ${APP_NAME} you can:
               </p>
               <ul style="margin: 0 0 20px; padding-left: 20px; color: #3f3f46; font-size: 16px; line-height: 1.8;">
-                <li>📊 Controlar tus gastos con presupuestos inteligentes</li>
-                <li>💰 Ahorrar más con metas personalizadas</li>
-                <li>🤖 Recibir consejos de tu copiloto financiero con IA</li>
-                <li>👨‍👩‍👧‍👦 Compartir finanzas con tu familia</li>
+                <li>📊 Track your spending with smart budgets</li>
+                <li>💰 Save more with personalized goals</li>
+                <li>🤖 Get advice from your AI-powered financial copilot</li>
+                <li>👨‍👩‍👧‍👦 Share finances with your family</li>
               </ul>
               <p style="margin: 0 0 30px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                ¿Listo para tomar control de tus finanzas?
+                Ready to take control of your finances?
               </p>
               <a href="https://budgetcopilot.app/dashboard" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Ir al Dashboard →
+                Go to Dashboard →
               </a>
             </td>
           </tr>
@@ -95,7 +95,7 @@ export function getWelcomeEmailHtml(name: string | null): string {
           <tr>
             <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-                © ${new Date().getFullYear()} ${APP_NAME}. Todos los derechos reservados.
+                © ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -111,7 +111,7 @@ export function getWelcomeEmailHtml(name: string | null): string {
 export function getPasswordResetEmailHtml(resetUrl: string): string {
   return `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -130,22 +130,22 @@ export function getPasswordResetEmailHtml(resetUrl: string): string {
           <!-- Content -->
           <tr>
             <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">Restablecer contraseña</h2>
+              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">Reset Password</h2>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Recibimos una solicitud para restablecer la contraseña de tu cuenta de ${APP_NAME}.
+                We received a request to reset the password for your ${APP_NAME} account.
               </p>
               <p style="margin: 0 0 30px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Haz clic en el botón de abajo para crear una nueva contraseña. Este enlace expirará en <strong>1 hora</strong>.
+                Click the button below to create a new password. This link will expire in <strong>1 hour</strong>.
               </p>
               <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Restablecer contraseña
+                Reset Password
               </a>
               <p style="margin: 30px 0 0; color: #71717a; font-size: 14px; line-height: 1.6;">
-                Si no solicitaste restablecer tu contraseña, puedes ignorar este correo. Tu cuenta está segura.
+                If you didn't request a password reset, you can ignore this email. Your account is safe.
               </p>
               <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #a1a1aa; font-size: 12px; line-height: 1.6;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                If the button doesn't work, copy and paste this link in your browser:<br>
                 <span style="color: #6366f1; word-break: break-all;">${resetUrl}</span>
               </p>
             </td>
@@ -154,7 +154,7 @@ export function getPasswordResetEmailHtml(resetUrl: string): string {
           <tr>
             <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-                © ${new Date().getFullYear()} ${APP_NAME}. Todos los derechos reservados.
+                © ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -170,7 +170,7 @@ export function getPasswordResetEmailHtml(resetUrl: string): string {
 export function getEmailVerificationHtml(verifyUrl: string): string {
   return `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -189,19 +189,19 @@ export function getEmailVerificationHtml(verifyUrl: string): string {
           <!-- Content -->
           <tr>
             <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">Verifica tu correo electrónico</h2>
+              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">Verify Your Email</h2>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                ¡Gracias por registrarte en ${APP_NAME}! Para completar tu registro, necesitamos verificar tu dirección de correo electrónico.
+                Thanks for signing up for ${APP_NAME}! To complete your registration, we need to verify your email address.
               </p>
               <p style="margin: 0 0 30px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Haz clic en el botón de abajo para verificar tu cuenta. Este enlace expirará en <strong>24 horas</strong>.
+                Click the button below to verify your account. This link will expire in <strong>24 hours</strong>.
               </p>
               <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Verificar correo electrónico
+                Verify Email
               </a>
               <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #a1a1aa; font-size: 12px; line-height: 1.6;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                If the button doesn't work, copy and paste this link in your browser:<br>
                 <span style="color: #6366f1; word-break: break-all;">${verifyUrl}</span>
               </p>
             </td>
@@ -210,7 +210,7 @@ export function getEmailVerificationHtml(verifyUrl: string): string {
           <tr>
             <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-                © ${new Date().getFullYear()} ${APP_NAME}. Todos los derechos reservados.
+                © ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -229,17 +229,9 @@ export function getHouseholdInviteEmailHtml(
   role: string,
   inviteUrl: string
 ): string {
-  const roleTranslations: Record<string, string> = {
-    admin: 'administrador',
-    member: 'miembro',
-    viewer: 'observador',
-  };
-
-  const translatedRole = roleTranslations[role] || role;
-
   return `
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -258,28 +250,28 @@ export function getHouseholdInviteEmailHtml(
           <!-- Content -->
           <tr>
             <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">¡Te han invitado!</h2>
+              <h2 style="margin: 0 0 20px; color: #18181b; font-size: 24px; font-weight: 600;">You've Been Invited!</h2>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                <strong>${inviterName}</strong> te ha invitado a unirte a la familia <strong>"${householdName}"</strong> en ${APP_NAME}.
+                <strong>${inviterName}</strong> has invited you to join the <strong>"${householdName}"</strong> household on ${APP_NAME}.
               </p>
               <div style="margin: 0 0 30px; padding: 20px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #6366f1;">
                 <p style="margin: 0; color: #3f3f46; font-size: 14px;">
-                  <strong>Tu rol:</strong> ${translatedRole}<br>
-                  <strong>Familia:</strong> ${householdName}
+                  <strong>Your role:</strong> ${role}<br>
+                  <strong>Household:</strong> ${householdName}
                 </p>
               </div>
               <p style="margin: 0 0 20px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Al unirte podrás colaborar en el manejo de las finanzas familiares, ver presupuestos compartidos y trabajar juntos hacia sus metas financieras.
+                By joining, you'll be able to collaborate on managing household finances, view shared budgets, and work together toward your financial goals.
               </p>
               <p style="margin: 0 0 30px; color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                Esta invitación expirará en <strong>7 días</strong>.
+                This invitation will expire in <strong>7 days</strong>.
               </p>
               <a href="${inviteUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Aceptar invitación
+                Accept Invitation
               </a>
               <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #a1a1aa; font-size: 12px; line-height: 1.6;">
-                Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                If the button doesn't work, copy and paste this link in your browser:<br>
                 <span style="color: #6366f1; word-break: break-all;">${inviteUrl}</span>
               </p>
             </td>
@@ -288,7 +280,7 @@ export function getHouseholdInviteEmailHtml(
           <tr>
             <td style="padding: 30px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
-                © ${new Date().getFullYear()} ${APP_NAME}. Todos los derechos reservados.
+                © ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -309,12 +301,12 @@ export async function sendWelcomeEmail(
   to: string,
   name: string | null
 ): Promise<boolean> {
-  const greeting = name ? `¡Hola ${name}!` : '¡Hola!';
+  const greeting = name ? `Hi ${name}!` : 'Hi!';
   return sendEmail({
     to,
-    subject: `Bienvenido a ${APP_NAME}`,
+    subject: `Welcome to ${APP_NAME}`,
     html: getWelcomeEmailHtml(name),
-    text: `${greeting}\n\nBienvenido a ${APP_NAME}. Estamos emocionados de tenerte con nosotros.\n\nCon ${APP_NAME} podrás controlar tus gastos, ahorrar más y recibir consejos de tu copiloto financiero con IA.\n\nVisita tu dashboard: https://budgetcopilot.app/dashboard\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
+    text: `${greeting}\n\nWelcome to ${APP_NAME}. We're excited to have you with us.\n\nWith ${APP_NAME} you can track your spending, save more, and get advice from your AI-powered financial copilot.\n\nVisit your dashboard: https://budgetcopilot.app/dashboard\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
   });
 }
 
@@ -326,9 +318,9 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   return sendEmail({
     to,
-    subject: `Restablecer tu contraseña - ${APP_NAME}`,
+    subject: `Reset your password - ${APP_NAME}`,
     html: getPasswordResetEmailHtml(resetUrl),
-    text: `Restablecer contraseña\n\nRecibimos una solicitud para restablecer la contraseña de tu cuenta de ${APP_NAME}.\n\nHaz clic en el siguiente enlace para crear una nueva contraseña. Este enlace expirará en 1 hora.\n\n${resetUrl}\n\nSi no solicitaste restablecer tu contraseña, puedes ignorar este correo.\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
+    text: `Reset Password\n\nWe received a request to reset the password for your ${APP_NAME} account.\n\nClick the following link to create a new password. This link will expire in 1 hour.\n\n${resetUrl}\n\nIf you didn't request a password reset, you can ignore this email.\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
   });
 }
 
@@ -340,9 +332,9 @@ export async function sendEmailVerification(
   const verifyUrl = `${baseUrl}/verify-email?token=${verifyToken}`;
   return sendEmail({
     to,
-    subject: `Verifica tu correo - ${APP_NAME}`,
+    subject: `Verify your email - ${APP_NAME}`,
     html: getEmailVerificationHtml(verifyUrl),
-    text: `Verifica tu correo electrónico\n\nGracias por registrarte en ${APP_NAME}. Para completar tu registro, necesitamos verificar tu dirección de correo.\n\nHaz clic en el siguiente enlace para verificar tu cuenta. Este enlace expirará en 24 horas.\n\n${verifyUrl}\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
+    text: `Verify Your Email\n\nThanks for signing up for ${APP_NAME}. To complete your registration, we need to verify your email address.\n\nClick the following link to verify your account. This link will expire in 24 hours.\n\n${verifyUrl}\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
   });
 }
 
@@ -355,22 +347,15 @@ export async function sendHouseholdInviteEmail(
   baseUrl: string
 ): Promise<boolean> {
   const inviteUrl = `${baseUrl}/invite/${inviteToken}`;
-  const roleTranslations: Record<string, string> = {
-    admin: 'administrador',
-    member: 'miembro',
-    viewer: 'observador',
-  };
-  const translatedRole = roleTranslations[role] || role;
-
   return sendEmail({
     to,
-    subject: `${inviterName} te invito a "${householdName}" - ${APP_NAME}`,
+    subject: `${inviterName} invited you to "${householdName}" - ${APP_NAME}`,
     html: getHouseholdInviteEmailHtml(
       inviterName,
       householdName,
       role,
       inviteUrl
     ),
-    text: `Te han invitado\n\n${inviterName} te ha invitado a unirte a la familia "${householdName}" en ${APP_NAME}.\n\nTu rol: ${translatedRole}\nFamilia: ${householdName}\n\nAl unirte podrás colaborar en el manejo de las finanzas familiares. Esta invitación expirará en 7 días.\n\nAceptar invitación: ${inviteUrl}\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
+    text: `You've Been Invited\n\n${inviterName} has invited you to join the "${householdName}" household on ${APP_NAME}.\n\nYour role: ${role}\nHousehold: ${householdName}\n\nBy joining, you'll be able to collaborate on managing household finances. This invitation will expire in 7 days.\n\nAccept invitation: ${inviteUrl}\n\n© ${new Date().getFullYear()} ${APP_NAME}`,
   });
 }

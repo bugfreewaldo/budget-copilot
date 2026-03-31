@@ -55,14 +55,13 @@ export async function POST(request: NextRequest) {
     const userId = auth.user.id;
     const db = getDb();
 
-    const session = await db
+    const [session] = await db
       .select()
       .from(interviewSessions)
-      .where(eq(interviewSessions.userId, userId))
-      .get();
+      .where(eq(interviewSessions.userId, userId));
 
     if (!session) {
-      return errorJson('NOT_FOUND', 'No hay sesión de entrevista.', 404);
+      return errorJson('NOT_FOUND', 'No interview session found.', 404);
     }
 
     const extractedData = session.extractedData
@@ -84,11 +83,10 @@ export async function POST(request: NextRequest) {
       .where(eq(interviewSessions.id, session.id));
 
     // Update user profile
-    const existingProfile = await db
+    const [existingProfile] = await db
       .select()
       .from(userProfiles)
-      .where(eq(userProfiles.userId, userId))
-      .get();
+      .where(eq(userProfiles.userId, userId));
 
     const profileData = {
       onboardingCompleted: true,
@@ -120,7 +118,7 @@ export async function POST(request: NextRequest) {
       data: {
         success: true,
         summary:
-          'Tu información financiera ha sido registrada. Ya puedes ver tu instrucción diaria.',
+          'Your financial information has been recorded. You can now see your daily instruction.',
         insightFlags,
       },
     });

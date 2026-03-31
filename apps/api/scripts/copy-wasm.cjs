@@ -1,38 +1,6 @@
 #!/usr/bin/env node
 /**
- * Copy sql.js WASM file to predictable locations for dev and production
- * Runs on postinstall to ensure WASM is available regardless of tsx/ts-node/node runtime
+ * This script is no longer needed after migrating from sql.js to Neon PostgreSQL.
+ * Kept as a no-op to avoid breaking any references.
  */
-
-const fs = require('fs');
-const path = require('path');
-
-const targets = [
-  path.join(__dirname, '../sql-wasm.wasm'),           // apps/api/sql-wasm.wasm (dev)
-  path.join(__dirname, '../dist/sql-wasm.wasm'),      // apps/api/dist/sql-wasm.wasm (prod)
-];
-
-try {
-  // Resolve source WASM from node_modules
-  const source = require.resolve('sql.js/dist/sql-wasm.wasm');
-  console.log(`[copy-wasm] Source: ${source}`);
-
-  targets.forEach((target) => {
-    const dir = path.dirname(target);
-
-    // Ensure target directory exists
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // Copy WASM file
-    fs.copyFileSync(source, target);
-    const stats = fs.statSync(target);
-    console.log(`[copy-wasm] ✓ Copied to ${target} (${stats.size} bytes)`);
-  });
-
-  console.log('[copy-wasm] SQL.js WASM ready for dev and production');
-} catch (error) {
-  console.error('[copy-wasm] Failed to copy WASM file:', error.message);
-  process.exit(1);
-}
+console.log('[copy-wasm] No-op: sql.js WASM no longer needed (using Neon PostgreSQL)');

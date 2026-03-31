@@ -57,13 +57,13 @@ export function CategoryDetailModal({
       ([, a], [, b]) => b - a
     )[0];
     const dayNames = [
-      'Domingo',
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
     ];
 
     // Monthly trend (compare first half vs second half of transactions)
@@ -108,12 +108,10 @@ export function CategoryDetailModal({
       categoryName.includes('streaming')
     ) {
       tips.push(
-        '💡 Revisa si usas todos los servicios. Cancelar uno podría ahorrarte $10-15/mes.'
+        '💡 Check if you use all your services. Canceling one could save you $10-15/mo.'
       );
       if (insights.count > 3) {
-        tips.push(
-          '🔄 Considera agrupar servicios en planes familiares para ahorrar.'
-        );
+        tips.push('🔄 Consider bundling services into family plans to save.');
       }
     }
 
@@ -125,14 +123,14 @@ export function CategoryDetailModal({
     ) {
       if (insights.average > 15) {
         tips.push(
-          '🍳 Cocinar en casa 2 veces más por semana podría ahorrarte ~$' +
+          '🍳 Cooking at home 2 more times per week could save you ~$' +
             Math.round(insights.average * 2) +
-            '/semana.'
+            '/week.'
         );
       }
       if (insights.mostFrequentDay) {
         tips.push(
-          `📅 Gastas más los ${insights.mostFrequentDay}. Planifica comidas para ese día.`
+          `📅 You spend more on ${insights.mostFrequentDay}s. Plan meals for that day.`
         );
       }
     }
@@ -146,7 +144,7 @@ export function CategoryDetailModal({
     ) {
       if (insights.total > 100) {
         tips.push(
-          '🚌 Usar transporte público 2 veces por semana podría ahorrarte ~$40/mes.'
+          '🚌 Using public transit 2 times per week could save you ~$40/mo.'
         );
       }
     }
@@ -157,7 +155,7 @@ export function CategoryDetailModal({
       categoryName.includes('ocio')
     ) {
       tips.push(
-        '🎬 Busca días de descuento (martes de cine, happy hours) para ahorrar.'
+        '🎬 Look for discount days (movie Tuesdays, happy hours) to save.'
       );
     }
 
@@ -167,32 +165,30 @@ export function CategoryDetailModal({
       categoryName.includes('shopping') ||
       categoryName.includes('ropa')
     ) {
-      tips.push(
-        '🛍️ Espera 48 horas antes de compras impulsivas mayores a $50.'
-      );
+      tips.push('🛍️ Wait 48 hours before impulse purchases over $50.');
     }
 
     // Generic tips based on data
     if (insights.trendDirection > 20) {
       tips.push(
-        `📈 Tu gasto en esta categoría ha aumentado ~${Math.round(insights.trendDirection)}% recientemente.`
+        `📈 Your spending in this category has increased ~${Math.round(insights.trendDirection)}% recently.`
       );
     } else if (insights.trendDirection < -20) {
       tips.push(
-        `📉 ¡Bien! Has reducido tu gasto en esta categoría ~${Math.round(Math.abs(insights.trendDirection))}%.`
+        `📉 Nice! You've reduced your spending in this category by ~${Math.round(Math.abs(insights.trendDirection))}%.`
       );
     }
 
     if (insights.largest.amount > insights.average * 3) {
       tips.push(
-        `⚠️ Tuviste un gasto grande de $${insights.largest.amount.toFixed(0)} en "${insights.largest.description}". ¿Fue necesario?`
+        `⚠️ You had a large expense of $${insights.largest.amount.toFixed(0)} on "${insights.largest.description}". Was it necessary?`
       );
     }
 
     // Default tip if none matched
     if (tips.length === 0) {
       tips.push(
-        `📊 Tu promedio por transacción es $${insights.average.toFixed(2)}. ¿Puedes reducirlo un 10%?`
+        `📊 Your average per transaction is $${insights.average.toFixed(2)}. Can you reduce it by 10%?`
       );
     }
 
@@ -236,7 +232,7 @@ export function CategoryDetailModal({
               </h2>
               {insights && (
                 <p className="text-sm text-gray-400">
-                  {insights.count} transacciones este mes
+                  {insights.count} transactions this month
                 </p>
               )}
             </div>
@@ -244,7 +240,7 @@ export function CategoryDetailModal({
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <svg
               className="w-5 h-5"
@@ -268,7 +264,7 @@ export function CategoryDetailModal({
           {insights && (
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
-                <p className="text-xs text-gray-400 mb-1">Total Gastado</p>
+                <p className="text-xs text-gray-400 mb-1">Total Spent</p>
                 <p className="text-xl font-bold text-white">
                   $
                   {insights.total.toLocaleString('en-US', {
@@ -277,7 +273,7 @@ export function CategoryDetailModal({
                 </p>
               </div>
               <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
-                <p className="text-xs text-gray-400 mb-1">Promedio</p>
+                <p className="text-xs text-gray-400 mb-1">Average</p>
                 <p className="text-xl font-bold text-cyan-400">
                   $
                   {insights.average.toLocaleString('en-US', {
@@ -287,7 +283,7 @@ export function CategoryDetailModal({
               </div>
               {insights.largest && (
                 <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50 col-span-2">
-                  <p className="text-xs text-gray-400 mb-1">Gasto más grande</p>
+                  <p className="text-xs text-gray-400 mb-1">Largest expense</p>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-300 truncate flex-1">
                       {insights.largest.description}
@@ -308,7 +304,7 @@ export function CategoryDetailModal({
           {suggestions.length > 0 && (
             <div className="bg-gradient-to-br from-cyan-900/20 to-purple-900/20 rounded-xl p-4 border border-cyan-500/20">
               <h3 className="text-sm font-semibold text-cyan-400 mb-3 flex items-center gap-2">
-                <span>🧠</span> Sugerencias del Copiloto
+                <span>🧠</span> Copilot Suggestions
               </h3>
               <ul className="space-y-2">
                 {suggestions.map((tip, i) => (
@@ -323,11 +319,11 @@ export function CategoryDetailModal({
           {/* Transactions List */}
           <div>
             <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-              <span>📋</span> Transacciones
+              <span>📋</span> Transactions
             </h3>
             {categoryTransactions.length === 0 ? (
               <p className="text-gray-500 text-center py-4">
-                No hay transacciones en esta categoría
+                No transactions in this category
               </p>
             ) : (
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -338,10 +334,12 @@ export function CategoryDetailModal({
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">
-                        {tx.description}
+                        {tx.sensitive
+                          ? '🔒 Hidden transaction'
+                          : tx.description}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(tx.date).toLocaleDateString('es-PA', {
+                        {new Date(tx.date).toLocaleDateString('en-US', {
                           weekday: 'short',
                           day: 'numeric',
                           month: 'short',
@@ -368,7 +366,7 @@ export function CategoryDetailModal({
             onClick={onClose}
             className="w-full py-2 px-4 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 transition-all"
           >
-            Cerrar
+            Close
           </button>
         </div>
       </div>

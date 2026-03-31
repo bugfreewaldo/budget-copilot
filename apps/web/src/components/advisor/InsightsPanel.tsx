@@ -33,12 +33,12 @@ export function InsightsPanel({
   if (!insights) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <p className="text-sm text-gray-500">No hay insights disponibles.</p>
+        <p className="text-sm text-gray-500">No insights available.</p>
         <button
           onClick={onClose}
           className="mt-3 text-sm text-blue-600 hover:underline dark:text-blue-400"
         >
-          Cerrar
+          Close
         </button>
       </div>
     );
@@ -49,28 +49,28 @@ export function InsightsPanel({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-gray-700">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          Analisis del documento
+          Document analysis
         </h3>
         <button
           onClick={onClose}
           className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
-          Cerrar
+          Close
         </button>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard
-          label="Total gastos"
+          label="Total expenses"
           value={formatCurrency(stats.totalExpenseCents)}
-          subtext={`${stats.expenseCount} transacciones`}
+          subtext={`${stats.expenseCount} transactions`}
           color="red"
         />
         <StatCard
-          label="Total ingresos"
+          label="Total income"
           value={formatCurrency(stats.totalIncomeCents)}
-          subtext={`${stats.incomeCount} transacciones`}
+          subtext={`${stats.incomeCount} transactions`}
           color="green"
         />
         <StatCard
@@ -78,22 +78,22 @@ export function InsightsPanel({
           value={formatCurrency(
             stats.totalIncomeCents - stats.totalExpenseCents
           )}
-          subtext="Ingresos - Gastos"
+          subtext="Income - Expenses"
           color={
             stats.totalIncomeCents >= stats.totalExpenseCents ? 'green' : 'red'
           }
         />
         <StatCard
-          label="Transferencias"
+          label="Transfers"
           value={stats.transferCount.toString()}
-          subtext="Detectadas"
+          subtext="Detected"
           color="gray"
         />
       </div>
 
       {/* Spending by category */}
       {insights.spendingByCategory.length > 0 && (
-        <Section title="Gastos por categoria">
+        <Section title="Spending by category">
           <div className="space-y-2">
             {insights.spendingByCategory.slice(0, 8).map((cat, idx) => (
               <CategoryBar
@@ -110,12 +110,14 @@ export function InsightsPanel({
 
       {/* Largest expenses */}
       {insights.largestExpenses.length > 0 && (
-        <Section title="Mayores gastos">
+        <Section title="Largest expenses">
           <div className="space-y-2">
             {insights.largestExpenses.slice(0, 5).map((tx, idx) => (
               <TransactionRow
                 key={idx}
-                description={tx.description}
+                description={
+                  tx.sensitive ? '🔒 Hidden transaction' : tx.description
+                }
                 amount={tx.amountCents}
                 date={tx.date}
                 category={tx.categoryName}
@@ -128,12 +130,14 @@ export function InsightsPanel({
 
       {/* Largest income */}
       {insights.largestIncome.length > 0 && (
-        <Section title="Mayores ingresos">
+        <Section title="Largest income">
           <div className="space-y-2">
             {insights.largestIncome.slice(0, 5).map((tx, idx) => (
               <TransactionRow
                 key={idx}
-                description={tx.description}
+                description={
+                  tx.sensitive ? '🔒 Hidden transaction' : tx.description
+                }
                 amount={tx.amountCents}
                 date={tx.date}
                 category={tx.categoryName}
@@ -146,7 +150,7 @@ export function InsightsPanel({
 
       {/* Recurring patterns */}
       {insights.recurringPatterns.length > 0 && (
-        <Section title="Patrones recurrentes">
+        <Section title="Recurring patterns">
           <div className="space-y-2">
             {insights.recurringPatterns.slice(0, 5).map((pattern, idx) => (
               <RecurringPatternRow
@@ -164,7 +168,7 @@ export function InsightsPanel({
 
       {/* Anomalies */}
       {insights.anomalies.length > 0 && (
-        <Section title="Transacciones inusuales">
+        <Section title="Unusual transactions">
           <div className="space-y-2">
             {insights.anomalies.slice(0, 5).map((anomaly, idx) => (
               <AnomalyRow
@@ -316,9 +320,9 @@ function RecurringPatternRow({
   isExpense: boolean;
 }) {
   const frequencyLabels: Record<string, string> = {
-    weekly: 'Semanal',
-    biweekly: 'Quincenal',
-    monthly: 'Mensual',
+    weekly: 'Weekly',
+    biweekly: 'Biweekly',
+    monthly: 'Monthly',
     irregular: 'Irregular',
   };
 
@@ -329,7 +333,7 @@ function RecurringPatternRow({
           {description}
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">
-          {frequencyLabels[frequency] || frequency} · {occurrences} veces
+          {frequencyLabels[frequency] || frequency} · {occurrences} times
         </p>
       </div>
       <span
@@ -360,19 +364,19 @@ function AnomalyRow({
 }) {
   const reasonLabels: Record<string, { label: string; color: string }> = {
     unusually_high: {
-      label: 'Monto alto',
+      label: 'High amount',
       color: 'text-orange-600 dark:text-orange-400',
     },
     unusually_low: {
-      label: 'Monto bajo',
+      label: 'Low amount',
       color: 'text-yellow-600 dark:text-yellow-400',
     },
     round_number: {
-      label: 'Numero redondo',
+      label: 'Round number',
       color: 'text-blue-600 dark:text-blue-400',
     },
     potential_duplicate: {
-      label: 'Posible duplicado',
+      label: 'Possible duplicate',
       color: 'text-red-600 dark:text-red-400',
     },
   };

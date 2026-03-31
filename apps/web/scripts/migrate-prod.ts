@@ -3,18 +3,15 @@
  * Run with: npx tsx scripts/migrate-prod.ts
  */
 
-import { createClient } from '@libsql/client';
+import { neon } from '@neondatabase/serverless';
 
-const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+const url = process.env.DATABASE_URL;
 if (!url) {
-  console.error('Error: LIBSQL_URL environment variable is required');
+  console.error('Error: DATABASE_URL environment variable is required');
   process.exit(1);
 }
 
-const db = createClient({
-  url,
-  authToken: process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN,
-});
+const sql = neon(url);
 
 const migrations = [
   // 1. Add term_months column to debts table
@@ -66,26 +63,26 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS imported_item_file_idx ON file_imported_items(file_id);`,
   `CREATE INDEX IF NOT EXISTS imported_item_transaction_idx ON file_imported_items(transaction_id);`,
   `CREATE UNIQUE INDEX IF NOT EXISTS imported_item_unique_idx ON file_imported_items(file_id, parsed_item_id);`,
+
+  // 8. Add sensitive column to transactions table
+  `ALTER TABLE transactions ADD COLUMN sensitive BOOLEAN NOT NULL DEFAULT false;`,
 ];
 
 async function runMigrations() {
   console.log('Starting migrations...');
 
-  for (const sql of migrations) {
+  for (const query of migrations) {
     try {
-      console.log(`Running: ${sql.slice(0, 60)}...`);
-      await db.execute(sql);
-      console.log('  ✓ Success');
+      console.log(`Running: ${query.slice(0, 60)}...`);
+      await sql.transaction([sql(query)]);
+      console.log('  Success');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      // Ignore "duplicate column" or "already exists" errors
-      if (
-        message.includes('duplicate column') ||
-        message.includes('already exists')
-      ) {
-        console.log('  ⊘ Already exists (skipped)');
+      // Ignore "already exists" errors
+      if (message.includes('already exists')) {
+        console.log('  Already exists (skipped)');
       } else {
-        console.error('  ✗ Error:', message);
+        console.error('  Error:', message);
       }
     }
   }

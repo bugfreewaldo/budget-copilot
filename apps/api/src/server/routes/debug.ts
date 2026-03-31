@@ -13,7 +13,7 @@ export const debugRoutes: FastifyPluginAsync = async (fastify) => {
     return reply.send({
       host: process.env.HOST,
       port: process.env.PORT,
-      libsqlUrl: process.env.LIBSQL_URL,
+      databaseUrl: process.env.DATABASE_URL,
       corsOrigin: process.env.CORS_ORIGIN,
       nodeEnv: process.env.NODE_ENV,
       nextPublicApiUrl: process.env.NEXT_PUBLIC_API_URL,

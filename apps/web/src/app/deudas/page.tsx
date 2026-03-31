@@ -16,26 +16,26 @@ import { Sidebar } from '@/components/layout';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 const DEBT_TYPE_LABELS: Record<DebtType, { label: string; emoji: string }> = {
-  credit_card: { label: 'Tarjeta de Crédito', emoji: '💳' },
-  personal_loan: { label: 'Préstamo Personal', emoji: '💰' },
-  auto_loan: { label: 'Préstamo Auto', emoji: '🚗' },
-  mortgage: { label: 'Hipoteca', emoji: '🏠' },
-  student_loan: { label: 'Préstamo Estudiantil', emoji: '🎓' },
-  medical: { label: 'Deuda Médica', emoji: '🏥' },
-  other: { label: 'Otro', emoji: '📋' },
+  credit_card: { label: 'Credit Card', emoji: '💳' },
+  personal_loan: { label: 'Personal Loan', emoji: '💰' },
+  auto_loan: { label: 'Auto Loan', emoji: '🚗' },
+  mortgage: { label: 'Mortgage', emoji: '🏠' },
+  student_loan: { label: 'Student Loan', emoji: '🎓' },
+  medical: { label: 'Medical Debt', emoji: '🏥' },
+  other: { label: 'Other', emoji: '📋' },
 };
 
 const STATUS_LABELS: Record<DebtStatus, { label: string; color: string }> = {
-  active: { label: 'Activa', color: 'bg-blue-500/20 text-blue-400' },
-  paid_off: { label: 'Pagada', color: 'bg-green-500/20 text-green-400' },
-  defaulted: { label: 'En Mora', color: 'bg-red-500/20 text-red-400' },
-  deferred: { label: 'Diferida', color: 'bg-yellow-500/20 text-yellow-400' },
+  active: { label: 'Active', color: 'bg-blue-500/20 text-blue-400' },
+  paid_off: { label: 'Paid off', color: 'bg-green-500/20 text-green-400' },
+  defaulted: { label: 'Defaulted', color: 'bg-red-500/20 text-red-400' },
+  deferred: { label: 'Deferred', color: 'bg-yellow-500/20 text-yellow-400' },
 };
 
 function formatCurrency(cents: number, showDecimals = true): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'USD',
     minimumFractionDigits: showDecimals ? 2 : 0,
     maximumFractionDigits: showDecimals ? 2 : 0,
   }).format(cents / 100);
@@ -50,11 +50,11 @@ function getDangerColor(score: number | null): string {
 }
 
 function getDangerLabel(score: number | null): string {
-  if (score === null) return 'Sin calcular';
-  if (score >= 80) return 'Peligro Alto';
-  if (score >= 60) return 'Peligro Medio';
-  if (score >= 40) return 'Atención';
-  return 'Bajo Control';
+  if (score === null) return 'Not calculated';
+  if (score >= 80) return 'High Danger';
+  if (score >= 60) return 'Medium Danger';
+  if (score >= 40) return 'Caution';
+  return 'Under Control';
 }
 
 type PaymentStrategy = 'avalanche' | 'snowball';
@@ -530,25 +530,25 @@ export default function DeudasPage(): React.JSX.Element {
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4">
         <div className="text-6xl mb-6">💀</div>
         <h2 className="text-2xl font-bold text-white mb-2">
-          {isNetworkError ? 'API no disponible' : 'Error al cargar'}
+          {isNetworkError ? 'API unavailable' : 'Failed to load'}
         </h2>
         <p className="text-gray-400 text-center max-w-md mb-6">
           {isNetworkError
-            ? 'El servidor no está disponible. Intenta recargar la página.'
-            : 'Hubo un problema al cargar las deudas. Intenta recargar la página.'}
+            ? 'The server is unavailable. Try reloading the page.'
+            : 'There was a problem loading debts. Try reloading the page.'}
         </p>
         <div className="flex gap-4">
           <button
             onClick={() => refresh()}
             className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
           >
-            Reintentar
+            Retry
           </button>
           <Link
             href="/dashboard"
             className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Volver al Dashboard
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -563,10 +563,10 @@ export default function DeudasPage(): React.JSX.Element {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2">
-                <span>💀</span> Copiloto de Deudas
+                <span>💀</span> Debt Copilot
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                Visualiza y destruye tus deudas
+                Visualize and crush your debts
               </p>
             </div>
             <button
@@ -586,7 +586,7 @@ export default function DeudasPage(): React.JSX.Element {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Agregar Deuda
+              Add Debt
             </button>
           </div>
         </div>
@@ -596,26 +596,23 @@ export default function DeudasPage(): React.JSX.Element {
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-20">
               <div className="text-8xl mb-6">💀</div>
-              <h2 className="text-2xl font-bold mb-2">
-                ¡Sin deudas registradas!
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">No debts recorded!</h2>
               <p className="text-gray-400 text-center max-w-md mb-8">
-                Registra tus deudas para visualizar tu camino hacia la libertad
-                financiera. Usa el copilot para agregar deudas de forma
-                conversacional.
+                Record your debts to visualize your path to financial freedom.
+                Use the copilot to add debts in a conversational way.
               </p>
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg transition-colors"
                 >
-                  Agregar mi primera deuda
+                  Add my first debt
                 </button>
                 <Link
                   href="/dashboard"
                   className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  Usar el Copilot
+                  Use the Copilot
                 </Link>
               </div>
             </div>
@@ -644,20 +641,20 @@ export default function DeudasPage(): React.JSX.Element {
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                       <p className="text-gray-400 text-sm mb-1">
-                        Deuda en Estrategia
+                        Debt in Strategy
                       </p>
                       <p className="text-3xl font-bold text-red-400">
                         {formatCurrency(totalDebtCents)}
                       </p>
                       {excludedCount > 0 && (
                         <p className="text-xs text-gray-500 mt-1">
-                          {excludedCount} deuda(s) excluida(s)
+                          {excludedCount} debt(s) excluded
                         </p>
                       )}
                     </div>
                     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                       <p className="text-gray-400 text-sm mb-1">
-                        Pago Mensual Mínimo
+                        Minimum Monthly Payment
                       </p>
                       <p className="text-3xl font-bold text-orange-400">
                         {formatCurrency(totalMinPaymentCents)}
@@ -665,16 +662,14 @@ export default function DeudasPage(): React.JSX.Element {
                     </div>
                     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                       <p className="text-gray-400 text-sm mb-1">
-                        Deudas en Estrategia
+                        Debts in Strategy
                       </p>
                       <p className="text-3xl font-bold text-cyan-400">
                         {activeCount}
                       </p>
                     </div>
                     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
-                      <p className="text-gray-400 text-sm mb-1">
-                        Fecha de Libertad
-                      </p>
+                      <p className="text-gray-400 text-sm mb-1">Freedom Date</p>
                       {(() => {
                         const freedom = calculateFreedomDate(
                           debts,
@@ -688,7 +683,7 @@ export default function DeudasPage(): React.JSX.Element {
                                 Sin datos
                               </p>
                               <p className="text-xs text-gray-500">
-                                Agrega pagos mínimos
+                                Add minimum payments
                               </p>
                             </>
                           );
@@ -697,10 +692,10 @@ export default function DeudasPage(): React.JSX.Element {
                           return (
                             <>
                               <p className="text-xl font-bold text-red-400">
-                                ⚠️ Nunca
+                                ⚠️ Never
                               </p>
                               <p className="text-xs text-red-400">
-                                Pago mínimo muy bajo
+                                Minimum payment too low
                               </p>
                             </>
                           );
@@ -708,17 +703,17 @@ export default function DeudasPage(): React.JSX.Element {
                         return (
                           <>
                             <p className="text-xl font-bold text-green-400">
-                              {freedom.date.toLocaleDateString('es-PA', {
+                              {freedom.date.toLocaleDateString('en-US', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {freedom.months} meses •{' '}
+                              {freedom.months} months •{' '}
                               {selectedStrategy === 'avalanche'
-                                ? 'Avalancha'
-                                : 'Bola de Nieve'}
+                                ? 'Avalanche'
+                                : 'Snowball'}
                             </p>
                           </>
                         );
@@ -730,11 +725,9 @@ export default function DeudasPage(): React.JSX.Element {
 
               {/* Strategy Comparison - Global */}
               <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
-                <h2 className="text-lg font-semibold mb-2">
-                  Estrategia Global
-                </h2>
+                <h2 className="text-lg font-semibold mb-2">Global Strategy</h2>
                 <p className="text-sm text-gray-400 mb-4">
-                  Selecciona tu estrategia preferida para pagar todas tus deudas
+                  Select your preferred strategy to pay off all your debts
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Avalanche */}
@@ -749,27 +742,27 @@ export default function DeudasPage(): React.JSX.Element {
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-2xl">🏔️</span>
                       <div>
-                        <h3 className="font-semibold">Método Avalancha</h3>
+                        <h3 className="font-semibold">Avalanche Method</h3>
                         <p className="text-xs text-gray-400">
-                          Paga primero la deuda con mayor APR
+                          Pay off the highest APR debt first
                         </p>
                       </div>
                       <div className="ml-auto flex flex-col items-end gap-1">
                         {selectedStrategy === 'avalanche' && (
                           <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
-                            ✓ Activo
+                            ✓ Active
                           </span>
                         )}
                         {strategies?.recommendation === 'avalanche' && (
                           <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                            Recomendado
+                            Recommended
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-400">Interés Total</p>
+                        <p className="text-gray-400">Total Interest</p>
                         <p className="font-semibold text-orange-400">
                           {strategies
                             ? formatCurrency(
@@ -779,7 +772,7 @@ export default function DeudasPage(): React.JSX.Element {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-400">Tiempo</p>
+                        <p className="text-gray-400">Time</p>
                         <p className="font-semibold">
                           {(() => {
                             const freedom = calculateFreedomDate(
@@ -789,7 +782,7 @@ export default function DeudasPage(): React.JSX.Element {
                             );
                             return freedom.months > 0 &&
                               freedom.months !== Infinity
-                              ? `${freedom.months} meses`
+                              ? `${freedom.months} months`
                               : '-';
                           })()}
                         </p>
@@ -809,27 +802,27 @@ export default function DeudasPage(): React.JSX.Element {
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-2xl">⛄</span>
                       <div>
-                        <h3 className="font-semibold">Método Bola de Nieve</h3>
+                        <h3 className="font-semibold">Snowball Method</h3>
                         <p className="text-xs text-gray-400">
-                          Paga primero la deuda más pequeña
+                          Pay off the smallest debt first
                         </p>
                       </div>
                       <div className="ml-auto flex flex-col items-end gap-1">
                         {selectedStrategy === 'snowball' && (
                           <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded font-medium">
-                            ✓ Activo
+                            ✓ Active
                           </span>
                         )}
                         {strategies?.recommendation === 'snowball' && (
                           <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                            Recomendado
+                            Recommended
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p className="text-gray-400">Interés Total</p>
+                        <p className="text-gray-400">Total Interest</p>
                         <p className="font-semibold text-orange-400">
                           {strategies
                             ? formatCurrency(
@@ -839,7 +832,7 @@ export default function DeudasPage(): React.JSX.Element {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-400">Tiempo</p>
+                        <p className="text-gray-400">Time</p>
                         <p className="font-semibold">
                           {(() => {
                             const freedom = calculateFreedomDate(
@@ -849,7 +842,7 @@ export default function DeudasPage(): React.JSX.Element {
                             );
                             return freedom.months > 0 &&
                               freedom.months !== Infinity
-                              ? `${freedom.months} meses`
+                              ? `${freedom.months} months`
                               : '-';
                           })()}
                         </p>
@@ -860,7 +853,7 @@ export default function DeudasPage(): React.JSX.Element {
 
                 {strategies && strategies.savingsWithAvalanche > 0 && (
                   <p className="mt-4 text-sm text-center text-green-400">
-                    💡 Con avalancha ahorras{' '}
+                    💡 With avalanche you save{' '}
                     {formatCurrency(strategies.savingsWithAvalanche)} en
                     intereses
                   </p>
@@ -871,19 +864,19 @@ export default function DeudasPage(): React.JSX.Element {
               {debts.filter((d) => d.status === 'active').length > 1 && (
                 <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 mb-8">
                   <h2 className="text-lg font-semibold mb-2">
-                    Orden de Ataque{' '}
+                    Attack Order{' '}
                     <span className="text-sm font-normal text-gray-400">
                       (
                       {selectedStrategy === 'avalanche'
-                        ? 'Avalancha'
-                        : 'Bola de Nieve'}
+                        ? 'Avalanche'
+                        : 'Snowball'}
                       )
                     </span>
                   </h2>
                   <p className="text-sm text-gray-400 mb-4">
                     {selectedStrategy === 'avalanche'
-                      ? 'Enfoca tus pagos extra en la deuda con mayor interés primero'
-                      : 'Enfoca tus pagos extra en la deuda más pequeña primero'}
+                      ? 'Focus your extra payments on the highest interest debt first'
+                      : 'Focus your extra payments on the smallest debt first'}
                   </p>
 
                   {/* Active debts in strategy */}
@@ -929,13 +922,13 @@ export default function DeudasPage(): React.JSX.Element {
                           </div>
                           {index === 0 && (
                             <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded font-medium">
-                              🎯 Prioridad
+                              🎯 Priority
                             </span>
                           )}
                           <button
                             onClick={() => toggleDebtInStrategy(debt.id)}
                             className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
-                            title="Excluir de la estrategia"
+                            title="Exclude from strategy"
                           >
                             <svg
                               className="w-4 h-4"
@@ -964,7 +957,7 @@ export default function DeudasPage(): React.JSX.Element {
                   ).length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-700">
                       <p className="text-sm text-gray-500 mb-2">
-                        Excluidas de la estrategia:
+                        Excluded from strategy:
                       </p>
                       <div className="space-y-2">
                         {debts
@@ -1025,7 +1018,7 @@ export default function DeudasPage(): React.JSX.Element {
 
               {/* Debts List */}
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Tus Deudas</h2>
+                <h2 className="text-lg font-semibold">Your Debts</h2>
                 {debts.map((debt) => (
                   <div
                     key={debt.id}
@@ -1052,7 +1045,7 @@ export default function DeudasPage(): React.JSX.Element {
                         <button
                           onClick={() => openEditModal(debt)}
                           className="p-2 text-gray-400 hover:text-cyan-400 transition-colors"
-                          title="Editar"
+                          title="Edit"
                         >
                           <svg
                             className="w-4 h-4"
@@ -1071,7 +1064,7 @@ export default function DeudasPage(): React.JSX.Element {
                         <button
                           onClick={() => setDeleteConfirm(debt)}
                           className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                          title="Eliminar"
+                          title="Delete"
                         >
                           <svg
                             className="w-4 h-4"
@@ -1092,7 +1085,7 @@ export default function DeudasPage(): React.JSX.Element {
 
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                       <div>
-                        <p className="text-xs text-gray-400">Saldo Actual</p>
+                        <p className="text-xs text-gray-400">Current Balance</p>
                         <p className="text-xl font-bold text-red-400">
                           {formatCurrency(debt.currentBalanceCents)}
                         </p>
@@ -1104,7 +1097,7 @@ export default function DeudasPage(): React.JSX.Element {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Pago Mínimo</p>
+                        <p className="text-xs text-gray-400">Minimum Payment</p>
                         <p className="text-xl font-bold">
                           {debt.minimumPaymentCents
                             ? formatCurrency(debt.minimumPaymentCents)
@@ -1112,15 +1105,13 @@ export default function DeudasPage(): React.JSX.Element {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Fecha Muerte</p>
+                        <p className="text-xs text-gray-400">Death Date</p>
                         <p className="text-xl font-bold text-green-400">
                           {debt.deathDate || 'Calcular...'}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">
-                          Nivel de Peligro
-                        </p>
+                        <p className="text-xs text-gray-400">Danger Level</p>
                         <p
                           className={`text-xl font-bold ${getDangerColor(debt.dangerScore)}`}
                         >
@@ -1177,7 +1168,7 @@ export default function DeudasPage(): React.JSX.Element {
                           }}
                           className="flex-1 py-2 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium transition-colors"
                         >
-                          Registrar Pago
+                          Record Payment
                         </button>
                         <button
                           onClick={() => {
@@ -1185,9 +1176,9 @@ export default function DeudasPage(): React.JSX.Element {
                             setShowCalculator(debt);
                           }}
                           className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-sm transition-colors"
-                          title="Calculadora de pagos"
+                          title="Payment calculator"
                         >
-                          🧮 Calculadora
+                          🧮 Calculator
                         </button>
                         <button
                           onClick={() => handleMarkAsPaid(debt)}
@@ -1209,7 +1200,7 @@ export default function DeudasPage(): React.JSX.Element {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold">Agregar Nueva Deuda</h2>
+                <h2 className="text-xl font-bold">Add New Debt</h2>
               </div>
               <form onSubmit={handleAddDebt} className="p-6 space-y-4">
                 <div>
@@ -1255,7 +1246,7 @@ export default function DeudasPage(): React.JSX.Element {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Saldo Original
+                      Original Balance
                     </label>
                     <input
                       type="number"
@@ -1275,7 +1266,7 @@ export default function DeudasPage(): React.JSX.Element {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Saldo Actual
+                      Current Balance
                     </label>
                     <input
                       type="number"
@@ -1295,10 +1286,10 @@ export default function DeudasPage(): React.JSX.Element {
                   </div>
                 </div>
 
-                {/* Pago Mínimo - full width */}
+                {/* Minimum Payment - full width */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    Pago Mínimo
+                    Minimum Payment
                   </label>
                   <div className="flex gap-2 mb-3">
                     <button
@@ -1315,7 +1306,7 @@ export default function DeudasPage(): React.JSX.Element {
                           : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                       }`}
                     >
-                      $ Monto Fijo
+                      $ Fixed Amount
                     </button>
                     <button
                       type="button"
@@ -1331,7 +1322,7 @@ export default function DeudasPage(): React.JSX.Element {
                           : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                       }`}
                     >
-                      % del Saldo
+                      % of Balance
                     </button>
                   </div>
                   {newDebt.minimum_payment_type === 'fixed' ? (
@@ -1409,12 +1400,12 @@ export default function DeudasPage(): React.JSX.Element {
                         const result = handleEstimateApr('new');
                         if (result === null) {
                           alert(
-                            'Para calcular el APR, primero ingresa:\n• Saldo Original\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                            'To calculate APR, first enter:\n• Original Balance\n• Monthly Minimum Payment\n• Loan term (months)'
                           );
                         }
                       }}
                       className="px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-cyan-400 rounded-lg transition-colors"
-                      title="Calcular APR automáticamente"
+                      title="Calculate APR automatically"
                     >
                       🧮 Calcular
                     </button>
@@ -1429,7 +1420,7 @@ export default function DeudasPage(): React.JSX.Element {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">
-                        Duración del préstamo (meses)
+                        Loan term (months)
                       </label>
                       <div className="flex items-center gap-3">
                         <input
@@ -1444,18 +1435,18 @@ export default function DeudasPage(): React.JSX.Element {
                             })
                           }
                           className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                          placeholder="Ej: 48 meses"
+                          placeholder="Ej: 48 months"
                           min="1"
                           max="480"
                         />
                         {newDebt.term_months && (
                           <span className="text-sm text-gray-500">
-                            ({(newDebt.term_months / 12).toFixed(1)} años)
+                            ({(newDebt.term_months / 12).toFixed(1)} years)
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Opcional - útil para préstamos con plazo fijo
+                        Optional - useful for fixed-term loans
                       </p>
                     </div>
 
@@ -1463,7 +1454,7 @@ export default function DeudasPage(): React.JSX.Element {
                     {newDebt.term_months && (
                       <div>
                         <label className="block text-sm text-gray-400 mb-1">
-                          Fecha de inicio del préstamo
+                          Loan start date
                         </label>
                         <input
                           type="date"
@@ -1477,7 +1468,7 @@ export default function DeudasPage(): React.JSX.Element {
                           className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Opcional - ¿cuándo sacaste el préstamo?
+                          Optional - when did you take out the loan?
                         </p>
                       </div>
                     )}
@@ -1486,7 +1477,7 @@ export default function DeudasPage(): React.JSX.Element {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Día de Corte
+                    Due Day
                   </label>
                   <input
                     type="number"
@@ -1509,14 +1500,14 @@ export default function DeudasPage(): React.JSX.Element {
                     onClick={() => setShowAddModal(false)}
                     className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-red-600 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Agregar Deuda'}
+                    {isSubmitting ? 'Guardando...' : 'Add Debt'}
                   </button>
                 </div>
               </form>
@@ -1529,7 +1520,7 @@ export default function DeudasPage(): React.JSX.Element {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold">Editar Deuda</h2>
+                <h2 className="text-xl font-bold">Edit Debt</h2>
                 <p className="text-sm text-gray-400">{showEditModal.name}</p>
               </div>
               <form onSubmit={handleEditDebt} className="p-6 space-y-4">
@@ -1576,7 +1567,7 @@ export default function DeudasPage(): React.JSX.Element {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Saldo Original
+                      Original Balance
                     </label>
                     <input
                       type="number"
@@ -1588,7 +1579,7 @@ export default function DeudasPage(): React.JSX.Element {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
-                      Saldo Actual
+                      Current Balance
                     </label>
                     <input
                       type="number"
@@ -1608,10 +1599,10 @@ export default function DeudasPage(): React.JSX.Element {
                   </div>
                 </div>
 
-                {/* Pago Mínimo - full width */}
+                {/* Minimum Payment - full width */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">
-                    Pago Mínimo
+                    Minimum Payment
                   </label>
                   <div className="flex gap-2 mb-3">
                     <button
@@ -1628,7 +1619,7 @@ export default function DeudasPage(): React.JSX.Element {
                           : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                       }`}
                     >
-                      $ Monto Fijo
+                      $ Fixed Amount
                     </button>
                     <button
                       type="button"
@@ -1644,7 +1635,7 @@ export default function DeudasPage(): React.JSX.Element {
                           : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                       }`}
                     >
-                      % del Saldo
+                      % of Balance
                     </button>
                   </div>
                   {editDebt.minimum_payment_type === 'fixed' ? (
@@ -1722,12 +1713,12 @@ export default function DeudasPage(): React.JSX.Element {
                         const result = handleEstimateApr('edit');
                         if (result === null) {
                           alert(
-                            'Para calcular el APR, primero ingresa:\n• Saldo Original\n• Pago Mínimo mensual\n• Duración del préstamo (meses)'
+                            'To calculate APR, first enter:\n• Original Balance\n• Monthly Minimum Payment\n• Loan term (months)'
                           );
                         }
                       }}
                       className="px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-cyan-400 rounded-lg transition-colors"
-                      title="Calcular APR automáticamente"
+                      title="Calculate APR automatically"
                     >
                       🧮 Calcular
                     </button>
@@ -1742,7 +1733,7 @@ export default function DeudasPage(): React.JSX.Element {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">
-                        Duración del préstamo (meses)
+                        Loan term (months)
                       </label>
                       <div className="flex items-center gap-3">
                         <input
@@ -1757,13 +1748,13 @@ export default function DeudasPage(): React.JSX.Element {
                             })
                           }
                           className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                          placeholder="Ej: 48 meses"
+                          placeholder="Ej: 48 months"
                           min="1"
                           max="480"
                         />
                         {editDebt.term_months && (
                           <span className="text-sm text-gray-500">
-                            ({(editDebt.term_months / 12).toFixed(1)} años)
+                            ({(editDebt.term_months / 12).toFixed(1)} years)
                           </span>
                         )}
                       </div>
@@ -1773,7 +1764,7 @@ export default function DeudasPage(): React.JSX.Element {
                     {editDebt.term_months && (
                       <div>
                         <label className="block text-sm text-gray-400 mb-1">
-                          Fecha de inicio del préstamo
+                          Loan start date
                         </label>
                         <input
                           type="date"
@@ -1793,7 +1784,7 @@ export default function DeudasPage(): React.JSX.Element {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Día de Corte
+                    Due Day
                   </label>
                   <input
                     type="number"
@@ -1816,14 +1807,14 @@ export default function DeudasPage(): React.JSX.Element {
                     onClick={() => setShowEditModal(null)}
                     className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                    {isSubmitting ? 'Guardando...' : 'Save Changes'}
                   </button>
                 </div>
               </form>
@@ -1836,7 +1827,7 @@ export default function DeudasPage(): React.JSX.Element {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
             <div className="bg-gray-900 rounded-2xl max-w-md w-full">
               <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold">Registrar Pago</h2>
+                <h2 className="text-xl font-bold">Record Payment</h2>
                 <p className="text-sm text-gray-400">{showPaymentModal.name}</p>
               </div>
               <form onSubmit={handleRecordPayment} className="p-6 space-y-4">
@@ -1878,14 +1869,14 @@ export default function DeudasPage(): React.JSX.Element {
                     onClick={() => setShowPaymentModal(null)}
                     className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Registrando...' : 'Registrar Pago'}
+                    {isSubmitting ? 'Registrando...' : 'Record Payment'}
                   </button>
                 </div>
               </form>
@@ -1901,7 +1892,7 @@ export default function DeudasPage(): React.JSX.Element {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                      <span>🧮</span> Calculadora de Pagos
+                      <span>🧮</span> Payment Calculator
                     </h2>
                     <p className="text-sm text-gray-400">
                       {showCalculator.name}
@@ -1933,7 +1924,7 @@ export default function DeudasPage(): React.JSX.Element {
                 <div className="bg-gray-800/50 rounded-xl p-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-400">Saldo Actual</p>
+                      <p className="text-gray-400">Current Balance</p>
                       <p className="text-xl font-bold text-red-400">
                         {formatCurrency(showCalculator.currentBalanceCents)}
                       </p>
@@ -1945,7 +1936,7 @@ export default function DeudasPage(): React.JSX.Element {
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-400">Pago Mínimo</p>
+                      <p className="text-gray-400">Minimum Payment</p>
                       <p className="text-lg font-semibold">
                         {showCalculator.effectiveMinimumPaymentCents
                           ? formatCurrency(
@@ -1972,7 +1963,7 @@ export default function DeudasPage(): React.JSX.Element {
                 {/* Time Selection */}
                 <div>
                   <label className="block text-sm text-gray-400 mb-3">
-                    ¿En cuánto tiempo quieres pagar esta deuda?
+                    How soon do you want to pay off this debt?
                   </label>
                   {/* Month presets */}
                   <div className="grid grid-cols-4 gap-2 mb-3">
@@ -2012,7 +2003,7 @@ export default function DeudasPage(): React.JSX.Element {
                       <span className="text-gray-400">meses</span>
                       {calculatorYears >= 1 && (
                         <span className="text-gray-500 text-sm">
-                          ({calculatorYears.toFixed(1)} años)
+                          ({calculatorYears.toFixed(1)} years)
                         </span>
                       )}
                     </div>
@@ -2080,10 +2071,10 @@ export default function DeudasPage(): React.JSX.Element {
                           {formatCurrency(Math.round(monthlyPayment * 100))}
                         </p>
                         <p className="text-sm text-gray-400 mt-2">
-                          Para liquidar en {months} meses (
+                          Para liquidar en {months} months (
                           {calculatorYears < 1
-                            ? '6 meses'
-                            : `${calculatorYears} año${calculatorYears > 1 ? 's' : ''}`}
+                            ? '6 months'
+                            : `${calculatorYears} year${calculatorYears > 1 ? 's' : ''}`}
                           )
                         </p>
                       </div>
@@ -2099,7 +2090,7 @@ export default function DeudasPage(): React.JSX.Element {
                             +{formatCurrency(Math.round(extraPayment * 100))}
                           </p>
                           <p className="text-sm text-gray-400 mt-1">
-                            Adicional al pago mínimo de{' '}
+                            On top of the minimum payment of{' '}
                             {formatCurrency(
                               showCalculator.effectiveMinimumPaymentCents || 0
                             )}
@@ -2111,7 +2102,7 @@ export default function DeudasPage(): React.JSX.Element {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-gray-800/50 rounded-xl p-4">
                           <p className="text-gray-400 text-xs mb-1">
-                            Interés total a pagar
+                            Total interest to pay
                           </p>
                           <p className="text-xl font-bold text-orange-400">
                             {formatCurrency(Math.round(totalInterest * 100))}
@@ -2119,7 +2110,7 @@ export default function DeudasPage(): React.JSX.Element {
                         </div>
                         <div className="bg-gray-800/50 rounded-xl p-4">
                           <p className="text-gray-400 text-xs mb-1">
-                            Total a pagar
+                            Total to pay
                           </p>
                           <p className="text-xl font-bold">
                             {formatCurrency(
@@ -2137,18 +2128,18 @@ export default function DeudasPage(): React.JSX.Element {
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-lg">🎉</span>
                               <p className="font-semibold text-green-400">
-                                ¡Ahorro en intereses!
+                                Savings in interest!
                               </p>
                             </div>
                             <p className="text-sm text-gray-300">
                               Pagando{' '}
                               {formatCurrency(Math.round(monthlyPayment * 100))}{' '}
-                              al mes en vez del mínimo:
+                              per month instead of the minimum:
                             </p>
                             <ul className="mt-2 space-y-1 text-sm">
                               <li className="flex justify-between">
                                 <span className="text-gray-400">
-                                  Ahorras en intereses:
+                                  Ahorras in interest:
                                 </span>
                                 <span className="font-semibold text-green-400">
                                   {formatCurrency(
@@ -2161,9 +2152,9 @@ export default function DeudasPage(): React.JSX.Element {
                                   Terminas antes:
                                 </span>
                                 <span className="font-semibold text-cyan-400">
-                                  {minPaymentMonths - months} meses (
+                                  {minPaymentMonths - months} months (
                                   {Math.round((minPaymentMonths - months) / 12)}{' '}
-                                  años)
+                                  years)
                                 </span>
                               </li>
                             </ul>
@@ -2176,8 +2167,8 @@ export default function DeudasPage(): React.JSX.Element {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">⚠️</span>
                             <p className="text-sm text-red-400">
-                              Con el pago mínimo, esta deuda tardaría más de 50
-                              años en pagarse (interés compuesto)
+                              With the minimum payment, this debt would take
+                              over 50 years to pay off (compound interest)
                             </p>
                           </div>
                         </div>
@@ -2189,7 +2180,7 @@ export default function DeudasPage(): React.JSX.Element {
                 {/* What if I pay $X monthly? */}
                 <div className="border-t border-gray-700 pt-6">
                   <label className="block text-sm text-gray-400 mb-3">
-                    ¿Qué pasa si pago esta cantidad al mes?
+                    What if I pay this amount per month?
                   </label>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-gray-400">$</span>
@@ -2222,10 +2213,10 @@ export default function DeudasPage(): React.JSX.Element {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">⚠️</span>
                             <p className="text-sm text-red-400">
-                              Este pago (${customPayment.toLocaleString()}) no
-                              cubre ni el interés mensual ($
-                              {monthlyInterest.toFixed(2)}). La deuda seguiría
-                              creciendo.
+                              This payment (${customPayment.toLocaleString()})
+                              doesn't even cover the monthly interest ($
+                              {monthlyInterest.toFixed(2)}). The debt would keep
+                              growing.
                             </p>
                           </div>
                         </div>
@@ -2250,8 +2241,8 @@ export default function DeudasPage(): React.JSX.Element {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">⚠️</span>
                             <p className="text-sm text-red-400">
-                              Con ${customPayment.toLocaleString()}/mes,
-                              tardarías más de 50 años en pagar.
+                              Con ${customPayment.toLocaleString()}/mes, would
+                              take over 50 years to pay off.
                             </p>
                           </div>
                         </div>
@@ -2267,7 +2258,7 @@ export default function DeudasPage(): React.JSX.Element {
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg">🎯</span>
                           <p className="font-semibold text-purple-400">
-                            Pagando ${customPayment.toLocaleString()}/mes
+                            Paying ${customPayment.toLocaleString()}/mes
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -2276,10 +2267,10 @@ export default function DeudasPage(): React.JSX.Element {
                               Tiempo para liquidar
                             </p>
                             <p className="text-xl font-bold text-white">
-                              {monthCount} meses
+                              {monthCount} months
                               {monthCount >= 12 && (
                                 <span className="text-sm font-normal text-gray-400 ml-1">
-                                  ({(monthCount / 12).toFixed(1)} años)
+                                  ({(monthCount / 12).toFixed(1)} years)
                                 </span>
                               )}
                             </p>
@@ -2287,14 +2278,14 @@ export default function DeudasPage(): React.JSX.Element {
                           <div>
                             <p className="text-gray-400">Fecha de libertad</p>
                             <p className="text-xl font-bold text-cyan-400">
-                              {payoffDate.toLocaleDateString('es-MX', {
+                              {payoffDate.toLocaleDateString('en-US', {
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-400">Interés total</p>
+                            <p className="text-gray-400">Total interest</p>
                             <p className="text-lg font-semibold text-orange-400">
                               {formatCurrency(
                                 Math.round(totalInterestPaid * 100)
@@ -2302,7 +2293,7 @@ export default function DeudasPage(): React.JSX.Element {
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-400">Total a pagar</p>
+                            <p className="text-gray-400">Total to pay</p>
                             <p className="text-lg font-semibold">
                               {formatCurrency(Math.round(totalPaid * 100))}
                             </p>
@@ -2322,7 +2313,7 @@ export default function DeudasPage(): React.JSX.Element {
                   }}
                   className="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
                 >
-                  Cerrar
+                  Close
                 </button>
               </div>
             </div>
@@ -2334,10 +2325,10 @@ export default function DeudasPage(): React.JSX.Element {
           isOpen={deleteConfirm !== null}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={handleDeleteDebt}
-          title="Eliminar Deuda"
-          message={`¿Estás seguro de eliminar "${deleteConfirm?.name}"? Esta acción no se puede deshacer.`}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          title="Delete Debt"
+          message={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
           variant="danger"
           isLoading={isDeleting}
         />

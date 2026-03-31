@@ -1,39 +1,32 @@
-import { createClient } from '@libsql/client';
+import { neon } from '@neondatabase/serverless';
 
 async function main() {
-  const url = process.env.LIBSQL_URL || process.env.TURSO_DATABASE_URL;
+  const url = process.env.DATABASE_URL;
   if (!url) {
-    console.error('Error: LIBSQL_URL environment variable is required');
+    console.error('Error: DATABASE_URL environment variable is required');
     process.exit(1);
   }
 
-  const client = createClient({
-    url,
-    authToken: process.env.LIBSQL_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN,
-  });
+  const sql = neon(url);
 
   console.log('Creating email_verification_tokens table...');
 
-  await client.execute(`
+  await sql`
     CREATE TABLE IF NOT EXISTS email_verification_tokens (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       token TEXT NOT NULL,
       expires_at INTEGER NOT NULL,
       used_at INTEGER,
-      created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
+      created_at INTEGER NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::INTEGER
     )
-  `);
+  `;
 
   console.log('Creating indexes...');
 
-  await client.execute(
-    `CREATE UNIQUE INDEX IF NOT EXISTS email_verification_token_idx ON email_verification_tokens(token)`
-  );
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS email_verification_token_idx ON email_verification_tokens(token)`;
 
-  await client.execute(
-    `CREATE INDEX IF NOT EXISTS email_verification_user_idx ON email_verification_tokens(user_id)`
-  );
+  await sql`CREATE INDEX IF NOT EXISTS email_verification_user_idx ON email_verification_tokens(user_id)`;
 
   console.log('Done!');
 }

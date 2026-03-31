@@ -6,9 +6,9 @@ import { Providers } from '@/components/providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Budget Copilot - Tu Copiloto Financiero Personal',
+  title: 'Budget Copilot - Your Personal Financial Copilot',
   description:
-    'Toma el control de tus finanzas con Budget Copilot. Gestiona presupuestos, rastrea deudas, alcanza tus metas de ahorro y visualiza tu clima financiero. Simple, intuitivo y en español.',
+    'Take control of your finances with Budget Copilot. Manage budgets, track debts, reach your savings goals, and visualize your financial health. Simple, intuitive, and powerful.',
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="en">
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
