@@ -12,6 +12,7 @@ import {
   uploadedFiles,
   fileParsedSummaries,
   fileImportedItems,
+  categories,
 } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { errorJson } from '@/lib/api/utils';
@@ -187,7 +188,43 @@ export async function POST(request: NextRequest) {
 
     // Apply transactions (only if we have an account)
     if (changes.transactions && defaultAccount) {
+      // Load user categories for resolving categoryGuess
+      const userCategories = await db
+        .select()
+        .from(categories)
+        .where(eq(categories.userId, user.id));
+
+      const catByName = new Map<string, string>();
+      for (const c of userCategories) {
+        catByName.set(c.name.toLowerCase(), c.id);
+      }
+
       for (const txn of changes.transactions) {
+        // Resolve categoryGuess or categoryId to an actual category ID
+        let categoryId: string | null = null;
+        const guess =
+          ((txn as Record<string, unknown>).categoryId as string | undefined) ||
+          txn.categoryGuess;
+        if (guess) {
+          // Try exact ID match first
+          if (userCategories.some((c) => c.id === guess)) {
+            categoryId = guess;
+          } else {
+            // Try name match (case insensitive)
+            const lower = guess.toLowerCase();
+            categoryId = catByName.get(lower) || null;
+            // Partial match
+            if (!categoryId) {
+              for (const [name, id] of catByName) {
+                if (name.includes(lower) || lower.includes(name)) {
+                  categoryId = id;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
         await db.insert(transactions).values({
           id: nanoid(),
           userId: user.id,
@@ -199,6 +236,7 @@ export async function POST(request: NextRequest) {
               ? -Math.abs(txn.amountCents)
               : Math.abs(txn.amountCents),
           type: txn.type,
+          categoryId,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });

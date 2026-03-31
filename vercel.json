@@ -3,5 +3,19 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm turbo run build --filter=web",
   "framework": "nextjs",
-  "outputDirectory": "apps/web/.next"
+  "outputDirectory": "apps/web/.next",
+  "crons": [
+    {
+      "path": "/api/cron/bill-reminders",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/budget-alerts",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-summary",
+      "schedule": "0 9 * * 1"
+    }
+  ]
 }
