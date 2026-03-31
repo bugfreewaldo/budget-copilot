@@ -5,11 +5,14 @@ const SESSION_COOKIE_NAME = 'session';
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
+  '/',
   '/login',
   '/register',
   '/forgot-password',
   '/reset-password',
   '/invite',
+  '/pricing',
+  '/privacy',
 ];
 
 // API routes that don't require authentication
@@ -33,8 +36,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Skip public routes
-  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
+  // Skip public routes (exact match for '/', prefix match for others)
+  if (
+    PUBLIC_ROUTES.some((route) =>
+      route === '/' ? pathname === '/' : pathname.startsWith(route)
+    )
+  ) {
     return NextResponse.next();
   }
 

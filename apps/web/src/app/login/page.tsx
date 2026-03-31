@@ -8,7 +8,9 @@ import { login, ApiError } from '@/lib/api';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectParam = searchParams.get('redirect');
+  const redirectTo =
+    !redirectParam || redirectParam === '/' ? '/dashboard' : redirectParam;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
