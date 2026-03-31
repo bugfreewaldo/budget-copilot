@@ -95,6 +95,16 @@ export default function TransactionsPage(): React.ReactElement {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 50;
 
+  // Balance adjustment state
+  const [showBalanceModal, setShowBalanceModal] = useState(false);
+  const [balanceAmount, setBalanceAmount] = useState('');
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceInfo, setBalanceInfo] = useState<{
+    canAdjust: boolean;
+    nextAdjustmentAt: number | null;
+    lastAdjustment: { date: string; amountCents: number } | null;
+  } | null>(null);
+
   // Date range state - default to current month
   const [datePreset, setDatePreset] = useState<DatePreset>('this-month');
   const [customFromDate, setCustomFromDate] = useState<string>('');
@@ -209,6 +219,48 @@ export default function TransactionsPage(): React.ReactElement {
   };
 
   const uncategorizedCount = transactions.filter((tx) => !tx.categoryId).length;
+
+  const openBalanceModal = async () => {
+    setShowBalanceModal(true);
+    setBalanceAmount('');
+    try {
+      const res = await fetch('/api/v1/balance', { credentials: 'include' });
+      const json = await res.json();
+      if (res.ok) {
+        setBalanceInfo(json.data);
+        setBalanceAmount((json.data.currentBalanceCents / 100).toFixed(2));
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleSetBalance = async () => {
+    const cents = Math.round(parseFloat(balanceAmount) * 100);
+    if (isNaN(cents)) return;
+
+    setBalanceLoading(true);
+    try {
+      const res = await fetch('/api/v1/balance', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actualBalanceCents: cents }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setShowBalanceModal(false);
+        setAutoCatResult(json.data.message);
+        refresh();
+      } else {
+        setAutoCatResult(json.error?.message || 'Failed to adjust balance');
+      }
+    } catch {
+      setAutoCatResult('Failed to adjust balance');
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
 
   const getCategoryName = (categoryId: string | null): string => {
     if (!categoryId) return 'Uncategorized';
@@ -341,14 +393,22 @@ export default function TransactionsPage(): React.ReactElement {
                 {formatCents(totals.expense)}
               </p>
             </div>
-            <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
-              <p className="text-xs lg:text-sm text-gray-400 mb-1">Balance</p>
+            <button
+              onClick={openBalanceModal}
+              className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4 text-left hover:border-cyan-500/50 transition-all group"
+            >
+              <p className="text-xs lg:text-sm text-gray-400 mb-1 flex items-center gap-1">
+                Balance
+                <span className="text-gray-600 group-hover:text-cyan-400 transition-colors text-xs">
+                  (adjust)
+                </span>
+              </p>
               <p
                 className={`text-lg lg:text-xl font-bold ${totals.balance >= 0 ? 'text-cyan-400' : 'text-red-400'}`}
               >
                 {formatCents(totals.balance)}
               </p>
-            </div>
+            </button>
           </div>
 
           {/* Search and Filters */}
@@ -728,6 +788,122 @@ export default function TransactionsPage(): React.ReactElement {
           variant="danger"
           isLoading={deletingId !== null}
         />
+
+        {/* Balance Adjustment Modal */}
+        {showBalanceModal && (
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-40"
+            onClick={() => !balanceLoading && setShowBalanceModal(false)}
+          >
+            <div
+              className="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-1">
+                  Set Actual Balance
+                </h2>
+                <p className="text-sm text-gray-400 mb-5">
+                  If your balance doesn{"'"}t match reality, enter the correct
+                  amount. We{"'"}ll create an adjustment transaction to
+                  reconcile.
+                </p>
+
+                {/* Warning */}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-5">
+                  <p className="text-amber-400 text-xs">
+                    This feature is meant for initial setup or genuine
+                    corrections only. Adjustments are limited to once per week.
+                    Frequent adjustments indicate missing transactions —
+                    consider importing your bank statement instead.
+                  </p>
+                </div>
+
+                {/* Current balance info */}
+                {balanceInfo && (
+                  <div className="text-sm text-gray-400 mb-4 space-y-1">
+                    <p>
+                      Current calculated balance:{' '}
+                      <span className="text-white font-medium">
+                        {formatCents(
+                          balanceInfo.canAdjust ? totals.balance : 0
+                        )}
+                      </span>
+                    </p>
+                    {balanceInfo.lastAdjustment && (
+                      <p className="text-xs text-gray-500">
+                        Last adjusted on {balanceInfo.lastAdjustment.date}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Input */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    What is your actual balance right now?
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={balanceAmount}
+                      onChange={(e) => setBalanceAmount(e.target.value)}
+                      disabled={
+                        balanceLoading ||
+                        (balanceInfo !== null && !balanceInfo.canAdjust)
+                      }
+                      className="w-full pl-8 pr-3 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 transition-all"
+                      placeholder="0.00"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* Cooldown message */}
+                {balanceInfo &&
+                  !balanceInfo.canAdjust &&
+                  balanceInfo.nextAdjustmentAt && (
+                    <div className="bg-gray-800 rounded-lg p-3 mb-5">
+                      <p className="text-gray-400 text-sm">
+                        Next adjustment available on{' '}
+                        <span className="text-white">
+                          {new Date(
+                            balanceInfo.nextAdjustmentAt
+                          ).toLocaleDateString()}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowBalanceModal(false)}
+                    disabled={balanceLoading}
+                    className="flex-1 py-2.5 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSetBalance}
+                    disabled={
+                      balanceLoading ||
+                      !balanceAmount.trim() ||
+                      (balanceInfo !== null && !balanceInfo.canAdjust)
+                    }
+                    className="flex-1 py-2.5 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {balanceLoading ? 'Adjusting...' : 'Set Balance'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Sidebar>
   );
