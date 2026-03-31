@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Sidebar } from '@/components/layout';
 import { TransactionCopilot } from '@/components/copilot/TransactionCopilot';
 import { CreateTransactionModal } from '@/components/transactions';
@@ -100,10 +100,14 @@ export default function TransactionsPage(): React.ReactElement {
   const [balanceAmount, setBalanceAmount] = useState('');
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balanceInfo, setBalanceInfo] = useState<{
+    currentBalanceCents: number;
     canAdjust: boolean;
     nextAdjustmentAt: number | null;
     lastAdjustment: { date: string; amountCents: number } | null;
   } | null>(null);
+  const [cumulativeBalance, setCumulativeBalance] = useState<number | null>(
+    null
+  );
 
   // Date range state - default to current month
   const [datePreset, setDatePreset] = useState<DatePreset>('this-month');
@@ -131,6 +135,22 @@ export default function TransactionsPage(): React.ReactElement {
   const error = fetchError
     ? 'Failed to load transactions. Is the server running?'
     : null;
+
+  // Fetch cumulative balance (all-time)
+  const fetchBalance = useCallback(() => {
+    fetch('/api/v1/balance', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data?.currentBalanceCents !== undefined) {
+          setCumulativeBalance(json.data.currentBalanceCents);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchBalance();
+  }, [fetchBalance, transactions]);
 
   // Filter transactions based on search and filters
   const filteredTransactions = useMemo(() => {
@@ -252,6 +272,7 @@ export default function TransactionsPage(): React.ReactElement {
         setShowBalanceModal(false);
         setAutoCatResult(json.data.message);
         refresh();
+        fetchBalance();
       } else {
         setAutoCatResult(json.error?.message || 'Failed to adjust balance');
       }
@@ -274,7 +295,7 @@ export default function TransactionsPage(): React.ReactElement {
     return category?.emoji || '';
   };
 
-  // Calculate totals from ALL filtered transactions (not just current page)
+  // Income/Expense from filtered transactions, Balance is cumulative (all-time)
   const totals = useMemo(() => {
     const income = filteredTransactions
       .filter((tx) => tx.type === 'income')
@@ -282,8 +303,9 @@ export default function TransactionsPage(): React.ReactElement {
     const expense = filteredTransactions
       .filter((tx) => tx.type === 'expense')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
-    return { income, expense, balance: income - expense };
-  }, [filteredTransactions]);
+    const balance = cumulativeBalance ?? income - expense;
+    return { income, expense, balance };
+  }, [filteredTransactions, cumulativeBalance]);
 
   // Pagination
   const totalPages = Math.max(
@@ -825,9 +847,7 @@ export default function TransactionsPage(): React.ReactElement {
                     <p>
                       Current calculated balance:{' '}
                       <span className="text-white font-medium">
-                        {formatCents(
-                          balanceInfo.canAdjust ? totals.balance : 0
-                        )}
+                        {formatCents(balanceInfo.currentBalanceCents)}
                       </span>
                     </p>
                     {balanceInfo.lastAdjustment && (

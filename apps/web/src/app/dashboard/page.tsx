@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Sidebar } from '@/components/layout';
 import { IncomeVsExpenses } from '@/components/charts/IncomeVsExpenses';
@@ -29,6 +29,21 @@ export default function DashboardPage(): React.ReactElement {
     to
   );
 
+  const [cumulativeBalance, setCumulativeBalance] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    fetch('/api/v1/balance', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data?.currentBalanceCents !== undefined) {
+          setCumulativeBalance(json.data.currentBalanceCents);
+        }
+      })
+      .catch(() => {});
+  }, [transactions]);
+
   const totals = useMemo(() => {
     const income = transactions
       .filter((tx) => tx.type === 'income')
@@ -36,8 +51,9 @@ export default function DashboardPage(): React.ReactElement {
     const expenses = transactions
       .filter((tx) => tx.type === 'expense')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
-    return { income, expenses, balance: income - expenses };
-  }, [transactions]);
+    const balance = cumulativeBalance ?? income - expenses;
+    return { income, expenses, balance };
+  }, [transactions, cumulativeBalance]);
 
   const monthLabel = new Date().toLocaleDateString('en-US', {
     month: 'long',
