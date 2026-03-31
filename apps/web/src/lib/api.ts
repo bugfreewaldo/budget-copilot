@@ -636,6 +636,7 @@ export interface Debt {
   deathDate: string | null;
   totalInterestProjectedCents: number | null;
   dangerScore: number | null;
+  actualPaymentCents: number | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -710,6 +711,7 @@ export async function createDebt(input: {
   start_date?: string | null;
   due_day?: number;
   account_id?: string | null;
+  actual_payment_cents?: number | null;
 }): Promise<Debt> {
   const response = await fetchApi<{ data: Debt }>('/v1/debts', {
     method: 'POST',
@@ -729,6 +731,7 @@ export async function createDebt(input: {
       startDate: input.start_date,
       dueDay: input.due_day,
       accountId: input.account_id,
+      actualPaymentCents: input.actual_payment_cents,
     }),
   });
   return response.data;
@@ -748,6 +751,7 @@ export async function updateDebt(
     start_date?: string | null;
     due_day?: number;
     status?: DebtStatus;
+    actual_payment_cents?: number | null;
   }
 ): Promise<Debt> {
   const response = await fetchApi<{ data: Debt }>(`/v1/debts/${id}`, {
@@ -767,6 +771,7 @@ export async function updateDebt(
       startDate: input.start_date,
       dueDay: input.due_day,
       status: input.status,
+      actualPaymentCents: input.actual_payment_cents,
     }),
   });
   return response.data;

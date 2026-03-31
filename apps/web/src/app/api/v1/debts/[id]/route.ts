@@ -42,6 +42,7 @@ const updateDebtSchema = z.object({
   startDate: z.string().nullable().optional(),
   dueDay: z.number().int().min(1).max(31).nullable().optional(),
   nextDueDate: z.string().nullable().optional(),
+  actualPaymentCents: centsSchema.nullable().optional(),
   status: z.enum(['active', 'paid_off', 'defaulted', 'deferred']).optional(),
 });
 

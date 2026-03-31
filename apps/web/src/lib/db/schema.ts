@@ -561,6 +561,7 @@ export const debts = pgTable(
       mode: 'number',
     }),
     dangerScore: bigint('danger_score', { mode: 'number' }),
+    actualPaymentCents: bigint('actual_payment_cents', { mode: 'number' }),
     createdAt: bigint('created_at', { mode: 'number' })
       .notNull()
       .$defaultFn(() => Date.now()),

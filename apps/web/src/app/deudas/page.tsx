@@ -323,6 +323,8 @@ export default function DeudasPage(): React.JSX.Element {
     term_months: null as number | null,
     start_date: '' as string,
     due_day: 1,
+    pays_extra: false,
+    actual_payment_cents: 0,
   });
 
   // Form state for payment
@@ -344,6 +346,8 @@ export default function DeudasPage(): React.JSX.Element {
     term_months: null as number | null,
     start_date: '' as string,
     due_day: 1,
+    pays_extra: false,
+    actual_payment_cents: 0,
   });
 
   // Function to estimate and apply APR
@@ -394,6 +398,9 @@ export default function DeudasPage(): React.JSX.Element {
         term_months: newDebt.term_months,
         start_date: newDebt.start_date || undefined,
         due_day: newDebt.due_day,
+        actual_payment_cents: newDebt.pays_extra
+          ? Math.round(newDebt.actual_payment_cents * 100)
+          : undefined,
       });
       setShowAddModal(false);
       setNewDebt({
@@ -408,6 +415,8 @@ export default function DeudasPage(): React.JSX.Element {
         term_months: null,
         start_date: '',
         due_day: 1,
+        pays_extra: false,
+        actual_payment_cents: 0,
       });
       refresh();
     } catch (err) {
@@ -440,6 +449,9 @@ export default function DeudasPage(): React.JSX.Element {
         term_months: editDebt.term_months,
         start_date: editDebt.start_date || null,
         due_day: editDebt.due_day,
+        actual_payment_cents: editDebt.pays_extra
+          ? Math.round(editDebt.actual_payment_cents * 100)
+          : null,
       });
       setShowEditModal(null);
       refresh();
@@ -463,6 +475,8 @@ export default function DeudasPage(): React.JSX.Element {
       term_months: debt.termMonths,
       start_date: debt.startDate || '',
       due_day: debt.dueDay || 1,
+      pays_extra: (debt.actualPaymentCents ?? 0) > 0,
+      actual_payment_cents: (debt.actualPaymentCents || 0) / 100,
     });
     setShowEditModal(debt);
   };
@@ -680,7 +694,7 @@ export default function DeudasPage(): React.JSX.Element {
                           return (
                             <>
                               <p className="text-xl font-bold text-gray-500">
-                                Sin datos
+                                No data
                               </p>
                               <p className="text-xs text-gray-500">
                                 Add minimum payments
@@ -1107,7 +1121,7 @@ export default function DeudasPage(): React.JSX.Element {
                       <div>
                         <p className="text-xs text-gray-400">Death Date</p>
                         <p className="text-xl font-bold text-green-400">
-                          {debt.deathDate || 'Calcular...'}
+                          {debt.deathDate || 'Calculating...'}
                         </p>
                       </div>
                       <div>
@@ -1130,7 +1144,7 @@ export default function DeudasPage(): React.JSX.Element {
                     {/* Progress bar */}
                     <div className="mb-4">
                       <div className="flex justify-between text-xs text-gray-400 mb-1">
-                        <span>Progreso de pago</span>
+                        <span>Payment Progress</span>
                         <span>
                           {Math.round(
                             (1 -
@@ -1184,7 +1198,7 @@ export default function DeudasPage(): React.JSX.Element {
                           onClick={() => handleMarkAsPaid(debt)}
                           className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
                         >
-                          Pagada
+                          Paid Off
                         </button>
                       </div>
                     )}
@@ -1205,7 +1219,7 @@ export default function DeudasPage(): React.JSX.Element {
               <form onSubmit={handleAddDebt} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Nombre
+                    Name
                   </label>
                   <input
                     type="text"
@@ -1214,14 +1228,14 @@ export default function DeudasPage(): React.JSX.Element {
                       setNewDebt({ ...newDebt, name: e.target.value })
                     }
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                    placeholder="Ej: Tarjeta BBVA"
+                    placeholder="e.g. Chase Visa"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Tipo
+                    Type
                   </label>
                   <select
                     value={newDebt.type}
@@ -1367,9 +1381,58 @@ export default function DeudasPage(): React.JSX.Element {
                               newDebt.minimum_payment_percent) /
                             100
                           ).toFixed(2)}{' '}
-                          /mes
+                          /mo
                         </span>
                       )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Extra Payment */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newDebt.pays_extra}
+                      onChange={(e) =>
+                        setNewDebt({
+                          ...newDebt,
+                          pays_extra: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 rounded border-gray-600"
+                    />
+                    <span className="text-sm text-gray-300">
+                      I pay more than the minimum each month
+                    </span>
+                  </label>
+                  {newDebt.pays_extra && (
+                    <div className="mt-3">
+                      <label className="block text-sm text-gray-400 mb-1">
+                        How much do you actually pay per month?
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          $
+                        </span>
+                        <input
+                          type="number"
+                          value={newDebt.actual_payment_cents || ''}
+                          onChange={(e) =>
+                            setNewDebt({
+                              ...newDebt,
+                              actual_payment_cents:
+                                parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="w-full pl-8 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
+                          placeholder="300"
+                          step="0.01"
+                        />
+                      </div>
+                      <p className="text-xs text-green-400/70 mt-1">
+                        This amount is used to calculate your actual payoff date
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1410,7 +1473,7 @@ export default function DeudasPage(): React.JSX.Element {
                       🧮 Calcular
                     </button>
                     <span className="text-xs text-gray-500">
-                      Requiere plazo y pago mensual
+                      Requires term and monthly payment
                     </span>
                   </div>
                 </div>
@@ -1435,7 +1498,7 @@ export default function DeudasPage(): React.JSX.Element {
                             })
                           }
                           className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-red-500"
-                          placeholder="Ej: 48 months"
+                          placeholder="e.g. 48"
                           min="1"
                           max="480"
                         />
@@ -1507,7 +1570,7 @@ export default function DeudasPage(): React.JSX.Element {
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-red-600 hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Add Debt'}
+                    {isSubmitting ? 'Saving...' : 'Add Debt'}
                   </button>
                 </div>
               </form>
@@ -1526,7 +1589,7 @@ export default function DeudasPage(): React.JSX.Element {
               <form onSubmit={handleEditDebt} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Nombre
+                    Name
                   </label>
                   <input
                     type="text"
@@ -1535,14 +1598,14 @@ export default function DeudasPage(): React.JSX.Element {
                       setEditDebt({ ...editDebt, name: e.target.value })
                     }
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                    placeholder="Ej: Tarjeta BBVA"
+                    placeholder="e.g. Chase Visa"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Tipo
+                    Type
                   </label>
                   <select
                     value={editDebt.type}
@@ -1680,9 +1743,58 @@ export default function DeudasPage(): React.JSX.Element {
                               editDebt.minimum_payment_percent) /
                             100
                           ).toFixed(2)}{' '}
-                          /mes
+                          /mo
                         </span>
                       )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Extra Payment */}
+                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editDebt.pays_extra}
+                      onChange={(e) =>
+                        setEditDebt({
+                          ...editDebt,
+                          pays_extra: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 rounded border-gray-600"
+                    />
+                    <span className="text-sm text-gray-300">
+                      I pay more than the minimum each month
+                    </span>
+                  </label>
+                  {editDebt.pays_extra && (
+                    <div className="mt-3">
+                      <label className="block text-sm text-gray-400 mb-1">
+                        How much do you actually pay per month?
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          $
+                        </span>
+                        <input
+                          type="number"
+                          value={editDebt.actual_payment_cents || ''}
+                          onChange={(e) =>
+                            setEditDebt({
+                              ...editDebt,
+                              actual_payment_cents:
+                                parseFloat(e.target.value) || 0,
+                            })
+                          }
+                          className="w-full pl-8 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
+                          placeholder="300"
+                          step="0.01"
+                        />
+                      </div>
+                      <p className="text-xs text-green-400/70 mt-1">
+                        This amount is used to calculate your actual payoff date
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1723,7 +1835,7 @@ export default function DeudasPage(): React.JSX.Element {
                       🧮 Calcular
                     </button>
                     <span className="text-xs text-gray-500">
-                      Requiere plazo y pago mensual
+                      Requires term and monthly payment
                     </span>
                   </div>
                 </div>
@@ -1748,7 +1860,7 @@ export default function DeudasPage(): React.JSX.Element {
                             })
                           }
                           className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500"
-                          placeholder="Ej: 48 months"
+                          placeholder="e.g. 48"
                           min="1"
                           max="480"
                         />
@@ -1814,7 +1926,7 @@ export default function DeudasPage(): React.JSX.Element {
                     disabled={isSubmitting}
                     className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Guardando...' : 'Save Changes'}
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>
@@ -1833,7 +1945,7 @@ export default function DeudasPage(): React.JSX.Element {
               <form onSubmit={handleRecordPayment} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Monto del Pago
+                    Payment Amount
                   </label>
                   <input
                     type="number"
@@ -1850,7 +1962,7 @@ export default function DeudasPage(): React.JSX.Element {
 
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">
-                    Fecha del Pago
+                    Payment Date
                   </label>
                   <input
                     type="date"
@@ -2190,10 +2302,10 @@ export default function DeudasPage(): React.JSX.Element {
                       step="100"
                       value={customPaymentAmount}
                       onChange={(e) => setCustomPaymentAmount(e.target.value)}
-                      placeholder="Ej: 5000"
+                      placeholder="e.g. 5000"
                       className="w-32 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                     />
-                    <span className="text-gray-400">/mes</span>
+                    <span className="text-gray-400">/mo</span>
                   </div>
 
                   {/* Custom payment results */}
@@ -2241,7 +2353,7 @@ export default function DeudasPage(): React.JSX.Element {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">⚠️</span>
                             <p className="text-sm text-red-400">
-                              Con ${customPayment.toLocaleString()}/mes, would
+                              Con ${customPayment.toLocaleString()}/mo, would
                               take over 50 years to pay off.
                             </p>
                           </div>
@@ -2258,7 +2370,7 @@ export default function DeudasPage(): React.JSX.Element {
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg">🎯</span>
                           <p className="font-semibold text-purple-400">
-                            Paying ${customPayment.toLocaleString()}/mes
+                            Paying ${customPayment.toLocaleString()}/mo
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">

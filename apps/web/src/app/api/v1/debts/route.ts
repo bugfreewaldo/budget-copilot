@@ -173,6 +173,7 @@ function enrichDebt(debt: {
   minimumPaymentCents: number | null;
   minimumPaymentType: string | null;
   minimumPaymentPercent: number | null;
+  actualPaymentCents: number | null;
   termMonths: number | null;
   startDate: string | null;
   status: string;
@@ -188,6 +189,12 @@ function enrichDebt(debt: {
     debt.minimumPaymentPercent,
     debt.currentBalanceCents
   );
+
+  // Use actual payment if set, otherwise fall back to effective minimum
+  const paymentForProjection =
+    debt.actualPaymentCents && debt.actualPaymentCents > 0
+      ? debt.actualPaymentCents
+      : effectiveMinPayment;
 
   if (debt.status !== 'active' || debt.currentBalanceCents <= 0) {
     return {
@@ -222,19 +229,20 @@ function enrichDebt(debt: {
     monthsToPayoff = remainingMonths;
 
     // Estimate total interest based on fixed term amortization
-    if (effectiveMinPayment && debt.termMonths > 0) {
-      const totalPayments = effectiveMinPayment * debt.termMonths;
+    const paymentForCalc = paymentForProjection || effectiveMinPayment;
+    if (paymentForCalc && debt.termMonths > 0) {
+      const totalPayments = paymentForCalc * debt.termMonths;
       totalInterestCents = Math.max(
         0,
         totalPayments - debt.originalBalanceCents
       );
     }
   } else {
-    // Variable/revolving debt: calculate based on minimum payments
+    // Variable/revolving debt: calculate based on actual or minimum payments
     const payoff = calculatePayoff(
       debt.currentBalanceCents,
       debt.aprPercent,
-      effectiveMinPayment
+      paymentForProjection
     );
     monthsToPayoff = payoff.monthsToPayoff;
     totalInterestCents = payoff.totalInterestCents;
@@ -248,7 +256,7 @@ function enrichDebt(debt: {
     dangerScore: calculateDangerScore(
       debt.currentBalanceCents,
       debt.aprPercent,
-      effectiveMinPayment,
+      paymentForProjection,
       monthsToPayoff,
       debt.type
     ),
@@ -279,6 +287,7 @@ const createDebtSchema = z.object({
   startDate: z.string().nullable().optional(),
   dueDay: z.number().int().min(1).max(31).nullable().optional(),
   nextDueDate: z.string().nullable().optional(),
+  actualPaymentCents: centsSchema.nullable().optional(),
 });
 
 /**
