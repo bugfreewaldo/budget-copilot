@@ -115,9 +115,7 @@ export function InsightsPanel({
             {insights.largestExpenses.slice(0, 5).map((tx, idx) => (
               <TransactionRow
                 key={idx}
-                description={
-                  tx.sensitive ? '🔒 Hidden transaction' : tx.description
-                }
+                description={tx.description}
                 amount={tx.amountCents}
                 date={tx.date}
                 category={tx.categoryName}
@@ -135,9 +133,7 @@ export function InsightsPanel({
             {insights.largestIncome.slice(0, 5).map((tx, idx) => (
               <TransactionRow
                 key={idx}
-                description={
-                  tx.sensitive ? '🔒 Hidden transaction' : tx.description
-                }
+                description={tx.description}
                 amount={tx.amountCents}
                 date={tx.date}
                 category={tx.categoryName}
