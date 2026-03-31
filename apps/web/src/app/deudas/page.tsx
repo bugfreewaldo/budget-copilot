@@ -655,7 +655,12 @@ export default function DeudasPage(): React.JSX.Element {
                   0
                 );
                 const totalMinPaymentCents = includedDebts.reduce(
-                  (sum, d) => sum + (d.minimumPaymentCents || 0),
+                  (sum, d) =>
+                    sum +
+                    (d.actualPaymentCents ||
+                      d.effectiveMinimumPaymentCents ||
+                      d.minimumPaymentCents ||
+                      Math.ceil(d.currentBalanceCents * 0.02)),
                   0
                 );
                 const activeCount = includedDebts.length;
@@ -680,7 +685,12 @@ export default function DeudasPage(): React.JSX.Element {
                     </div>
                     <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
                       <p className="text-gray-400 text-sm mb-1">
-                        Minimum Monthly Payment
+                        {includedDebts.some(
+                          (d) =>
+                            d.actualPaymentCents && d.actualPaymentCents > 0
+                        )
+                          ? 'Total Monthly Payment'
+                          : 'Minimum Monthly Payment'}
                       </p>
                       <p className="text-3xl font-bold text-orange-400">
                         {formatCurrency(totalMinPaymentCents)}
@@ -1228,11 +1238,25 @@ export default function DeudasPage(): React.JSX.Element {
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400">Minimum Payment</p>
+                        <p className="text-xs text-gray-400">
+                          {debt.actualPaymentCents &&
+                          debt.actualPaymentCents > 0
+                            ? 'Monthly Payment'
+                            : 'Minimum Payment'}
+                        </p>
                         <p className="text-xl font-bold">
-                          {debt.minimumPaymentCents
-                            ? formatCurrency(debt.minimumPaymentCents)
-                            : 'N/A'}
+                          {debt.actualPaymentCents &&
+                          debt.actualPaymentCents > 0
+                            ? formatCurrency(debt.actualPaymentCents)
+                            : debt.effectiveMinimumPaymentCents
+                              ? formatCurrency(
+                                  debt.effectiveMinimumPaymentCents
+                                )
+                              : debt.minimumPaymentCents
+                                ? formatCurrency(debt.minimumPaymentCents)
+                                : formatCurrency(
+                                    Math.ceil(debt.currentBalanceCents * 0.02)
+                                  )}
                         </p>
                       </div>
                       <div>
