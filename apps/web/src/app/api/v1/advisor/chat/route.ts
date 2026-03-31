@@ -350,7 +350,28 @@ async function buildUserContext(userId: string): Promise<string> {
     .orderBy(desc(decisionState.computedAt))
     .limit(1);
 
+  const userCategories = await db
+    .select()
+    .from(categoriesTable)
+    .where(eq(categoriesTable.userId, userId));
+
   const topTxns = recentTxns.slice(0, 10);
+
+  // Build category list grouped by parent
+  const parents = userCategories
+    .filter((c) => !c.parentId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const categoryList = parents
+    .map((p) => {
+      const children = userCategories
+        .filter((c) => c.parentId === p.id)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (children.length > 0) {
+        return `${p.emoji || ''} ${p.name}: ${children.map((c) => c.name).join(', ')}`;
+      }
+      return `${p.emoji || ''} ${p.name}`;
+    })
+    .join('\n');
 
   return `[CURRENT FINANCIAL STATE]
 
@@ -367,7 +388,12 @@ Debts: ${userDebts.length > 0 ? userDebts.map((d) => `${d.name} (${d.type}): $${
 
 Scheduled bills: ${bills.length > 0 ? bills.map((b) => `${b.name}: $${(b.amountCents / 100).toFixed(2)}`).join(', ') : 'None'}
 
-Current decision: ${decision ? `${decision.riskLevel} — ${decision.primaryCommandText}` : 'No active decision'}`;
+Available categories (use these names for categoryGuess):
+${categoryList}
+
+Current decision: ${decision ? `${decision.riskLevel} — ${decision.primaryCommandText}` : 'No active decision'}
+
+Today's date: ${new Date().toISOString().split('T')[0]}`;
 }
 
 /**
