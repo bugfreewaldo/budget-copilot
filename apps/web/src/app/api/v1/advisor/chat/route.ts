@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
 import {
   advisorSessions,
   categories as categoriesTable,
+  userProfiles,
+  accounts,
+  transactions,
+  debts,
+  scheduledBills,
+  decisionState,
 } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { errorJson } from '@/lib/api/utils';
@@ -282,6 +288,67 @@ async function processFileContext(
 }
 
 /**
+ * Fetch user's financial data from the database and format it as context for the AI
+ */
+async function buildUserContext(userId: string): Promise<string> {
+  const db = getDb();
+
+  const [profile] = await db
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId))
+    .limit(1);
+
+  const userAccounts = await db
+    .select()
+    .from(accounts)
+    .where(eq(accounts.userId, userId));
+
+  const recentTxns = await db
+    .select()
+    .from(transactions)
+    .where(eq(transactions.userId, userId))
+    .orderBy(desc(transactions.date))
+    .limit(50);
+
+  const userDebts = await db
+    .select()
+    .from(debts)
+    .where(eq(debts.userId, userId));
+
+  const bills = await db
+    .select()
+    .from(scheduledBills)
+    .where(eq(scheduledBills.userId, userId));
+
+  const [decision] = await db
+    .select()
+    .from(decisionState)
+    .where(eq(decisionState.userId, userId))
+    .orderBy(desc(decisionState.computedAt))
+    .limit(1);
+
+  const topTxns = recentTxns.slice(0, 10);
+
+  return `[CURRENT FINANCIAL STATE]
+
+Profile:
+- Monthly salary: ${profile?.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'Not set'}
+- Pay frequency: ${profile?.payFrequency || 'Not set'}
+
+Accounts: ${userAccounts.length > 0 ? userAccounts.map((a) => `${a.name} (${a.type}, balance: $${((a.currentBalanceCents ?? 0) / 100).toFixed(2)})`).join(', ') : 'None'}
+
+Recent transactions (last 50, showing top 10):
+${topTxns.map((t) => `- ${t.date} | ${t.description}: $${(Math.abs(t.amountCents) / 100).toFixed(2)} (${t.type})`).join('\n')}${recentTxns.length > 10 ? `\n... and ${recentTxns.length - 10} more` : ''}
+
+Debts: ${userDebts.length > 0 ? userDebts.map((d) => `${d.name} (${d.type}): $${(d.currentBalanceCents / 100).toFixed(2)} @ ${d.aprPercent}% APR`).join(', ') : 'None'}
+
+Scheduled bills: ${bills.length > 0 ? bills.map((b) => `${b.name}: $${(b.amountCents / 100).toFixed(2)}`).join(', ') : 'None'}
+
+Current decision: ${decision ? `${decision.riskLevel} — ${decision.primaryCommandText}` : 'No active decision'}`;
+}
+
+/**
  * POST /api/v1/advisor/chat - Send message to advisor
  *
  * Returns JSON with reply, classification, pendingChanges
@@ -399,11 +466,14 @@ User message: ${message || 'I uploaded this file.'}`;
       content: userMessageContent,
     });
 
+    // Fetch user's financial data and inject it into the system prompt
+    const userContext = await buildUserContext(user.id);
+
     // Call Claude
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      system: ADVISOR_SYSTEM_PROMPT,
+      system: `${ADVISOR_SYSTEM_PROMPT}\n\n${userContext}`,
       messages: claudeMessages,
     });
 
