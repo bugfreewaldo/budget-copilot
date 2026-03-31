@@ -1527,7 +1527,7 @@ export interface AdvisorDocumentContext {
         id: string | null;
         name: string | null;
         confidence: number;
-        source: 'pattern' | 'ai' | 'none';
+        source: 'learned' | 'pattern' | 'ai' | 'llm' | 'none';
       };
       isTransfer: boolean;
       matchedTransferId?: string;
