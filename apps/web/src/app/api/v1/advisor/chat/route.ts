@@ -342,7 +342,8 @@ export async function POST(request: NextRequest) {
 
     // Process file context if present
     let documentContext: DocumentContext | null = null;
-    let fileProcessingResult: ReturnType<typeof processFileContext> = null;
+    let fileProcessingResult: Awaited<ReturnType<typeof processFileContext>> =
+      null;
 
     if (fileContext) {
       // Fetch user categories for auto-assignment
