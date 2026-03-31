@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     if (lastAdjustment && Date.now() - lastAdjustment.createdAt < COOLDOWN_MS) {
       const nextDate = new Date(lastAdjustment.createdAt + COOLDOWN_MS);
       return errorJson(
-        'COOLDOWN',
+        'VALIDATION_ERROR',
         `Balance can only be adjusted once per week. Next adjustment available on ${nextDate.toLocaleDateString()}.`,
         429
       );
