@@ -906,7 +906,7 @@ export default function DeudasPage(): React.JSX.Element {
                   </p>
 
                   {/* Active debts in strategy with insights */}
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {(() => {
                       const sorted = [...debts]
                         .filter(
@@ -921,7 +921,11 @@ export default function DeudasPage(): React.JSX.Element {
                             : a.currentBalanceCents - b.currentBalanceCents
                         );
 
-                      // Calculate cumulative freed-up payments
+                      // Track cumulative freed payments and their sources
+                      const paidOffSources: Array<{
+                        name: string;
+                        payment: number;
+                      }> = [];
                       let cumulativeFreed = 0;
 
                       return sorted.map((debt, index) => {
@@ -930,16 +934,22 @@ export default function DeudasPage(): React.JSX.Element {
                           debt.effectiveMinimumPaymentCents ||
                           debt.minimumPaymentCents ||
                           Math.ceil(debt.currentBalanceCents * 0.02);
+
+                        // The recommended payment includes all freed-up money from previous debts
                         const recommendedPayment =
-                          index === 0
-                            ? currentPayment + cumulativeFreed
-                            : currentPayment;
-                        const extraFromPrevious = cumulativeFreed;
+                          currentPayment + cumulativeFreed;
+                        const hasExtra = cumulativeFreed > 0;
 
-                        // After this debt is paid, its payment frees up
-                        const freedAfter = recommendedPayment;
+                        // Build breakdown of where the freed money comes from
+                        const sourceBreakdown = [...paidOffSources];
 
-                        // For display: what gets redirected when this one is done
+                        // For the redirect message after this debt
+                        const totalFreedAfterThis =
+                          cumulativeFreed + currentPayment;
+                        const sourcesAfterThis = [
+                          ...paidOffSources,
+                          { name: debt.name, payment: currentPayment },
+                        ];
                         const nextDebt = sorted[index + 1];
 
                         const node = (
@@ -968,22 +978,39 @@ export default function DeudasPage(): React.JSX.Element {
                                   {formatCurrency(debt.currentBalanceCents)} •{' '}
                                   {debt.aprPercent}% APR
                                 </p>
-                                {/* Insight: recommended payment */}
-                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                                  <span className="text-gray-500">
-                                    Current: {formatCurrency(currentPayment)}/mo
-                                  </span>
-                                  {index === 0 && extraFromPrevious > 0 && (
-                                    <span className="text-green-400">
-                                      Pay {formatCurrency(recommendedPayment)}
-                                      /mo (+{formatCurrency(extraFromPrevious)}{' '}
-                                      freed up)
-                                    </span>
+                                {/* Payment info */}
+                                <div className="mt-2 text-xs space-y-0.5">
+                                  {hasExtra ? (
+                                    <>
+                                      <p className="text-green-400">
+                                        Pay {formatCurrency(recommendedPayment)}
+                                        /mo
+                                        <span className="text-gray-500">
+                                          {' '}
+                                          ({formatCurrency(currentPayment)}{' '}
+                                          yours
+                                          {sourceBreakdown.map((s, i) => (
+                                            <span key={i}>
+                                              {' '}
+                                              + {formatCurrency(
+                                                s.payment
+                                              )} from {s.name}
+                                            </span>
+                                          ))}
+                                          )
+                                        </span>
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <p className="text-gray-500">
+                                      Paying: {formatCurrency(currentPayment)}
+                                      /mo
+                                    </p>
                                   )}
                                   {debt.deathDate && (
-                                    <span className="text-gray-500">
+                                    <p className="text-gray-600">
                                       Payoff: {debt.deathDate}
-                                    </span>
+                                    </p>
                                   )}
                                 </div>
                               </div>
@@ -1012,20 +1039,41 @@ export default function DeudasPage(): React.JSX.Element {
                                 </svg>
                               </button>
                             </div>
-                            {/* Arrow showing payment redirect */}
+                            {/* Arrow showing cumulative payment redirect */}
                             {nextDebt && (
-                              <div className="flex items-center gap-2 py-1.5 pl-12">
-                                <div className="w-px h-4 bg-gray-700"></div>
-                                <span className="text-xs text-cyan-400/70">
-                                  When paid off, redirect{' '}
-                                  {formatCurrency(freedAfter)}/mo to{' '}
-                                  {nextDebt.name}
-                                </span>
+                              <div className="flex items-center gap-2 py-2 pl-12">
+                                <div className="w-px h-5 bg-cyan-500/30"></div>
+                                <div className="text-xs text-cyan-400/80">
+                                  <span>
+                                    When paid off, redirect{' '}
+                                    <span className="font-medium text-cyan-300">
+                                      {formatCurrency(totalFreedAfterThis)}/mo
+                                    </span>{' '}
+                                    to {nextDebt.name}
+                                  </span>
+                                  {sourcesAfterThis.length > 1 && (
+                                    <span className="text-gray-500 ml-1">
+                                      (
+                                      {sourcesAfterThis
+                                        .map(
+                                          (s) =>
+                                            `${formatCurrency(s.payment)} from ${s.name}`
+                                        )
+                                        .join(' + ')}
+                                      )
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
                         );
 
+                        // Track this debt as a future source of freed money
+                        paidOffSources.push({
+                          name: debt.name,
+                          payment: currentPayment,
+                        });
                         cumulativeFreed += currentPayment;
                         return node;
                       });
