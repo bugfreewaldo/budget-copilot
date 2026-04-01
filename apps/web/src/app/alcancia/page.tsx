@@ -59,7 +59,7 @@ function AnimatedPiggy({
     >
       <svg
         viewBox="0 0 200 160"
-        className="w-64 h-52 drop-shadow-2xl"
+        className="w-48 sm:w-56 lg:w-64 h-auto drop-shadow-2xl"
         style={{ filter: 'drop-shadow(0 25px 25px rgb(0 0 0 / 0.15))' }}
       >
         {/* Piggy Body */}

@@ -381,7 +381,7 @@ export default function TransactionsPage(): React.ReactElement {
           )}
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
               <p className="text-xs lg:text-sm text-gray-400 mb-1">Income</p>
               <p className="text-lg lg:text-xl font-bold text-green-400">

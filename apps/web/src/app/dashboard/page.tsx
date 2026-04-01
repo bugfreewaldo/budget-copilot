@@ -174,7 +174,7 @@ export default function DashboardPage(): React.ReactElement {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
             <div className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4">
               <p className="text-xs lg:text-sm text-gray-400 mb-1">Income</p>
               <p className="text-lg lg:text-2xl font-bold text-green-400">
@@ -353,7 +353,7 @@ export default function DashboardPage(): React.ReactElement {
                   </div>
                   <iframe
                     srcDoc={emailPreviewHtml}
-                    className="w-full h-[500px] bg-white rounded-b-2xl"
+                    className="w-full h-[60vh] sm:h-[500px] bg-white rounded-b-2xl"
                     title="Email preview"
                     sandbox=""
                   />

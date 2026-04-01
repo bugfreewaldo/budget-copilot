@@ -796,7 +796,7 @@ export default function DeudasPage(): React.JSX.Element {
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-400">Total Interest</p>
                         <p className="font-semibold text-orange-400">
@@ -856,7 +856,7 @@ export default function DeudasPage(): React.JSX.Element {
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-400">Total Interest</p>
                         <p className="font-semibold text-orange-400">
@@ -1398,7 +1398,7 @@ export default function DeudasPage(): React.JSX.Element {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
                       Original Balance
@@ -1768,7 +1768,7 @@ export default function DeudasPage(): React.JSX.Element {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">
                       Original Balance
@@ -2175,7 +2175,7 @@ export default function DeudasPage(): React.JSX.Element {
               <div className="p-6 space-y-6">
                 {/* Debt Info Summary */}
                 <div className="bg-gray-800/50 rounded-xl p-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-400">Current Balance</p>
                       <p className="text-xl font-bold text-red-400">
@@ -2352,7 +2352,7 @@ export default function DeudasPage(): React.JSX.Element {
                       )}
 
                       {/* Comparison Stats */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-gray-800/50 rounded-xl p-4">
                           <p className="text-gray-400 text-xs mb-1">
                             Total interest to pay
@@ -2514,7 +2514,7 @@ export default function DeudasPage(): React.JSX.Element {
                             Paying ${customPayment.toLocaleString()}/mo
                           </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-gray-400">
                               Tiempo para liquidar
