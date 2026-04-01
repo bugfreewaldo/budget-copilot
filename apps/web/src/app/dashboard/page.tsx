@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Sidebar } from '@/components/layout';
 import { IncomeVsExpenses } from '@/components/charts/IncomeVsExpenses';
 import { SpendingByCategory } from '@/components/charts/SpendingByCategory';
+import { CategoryDetailModal } from '@/components/charts/CategoryDetailModal';
 import { useDashboardData } from '@/lib/hooks';
 import { getCurrentMonth, formatCents } from '@/lib/api';
 
@@ -28,6 +29,13 @@ export default function DashboardPage(): React.ReactElement {
     from,
     to
   );
+
+  const [selectedCategory, setSelectedCategory] = useState<{
+    id: string;
+    name: string;
+    emoji: string;
+    color: string;
+  } | null>(null);
 
   const [cumulativeBalance, setCumulativeBalance] = useState<number | null>(
     null
@@ -116,6 +124,7 @@ export default function DashboardPage(): React.ReactElement {
             <SpendingByCategory
               transactions={transactions}
               categories={categories}
+              onCategoryClick={setSelectedCategory}
             />
           </div>
         </main>
@@ -140,6 +149,14 @@ export default function DashboardPage(): React.ReactElement {
           </div>
         </Link>
       </div>
+
+      {selectedCategory && (
+        <CategoryDetailModal
+          category={selectedCategory}
+          transactions={transactions}
+          onClose={() => setSelectedCategory(null)}
+        />
+      )}
     </Sidebar>
   );
 }
