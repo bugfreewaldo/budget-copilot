@@ -347,17 +347,23 @@ async function buildUserContext(userId: string): Promise<string> {
     .where(eq(userProfiles.userId, userId))
     .limit(1);
 
-  const userAccounts = await db
+  const _userAccounts = await db
     .select()
     .from(accounts)
     .where(eq(accounts.userId, userId));
 
-  const recentTxns = await db
+  // Get ALL transactions for accurate balance, and current month for context
+  const allTxns = await db
     .select()
     .from(transactions)
     .where(eq(transactions.userId, userId))
-    .orderBy(desc(transactions.date))
-    .limit(50);
+    .orderBy(desc(transactions.date));
+
+  const today = new Date().toISOString().split('T')[0]!;
+  const currentMonthStart = today.substring(0, 7) + '-01';
+
+  // Current month transactions for detailed view
+  const currentMonthTxns = allTxns.filter((t) => t.date >= currentMonthStart);
 
   const userDebts = await db
     .select()
@@ -381,8 +387,6 @@ async function buildUserContext(userId: string): Promise<string> {
     .from(categoriesTable)
     .where(eq(categoriesTable.userId, userId));
 
-  const topTxns = recentTxns.slice(0, 10);
-
   // Build category list grouped by parent
   const parents = userCategories
     .filter((c) => !c.parentId)
@@ -399,53 +403,61 @@ async function buildUserContext(userId: string): Promise<string> {
     })
     .join('\n');
 
+  // Calculate TRUE cumulative balance from ALL transactions
+  const totalBalanceCents = allTxns.reduce(
+    (sum, t) => sum + Number(t.amountCents),
+    0
+  );
+
+  // Current month summary
+  const monthIncome = currentMonthTxns
+    .filter((t) => t.type === 'income')
+    .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+  const monthExpenses = currentMonthTxns
+    .filter((t) => t.type === 'expense')
+    .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+
+  // Format bills with due dates
+  const billsDisplay =
+    bills.length > 0
+      ? bills
+          .map((b) => {
+            const dueInfo = b.dueDay ? `due day ${b.dueDay}` : '';
+            const statusInfo = b.status !== 'active' ? ` (${b.status})` : '';
+            return `${b.name}: $${(b.amountCents / 100).toFixed(2)} ${b.frequency} ${dueInfo}${statusInfo}`;
+          })
+          .join('\n')
+      : 'None';
+
   return `[CURRENT FINANCIAL STATE]
+Today's date: ${today}
 
 Profile:
 - Monthly salary: ${profile?.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'Not set'}
 - Pay frequency: ${profile?.payFrequency || 'Not set'}
 
-Accounts: ${
-    userAccounts.length > 0
-      ? userAccounts
-          .map((a) => {
-            const acctTxns = recentTxns.filter((t) => t.accountId === a.id);
-            const acctIncome = acctTxns
-              .filter((t) => t.type === 'income')
-              .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
-            const acctExpenses = acctTxns
-              .filter((t) => t.type === 'expense')
-              .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
-            const computedBalance = acctIncome - acctExpenses;
-            return `${a.name} (${a.type}, balance: $${(computedBalance / 100).toFixed(2)})`;
-          })
-          .join(', ')
-      : 'None'
-  }
+TOTAL BALANCE (all-time cumulative): $${(totalBalanceCents / 100).toFixed(2)}
+This is the real current cash position based on ALL recorded transactions.
 
-Total cash position: $${(() => {
-    const totalIncome = recentTxns
-      .filter((t) => t.type === 'income')
-      .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
-    const totalExpenses = recentTxns
-      .filter((t) => t.type === 'expense')
-      .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
-    return ((totalIncome - totalExpenses) / 100).toFixed(2);
-  })()}
+This month (${currentMonthStart.substring(0, 7)}):
+- Income: $${(monthIncome / 100).toFixed(2)}
+- Expenses: $${(monthExpenses / 100).toFixed(2)}
+- Net: $${((monthIncome - monthExpenses) / 100).toFixed(2)}
 
-Recent transactions (last 50, showing top 10):
-${topTxns.map((t) => `- ${t.date} | ${t.description}: $${(Math.abs(Number(t.amountCents)) / 100).toFixed(2)} (${t.type})`).join('\n')}${recentTxns.length > 10 ? `\n... and ${recentTxns.length - 10} more` : ''}
+ALL transactions this month (${currentMonthTxns.length} total):
+${currentMonthTxns.map((t) => `- ${t.date} | ${t.description}: $${(Math.abs(Number(t.amountCents)) / 100).toFixed(2)} (${t.type})${t.categoryId ? '' : ' [uncategorized]'}`).join('\n') || 'No transactions this month'}
 
-Debts: ${userDebts.length > 0 ? userDebts.map((d) => `${d.name} (${d.type}): $${(d.currentBalanceCents / 100).toFixed(2)} @ ${d.aprPercent}% APR`).join(', ') : 'None'}
+Debts:
+${userDebts.length > 0 ? userDebts.map((d) => `- ${d.name} (${d.type}): $${(d.currentBalanceCents / 100).toFixed(2)} @ ${d.aprPercent}% APR${d.actualPaymentCents ? `, paying $${(d.actualPaymentCents / 100).toFixed(2)}/mo` : d.minimumPaymentCents ? `, min $${(d.minimumPaymentCents / 100).toFixed(2)}/mo` : ''}`).join('\n') : 'None'}
 
-Scheduled bills: ${bills.length > 0 ? bills.map((b) => `${b.name}: $${(b.amountCents / 100).toFixed(2)}`).join(', ') : 'None'}
+Scheduled recurring bills:
+${billsDisplay}
+IMPORTANT: Cross-reference bills with this month's transactions above. If a payment matching a bill already appears in the transactions, it has ALREADY been paid. Do not warn about upcoming bills that are already paid.
 
 Available categories (use these names for categoryGuess):
 ${categoryList}
 
-Current decision: ${decision ? `${decision.riskLevel} — ${decision.primaryCommandText}` : 'No active decision'}
-
-Today's date: ${new Date().toISOString().split('T')[0]}`;
+${decision ? `Current decision: ${decision.riskLevel} — ${decision.primaryCommandText}` : ''}`;
 }
 
 /**
