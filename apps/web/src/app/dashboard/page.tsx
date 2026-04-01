@@ -150,13 +150,12 @@ export default function DashboardPage(): React.ReactElement {
         </Link>
       </div>
 
-      {selectedCategory && (
-        <CategoryDetailModal
-          category={selectedCategory}
-          transactions={transactions}
-          onClose={() => setSelectedCategory(null)}
-        />
-      )}
+      <CategoryDetailModal
+        isOpen={!!selectedCategory}
+        category={selectedCategory}
+        transactions={transactions}
+        onClose={() => setSelectedCategory(null)}
+      />
     </Sidebar>
   );
 }
