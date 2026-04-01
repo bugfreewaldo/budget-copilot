@@ -5,7 +5,6 @@ import {
   advisorSessions,
   categories as categoriesTable,
   userProfiles,
-  accounts,
   transactions,
   debts,
   scheduledBills,
@@ -346,11 +345,6 @@ async function buildUserContext(userId: string): Promise<string> {
     .from(userProfiles)
     .where(eq(userProfiles.userId, userId))
     .limit(1);
-
-  const _userAccounts = await db
-    .select()
-    .from(accounts)
-    .where(eq(accounts.userId, userId));
 
   // Get ALL transactions for accurate balance, and current month for context
   const allTxns = await db
