@@ -89,16 +89,19 @@ export async function POST(request: NextRequest) {
     for (const t of monthTxns) {
       if (t.type !== 'expense') continue;
       const cat = t.categoryId ? catMap.get(t.categoryId) : null;
-      const parentCat = cat?.parentId ? catMap.get(cat.parentId) : null;
-      const displayCat = parentCat || cat;
-      const key = displayCat?.id || 'uncategorized';
+      // Use the actual subcategory (not parent) to match dashboard
+      const key = cat?.id || 'uncategorized';
+      const emoji =
+        cat?.emoji ||
+        (cat?.parentId ? catMap.get(cat.parentId)?.emoji : '') ||
+        '';
       const existing = catTotals.get(key);
       if (existing) {
         existing.total += Math.abs(t.amountCents);
       } else {
         catTotals.set(key, {
-          name: displayCat?.name || 'Uncategorized',
-          emoji: displayCat?.emoji || '',
+          name: cat?.name || 'Uncategorized',
+          emoji,
           total: Math.abs(t.amountCents),
         });
       }
