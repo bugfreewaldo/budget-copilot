@@ -73,6 +73,33 @@ export default function DashboardPage(): React.ReactElement {
   const [emailTo, setEmailTo] = useState('');
   const [emailSending, setEmailSending] = useState(false);
   const [emailResult, setEmailResult] = useState<string | null>(null);
+  const [emailIncludeTransactions, setEmailIncludeTransactions] =
+    useState(false);
+  const [emailPreviewHtml, setEmailPreviewHtml] = useState<string | null>(null);
+  const [emailLoadingPreview, setEmailLoadingPreview] = useState(false);
+
+  const handlePreviewReport = async () => {
+    setEmailLoadingPreview(true);
+    try {
+      const res = await fetch('/api/v1/reports/email', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          preview: true,
+          includeTransactions: emailIncludeTransactions,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailPreviewHtml(data.data.html);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setEmailLoadingPreview(false);
+    }
+  };
 
   const handleSendReport = async () => {
     if (!emailTo.trim()) return;
@@ -83,7 +110,10 @@ export default function DashboardPage(): React.ReactElement {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: emailTo.trim() }),
+        body: JSON.stringify({
+          to: emailTo.trim(),
+          includeTransactions: emailIncludeTransactions,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -92,6 +122,7 @@ export default function DashboardPage(): React.ReactElement {
           setShowEmailModal(false);
           setEmailResult(null);
           setEmailTo('');
+          setEmailPreviewHtml(null);
         }, 2000);
       } else {
         setEmailResult(data.error?.message || 'Failed to send');
@@ -192,10 +223,10 @@ export default function DashboardPage(): React.ReactElement {
             onClick={() => !emailSending && setShowEmailModal(false)}
           >
             <div
-              className="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl max-w-md w-full mx-4"
+              className={`bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl mx-4 flex flex-col ${emailPreviewHtml ? 'max-w-4xl w-full max-h-[90vh]' : 'max-w-md w-full'}`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
+              <div className="p-6 flex-shrink-0">
                 <h2 className="text-xl font-semibold text-white mb-1">
                   Email Financial Report
                 </h2>
@@ -204,7 +235,24 @@ export default function DashboardPage(): React.ReactElement {
                   any email.
                 </p>
 
-                <div className="mb-5">
+                {/* Options */}
+                <label className="flex items-center gap-3 cursor-pointer mb-4">
+                  <input
+                    type="checkbox"
+                    checked={emailIncludeTransactions}
+                    onChange={(e) => {
+                      setEmailIncludeTransactions(e.target.checked);
+                      setEmailPreviewHtml(null);
+                    }}
+                    className="w-4 h-4 rounded border-gray-600"
+                  />
+                  <span className="text-sm text-gray-300">
+                    Include all transactions this month
+                  </span>
+                </label>
+
+                {/* Email input */}
+                <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Send to
                   </label>
@@ -237,11 +285,42 @@ export default function DashboardPage(): React.ReactElement {
                     onClick={() => {
                       setShowEmailModal(false);
                       setEmailResult(null);
+                      setEmailPreviewHtml(null);
                     }}
                     disabled={emailSending}
-                    className="flex-1 py-2.5 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
+                    className="py-2.5 px-4 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
                   >
                     Cancel
+                  </button>
+                  <button
+                    onClick={handlePreviewReport}
+                    disabled={emailLoadingPreview || emailSending}
+                    className="py-2.5 px-4 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all flex items-center gap-2"
+                  >
+                    {emailLoadingPreview ? (
+                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    )}
+                    Preview
                   </button>
                   <button
                     onClick={handleSendReport}
@@ -259,6 +338,27 @@ export default function DashboardPage(): React.ReactElement {
                   </button>
                 </div>
               </div>
+
+              {/* Preview Pane */}
+              {emailPreviewHtml && (
+                <div className="border-t border-gray-800 flex-1 overflow-auto">
+                  <div className="p-3 bg-gray-800/50 flex items-center justify-between flex-shrink-0">
+                    <span className="text-xs text-gray-400">Email Preview</span>
+                    <button
+                      onClick={() => setEmailPreviewHtml(null)}
+                      className="text-xs text-gray-500 hover:text-gray-300"
+                    >
+                      Close preview
+                    </button>
+                  </div>
+                  <iframe
+                    srcDoc={emailPreviewHtml}
+                    className="w-full h-[500px] bg-white rounded-b-2xl"
+                    title="Email preview"
+                    sandbox=""
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}

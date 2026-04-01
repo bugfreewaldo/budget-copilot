@@ -10,7 +10,9 @@ import { sendEmail } from '@/lib/email';
 export const dynamic = 'force-dynamic';
 
 const emailReportSchema = z.object({
-  to: z.string().email(),
+  to: z.string().email().optional(),
+  preview: z.boolean().optional(),
+  includeTransactions: z.boolean().optional(),
 });
 
 function formatCurrency(cents: number): string {
@@ -35,7 +37,11 @@ export async function POST(request: NextRequest) {
 
     const db = getDb();
     const userId = auth.user.id;
-    const { to } = validation.data;
+    const { to, preview, includeTransactions } = validation.data;
+
+    if (!preview && !to) {
+      return errorJson('VALIDATION_ERROR', 'Email address required', 400);
+    }
 
     // Get user info
     const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -195,6 +201,37 @@ export async function POST(request: NextRequest) {
               : ''
           }
 
+          ${(() => {
+            if (!includeTransactions || monthTxns.length === 0) return '';
+            const txnRows = [...monthTxns]
+              .sort((a, b) => a.date.localeCompare(b.date))
+              .map((t) => {
+                const desc = t.sensitive ? 'Hidden transaction' : t.description;
+                const color = t.type === 'income' ? '#4ade80' : '#f87171';
+                const sign = t.type === 'income' ? '+' : '-';
+                return `<tr>
+                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; color: #9ca3af; font-size: 12px;">${t.date}</td>
+                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; color: #e5e7eb; font-size: 12px;">${desc}</td>
+                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; text-align: right; font-size: 12px; color: ${color};">${sign}${formatCurrency(Math.abs(t.amountCents))}</td>
+                </tr>`;
+              })
+              .join('');
+            return `
+          <tr>
+            <td style="padding-top: 24px;">
+              <h2 style="margin: 0 0 12px; color: #ffffff; font-size: 18px;">Transactions (${monthLabel})</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; border: 1px solid #1f2937; overflow: hidden;">
+                <tr style="background-color: #1f2937;">
+                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600;">Date</td>
+                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600;">Description</td>
+                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600; text-align: right;">Amount</td>
+                </tr>
+                ${txnRows}
+              </table>
+            </td>
+          </tr>`;
+          })()}
+
           <!-- Footer -->
           <tr>
             <td style="padding: 30px 0; text-align: center;">
@@ -227,8 +264,13 @@ ${activeDebts.length > 0 ? `Active Debts (${activeDebts.length}):\n${activeDebts
 
 Sent from Budget Copilot by ${userName}`;
 
+    // Preview mode — return HTML without sending
+    if (preview) {
+      return json({ data: { html } });
+    }
+
     const sent = await sendEmail({
-      to,
+      to: to!,
       subject: `Financial Summary - ${monthLabel} | Budget Copilot`,
       html,
       text: textVersion,
