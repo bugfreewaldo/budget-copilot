@@ -68,6 +68,41 @@ export default function DashboardPage(): React.ReactElement {
     year: 'numeric',
   });
 
+  // Email report state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<string | null>(null);
+
+  const handleSendReport = async () => {
+    if (!emailTo.trim()) return;
+    setEmailSending(true);
+    setEmailResult(null);
+    try {
+      const res = await fetch('/api/v1/reports/email', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: emailTo.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmailResult(`Sent to ${emailTo}`);
+        setTimeout(() => {
+          setShowEmailModal(false);
+          setEmailResult(null);
+          setEmailTo('');
+        }, 2000);
+      } else {
+        setEmailResult(data.error?.message || 'Failed to send');
+      }
+    } catch {
+      setEmailResult('Failed to send');
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   return (
     <Sidebar>
       <div className="min-h-screen bg-gray-950">
@@ -79,11 +114,32 @@ export default function DashboardPage(): React.ReactElement {
 
         <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 lg:py-8">
           {/* Header */}
-          <div className="mb-6 lg:mb-8">
-            <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-              Dashboard
-            </h1>
-            <p className="text-sm lg:text-base text-gray-400">{monthLabel}</p>
+          <div className="mb-6 lg:mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                Dashboard
+              </h1>
+              <p className="text-sm lg:text-base text-gray-400">{monthLabel}</p>
+            </div>
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 rounded-xl text-sm font-medium transition-all"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              Email Report
+            </button>
           </div>
 
           {/* Summary Cards */}
@@ -128,6 +184,84 @@ export default function DashboardPage(): React.ReactElement {
             />
           </div>
         </main>
+
+        {/* Email Report Modal */}
+        {showEmailModal && (
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-40"
+            onClick={() => !emailSending && setShowEmailModal(false)}
+          >
+            <div
+              className="bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl max-w-md w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold text-white mb-1">
+                  Email Financial Report
+                </h2>
+                <p className="text-sm text-gray-400 mb-5">
+                  Send a summary of your balance, income, expenses, and debts to
+                  any email.
+                </p>
+
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Send to
+                  </label>
+                  <input
+                    type="email"
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendReport()}
+                    disabled={emailSending}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 transition-all"
+                    placeholder="email@example.com"
+                    autoFocus
+                  />
+                </div>
+
+                {emailResult && (
+                  <div
+                    className={`mb-4 p-3 rounded-lg text-sm ${
+                      emailResult.startsWith('Sent')
+                        ? 'bg-green-900/30 border border-green-500/50 text-green-400'
+                        : 'bg-red-900/30 border border-red-500/50 text-red-400'
+                    }`}
+                  >
+                    {emailResult}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowEmailModal(false);
+                      setEmailResult(null);
+                    }}
+                    disabled={emailSending}
+                    className="flex-1 py-2.5 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-700 disabled:opacity-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSendReport}
+                    disabled={emailSending || !emailTo.trim()}
+                    className="flex-1 py-2.5 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    {emailSending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Report'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Floating Advisor Button */}
         <Link href="/advisor" className="fixed bottom-6 right-6 z-50 group">
