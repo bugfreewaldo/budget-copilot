@@ -1009,16 +1009,19 @@ export default function GroceryListPage() {
       )}
 
       {/* Delete List Confirmation */}
-      {deletingList && (
-        <ConfirmModal
-          title="Delete List"
-          message={`Are you sure you want to delete "${deletingList.name}"? All items in this list will be permanently removed.`}
-          confirmLabel="Delete"
-          confirmVariant="danger"
-          onConfirm={handleDeleteList}
-          onCancel={() => setDeletingList(null)}
-        />
-      )}
+      <ConfirmModal
+        isOpen={!!deletingList}
+        title="Delete List"
+        message={
+          deletingList
+            ? `Are you sure you want to delete "${deletingList.name}"? All items in this list will be permanently removed.`
+            : ''
+        }
+        confirmText="Delete"
+        variant="danger"
+        onConfirm={handleDeleteList}
+        onClose={() => setDeletingList(null)}
+      />
     </Sidebar>
   );
 }
