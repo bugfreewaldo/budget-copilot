@@ -62,3 +62,6 @@ infra/terraform/*.tfstate.backup
 infra/terraform/.terraform.lock.hcl
 
 .vercel
+
+# Claude Code worktrees
+.claude/worktrees/
