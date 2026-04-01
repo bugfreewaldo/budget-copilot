@@ -21,6 +21,10 @@ import type {
   FileSummaryResponse,
   DecisionResponse,
   InterviewState,
+  GroceryList,
+  GroceryItem,
+  GroceryStore,
+  GroceryItemPrice,
 } from './api';
 
 const API_BASE_URL = '/api';
@@ -318,6 +322,76 @@ export function useInterview() {
 
   return {
     interview: data?.data ?? null,
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching grocery lists with caching
+ */
+export function useGroceryLists() {
+  const { data, error, isLoading, mutate } = useSWR<{ data: GroceryList[] }>(
+    '/v1/grocery-lists',
+    fetcher,
+    swrConfig
+  );
+
+  return {
+    lists: data?.data ?? [],
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching items in a grocery list
+ */
+export function useGroceryItems(listId: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<{ data: GroceryItem[] }>(
+    listId ? `/v1/grocery-lists/${listId}/items` : null,
+    fetcher,
+    swrConfig
+  );
+
+  return {
+    items: data?.data ?? [],
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching grocery stores
+ */
+export function useGroceryStores() {
+  const { data, error, isLoading, mutate } = useSWR<{ data: GroceryStore[] }>(
+    '/v1/grocery-stores',
+    fetcher,
+    swrConfig
+  );
+
+  return {
+    stores: data?.data ?? [],
+    isLoading,
+    error,
+    refresh: mutate,
+  };
+}
+
+/**
+ * Hook for fetching prices for a grocery item
+ */
+export function useItemPrices(itemId: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<{
+    data: GroceryItemPrice[];
+  }>(itemId ? `/v1/grocery-items/${itemId}/prices` : null, fetcher, swrConfig);
+
+  return {
+    prices: data?.data ?? [],
     isLoading,
     error,
     refresh: mutate,

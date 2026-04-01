@@ -48,7 +48,7 @@ export function CreateTransactionModal({
       // If editing, populate form with existing values
       if (editingTransaction) {
         setType(editingTransaction.type);
-        setAmount((editingTransaction.amountCents / 100).toString());
+        setAmount((Math.abs(editingTransaction.amountCents) / 100).toString());
         setDescription(editingTransaction.description);
         setCategoryId(editingTransaction.categoryId || '');
         setSensitive(editingTransaction.sensitive ?? false);
@@ -80,12 +80,19 @@ export function CreateTransactionModal({
               setAccountId(newAccount.id);
             } catch {
               setAccountId(null);
+              showToast(
+                'Could not create a default account. Please try again.',
+                'error'
+              );
             }
           } else {
             setAccountId(result[0]!.id);
           }
         })
-        .catch(() => setAccountId(null));
+        .catch(() => {
+          setAccountId(null);
+          showToast('Could not load accounts. Please try again.', 'error');
+        });
 
       // Focus amount input when modal opens
       setTimeout(() => amountInputRef.current?.focus(), 100);

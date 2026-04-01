@@ -113,7 +113,10 @@ export async function POST(request: NextRequest) {
       userId: auth.user.id,
       date: data.date,
       description: data.description,
-      amountCents: data.amountCents,
+      amountCents:
+        data.type === 'expense'
+          ? -Math.abs(data.amountCents)
+          : Math.abs(data.amountCents),
       type: data.type,
       categoryId: data.categoryId || null,
       accountId: data.accountId,

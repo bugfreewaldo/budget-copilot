@@ -61,6 +61,12 @@ const NAV_ITEMS: NavItem[] = [
     description: 'Reach your dreams',
   },
   {
+    href: '/lista-compras',
+    label: 'Grocery Lists',
+    emoji: '🛒',
+    description: 'Plan your shopping',
+  },
+  {
     href: '/categories',
     label: 'Categories',
     emoji: '🏷️',

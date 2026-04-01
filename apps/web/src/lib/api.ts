@@ -1722,3 +1722,185 @@ export async function resetAdvisorSession(
   );
   return response.data;
 }
+
+// ============================================================================
+// Grocery Lists
+// ============================================================================
+
+export interface GroceryList {
+  id: string;
+  userId: string;
+  name: string;
+  totalItems: number;
+  checkedItems: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface GroceryItem {
+  id: string;
+  listId: string;
+  userId: string;
+  name: string;
+  quantity: string | null;
+  checked: boolean;
+  sortOrder: number;
+  createdAt: number;
+}
+
+export async function getGroceryLists(): Promise<GroceryList[]> {
+  const response = await fetchApi<{ data: GroceryList[] }>('/v1/grocery-lists');
+  return response.data;
+}
+
+export async function createGroceryList(input: {
+  name: string;
+}): Promise<GroceryList> {
+  const response = await fetchApi<{ data: GroceryList }>('/v1/grocery-lists', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return response.data;
+}
+
+export async function updateGroceryList(
+  id: string,
+  input: { name: string }
+): Promise<GroceryList> {
+  const response = await fetchApi<{ data: GroceryList }>(
+    `/v1/grocery-lists/${id}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }
+  );
+  return response.data;
+}
+
+export async function deleteGroceryList(id: string): Promise<void> {
+  await fetchApi(`/v1/grocery-lists/${id}`, { method: 'DELETE' });
+}
+
+export async function getGroceryItems(listId: string): Promise<GroceryItem[]> {
+  const response = await fetchApi<{ data: GroceryItem[] }>(
+    `/v1/grocery-lists/${listId}/items`
+  );
+  return response.data;
+}
+
+export async function createGroceryItem(
+  listId: string,
+  input: { name: string; quantity?: string }
+): Promise<GroceryItem> {
+  const response = await fetchApi<{ data: GroceryItem }>(
+    `/v1/grocery-lists/${listId}/items`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }
+  );
+  return response.data;
+}
+
+export async function updateGroceryItem(
+  listId: string,
+  itemId: string,
+  input: { name?: string; quantity?: string | null; checked?: boolean }
+): Promise<GroceryItem> {
+  const response = await fetchApi<{ data: GroceryItem }>(
+    `/v1/grocery-lists/${listId}/items/${itemId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }
+  );
+  return response.data;
+}
+
+export async function deleteGroceryItem(
+  listId: string,
+  itemId: string
+): Promise<void> {
+  await fetchApi(`/v1/grocery-lists/${listId}/items/${itemId}`, {
+    method: 'DELETE',
+  });
+}
+
+// ============================================================================
+// Grocery Stores & Price Comparison
+// ============================================================================
+
+export interface GroceryStore {
+  id: string;
+  userId: string;
+  name: string;
+  color: string;
+  createdAt: number;
+}
+
+export interface GroceryItemPrice {
+  id: string;
+  itemId: string;
+  storeId: string;
+  userId: string;
+  priceCents: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export async function getGroceryStores(): Promise<GroceryStore[]> {
+  const response = await fetchApi<{ data: GroceryStore[] }>(
+    '/v1/grocery-stores'
+  );
+  return response.data;
+}
+
+export async function createGroceryStore(input: {
+  name: string;
+  color?: string;
+}): Promise<GroceryStore> {
+  const response = await fetchApi<{ data: GroceryStore }>(
+    '/v1/grocery-stores',
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }
+  );
+  return response.data;
+}
+
+export async function deleteGroceryStore(id: string): Promise<void> {
+  await fetchApi(`/v1/grocery-stores/${id}`, { method: 'DELETE' });
+}
+
+export async function getItemPrices(
+  itemId: string
+): Promise<GroceryItemPrice[]> {
+  const response = await fetchApi<{ data: GroceryItemPrice[] }>(
+    `/v1/grocery-items/${itemId}/prices`
+  );
+  return response.data;
+}
+
+export async function setItemPrice(
+  itemId: string,
+  input: { storeId: string; priceCents: number }
+): Promise<GroceryItemPrice> {
+  const response = await fetchApi<{ data: GroceryItemPrice }>(
+    `/v1/grocery-items/${itemId}/prices`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }
+  );
+  return response.data;
+}
+
+export async function deleteItemPrice(
+  itemId: string,
+  priceId: string
+): Promise<void> {
+  await fetchApi(`/v1/grocery-items/${itemId}/prices/${priceId}`, {
+    method: 'DELETE',
+  });
+}

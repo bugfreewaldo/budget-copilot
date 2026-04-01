@@ -970,3 +970,91 @@ export const advisorSessions = pgTable(
 
 export type AdvisorSession = typeof advisorSessions.$inferSelect;
 export type NewAdvisorSession = typeof advisorSessions.$inferInsert;
+
+// ============================================================================
+// GROCERY LISTS - Shopping list management
+// ============================================================================
+
+export const groceryLists = pgTable(
+  'grocery_lists',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    createdAt: bigint('created_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: bigint('updated_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => [index('grocery_list_user_idx').on(table.userId)]
+);
+
+export type GroceryList = typeof groceryLists.$inferSelect;
+export type NewGroceryList = typeof groceryLists.$inferInsert;
+
+export const groceryItems = pgTable(
+  'grocery_items',
+  {
+    id: text('id').primaryKey(),
+    listId: text('list_id').notNull(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    quantity: text('quantity'),
+    checked: boolean('checked').notNull().default(false),
+    sortOrder: bigint('sort_order', { mode: 'number' }).notNull().default(0),
+    createdAt: bigint('created_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => [
+    index('grocery_item_list_idx').on(table.listId),
+    index('grocery_item_user_idx').on(table.userId),
+  ]
+);
+
+export type GroceryItem = typeof groceryItems.$inferSelect;
+export type NewGroceryItem = typeof groceryItems.$inferInsert;
+
+export const groceryStores = pgTable(
+  'grocery_stores',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),
+    color: text('color').notNull().default('#06b6d4'),
+    createdAt: bigint('created_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => [index('grocery_store_user_idx').on(table.userId)]
+);
+
+export type GroceryStore = typeof groceryStores.$inferSelect;
+export type NewGroceryStore = typeof groceryStores.$inferInsert;
+
+export const groceryItemPrices = pgTable(
+  'grocery_item_prices',
+  {
+    id: text('id').primaryKey(),
+    itemId: text('item_id').notNull(),
+    storeId: text('store_id').notNull(),
+    userId: text('user_id').notNull(),
+    priceCents: bigint('price_cents', { mode: 'number' }).notNull(),
+    createdAt: bigint('created_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+    updatedAt: bigint('updated_at', { mode: 'number' })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (table) => [
+    index('grocery_price_item_idx').on(table.itemId),
+    index('grocery_price_store_idx').on(table.storeId),
+    index('grocery_price_user_idx').on(table.userId),
+  ]
+);
+
+export type GroceryItemPrice = typeof groceryItemPrices.$inferSelect;
+export type NewGroceryItemPrice = typeof groceryItemPrices.$inferInsert;

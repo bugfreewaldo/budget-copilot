@@ -105,10 +105,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       return errorJson('NOT_FOUND', 'Transaction not found', 404);
     }
 
+    const updateData = { ...validation.data };
+    if (updateData.amountCents !== undefined) {
+      const effectiveType = updateData.type ?? existing.type;
+      updateData.amountCents =
+        effectiveType === 'expense'
+          ? -Math.abs(updateData.amountCents)
+          : Math.abs(updateData.amountCents);
+    }
+
     await db
       .update(transactions)
       .set({
-        ...validation.data,
+        ...updateData,
         updatedAt: Date.now(),
       })
       .where(
