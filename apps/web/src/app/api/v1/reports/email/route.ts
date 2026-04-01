@@ -147,6 +147,39 @@ export async function POST(request: NextRequest) {
     const savingsRate =
       monthIncome > 0 ? Math.round((monthNet / monthIncome) * 100) : 0;
 
+    // Build transaction rows if needed
+    const txnSection = (() => {
+      if (!includeTransactions || monthTxns.length === 0) return '';
+      const txnRows = [...monthTxns]
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((t, i) => {
+          const desc = t.sensitive ? 'Hidden transaction' : t.description;
+          const color = t.type === 'income' ? '#4ade80' : '#f87171';
+          const sign = t.type === 'income' ? '+' : '-';
+          const bg = i % 2 === 0 ? '#111827' : '#0d1320';
+          return `<tr style="background-color: ${bg};">
+            <td style="padding: 8px 16px; color: #6b7280; font-size: 12px; white-space: nowrap;">${t.date}</td>
+            <td style="padding: 8px 16px; color: #d1d5db; font-size: 13px;">${desc}</td>
+            <td style="padding: 8px 16px; text-align: right; font-size: 13px; font-weight: 500; color: ${color}; white-space: nowrap;">${sign}${formatCurrency(Math.abs(t.amountCents))}</td>
+          </tr>`;
+        })
+        .join('');
+      return `
+      <tr>
+        <td style="padding-top: 32px;">
+          <h2 style="margin: 0 0 16px; color: #ffffff; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">All Transactions</h2>
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; overflow: hidden;">
+            <tr style="background-color: #1f2937;">
+              <td style="padding: 10px 16px; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Date</td>
+              <td style="padding: 10px 16px; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Description</td>
+              <td style="padding: 10px 16px; color: #6b7280; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; text-align: right;">Amount</td>
+            </tr>
+            ${txnRows}
+          </table>
+        </td>
+      </tr>`;
+    })();
+
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -154,42 +187,59 @@ export async function POST(request: NextRequest) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0a0a0a; color: #e5e7eb;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #030712;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #030712; padding: 0;">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px;">
-          <!-- Header -->
+        <!-- Gradient Header -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);">
           <tr>
-            <td style="padding: 30px 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">Budget Copilot</h1>
-              <p style="margin: 8px 0 0; color: #6b7280; font-size: 14px;">${monthLabel}</p>
-              <p style="margin: 4px 0 0; color: #4b5563; font-size: 12px;">${reportDate}</p>
+            <td align="center" style="padding: 40px 20px 48px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px;">
+                <tr>
+                  <td>
+                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Budget Copilot</h1>
+                    <p style="margin: 8px 0 0; color: rgba(255,255,255,0.7); font-size: 14px;">${monthLabel}</p>
+                  </td>
+                  <td style="text-align: right;">
+                    <p style="margin: 0; color: rgba(255,255,255,0.5); font-size: 12px;">${reportDate}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Content -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin-top: -24px;" align="center">
+          <!-- Monthly Balance Hero -->
+          <tr>
+            <td style="padding: 0 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.3);">
+                <tr>
+                  <td style="padding: 28px 24px; text-align: center;">
+                    <p style="margin: 0 0 6px; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Monthly Balance</p>
+                    <p style="margin: 0; color: ${monthNet >= 0 ? '#4ade80' : '#f87171'}; font-size: 42px; font-weight: 800; letter-spacing: -1px;">${monthNet >= 0 ? '+' : ''}${formatCurrency(monthNet)}</p>
+                    ${savingsRate > 0 ? `<p style="margin: 10px 0 0; color: #22d3ee; font-size: 13px; font-weight: 500;">Saving ${savingsRate}% of your income</p>` : savingsRate < 0 ? `<p style="margin: 10px 0 0; color: #f87171; font-size: 13px; font-weight: 500;">Spending more than you earn</p>` : ''}
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Monthly Balance (big number) -->
+          <!-- Income & Expenses -->
           <tr>
-            <td style="padding: 24px; background-color: #111827; border-radius: 12px; border: 1px solid #1f2937; text-align: center;">
-              <p style="margin: 0 0 4px; color: #9ca3af; font-size: 14px;">Monthly Balance</p>
-              <p style="margin: 0; color: ${monthNet >= 0 ? '#4ade80' : '#f87171'}; font-size: 36px; font-weight: 700;">${monthNet >= 0 ? '+' : ''}${formatCurrency(monthNet)}</p>
-              ${savingsRate > 0 ? `<p style="margin: 6px 0 0; color: #22d3ee; font-size: 13px;">Saving ${savingsRate}% of your income</p>` : ''}
-            </td>
-          </tr>
-
-          <!-- Income & Expenses side by side -->
-          <tr>
-            <td style="padding-top: 12px;">
+            <td style="padding: 12px 20px 0;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td width="49%" style="padding: 14px 16px; background-color: #111827; border-radius: 12px; border: 1px solid #1f2937;">
-                    <p style="margin: 0 0 2px; color: #4ade80; font-size: 12px;">Income</p>
-                    <p style="margin: 0; color: #4ade80; font-size: 20px; font-weight: 700;">${formatCurrency(monthIncome)}</p>
+                  <td width="49%" style="padding: 18px 20px; background-color: #111827; border-radius: 12px;">
+                    <p style="margin: 0 0 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Income</p>
+                    <p style="margin: 0; color: #4ade80; font-size: 22px; font-weight: 700;">${formatCurrency(monthIncome)}</p>
                   </td>
                   <td width="2%"></td>
-                  <td width="49%" style="padding: 14px 16px; background-color: #111827; border-radius: 12px; border: 1px solid #1f2937;">
-                    <p style="margin: 0 0 2px; color: #f87171; font-size: 12px;">Expenses</p>
-                    <p style="margin: 0; color: #f87171; font-size: 20px; font-weight: 700;">${formatCurrency(monthExpenses)}</p>
+                  <td width="49%" style="padding: 18px 20px; background-color: #111827; border-radius: 12px;">
+                    <p style="margin: 0 0 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Expenses</p>
+                    <p style="margin: 0; color: #f87171; font-size: 22px; font-weight: 700;">${formatCurrency(monthExpenses)}</p>
                   </td>
                 </tr>
               </table>
@@ -201,13 +251,13 @@ export async function POST(request: NextRequest) {
             topCategories.length > 0
               ? `
           <tr>
-            <td style="padding-top: 24px;">
-              <h2 style="margin: 0 0 12px; color: #ffffff; font-size: 18px;">Spending by Category</h2>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; border: 1px solid #1f2937; overflow: hidden;">
+            <td style="padding: 32px 20px 0;">
+              <h2 style="margin: 0 0 16px; color: #ffffff; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Spending by Category</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; overflow: hidden;">
                 ${categoryRows}
-                <tr style="background-color: #1f2937;">
-                  <td style="padding: 10px 16px; color: #9ca3af; font-size: 13px;">Total Spent</td>
-                  <td style="padding: 10px 16px; text-align: right; color: #ffffff; font-size: 14px; font-weight: 700;">${formatCurrency(totalSpent)}</td>
+                <tr style="background-color: #0d1320;">
+                  <td style="padding: 12px 16px; color: #6b7280; font-size: 13px; font-weight: 500;">Total Spent</td>
+                  <td style="padding: 12px 16px; text-align: right; color: #ffffff; font-size: 15px; font-weight: 700;">${formatCurrency(totalSpent)}</td>
                 </tr>
               </table>
             </td>
@@ -216,45 +266,18 @@ export async function POST(request: NextRequest) {
               : ''
           }
 
-          ${(() => {
-            if (!includeTransactions || monthTxns.length === 0) return '';
-            const txnRows = [...monthTxns]
-              .sort((a, b) => a.date.localeCompare(b.date))
-              .map((t) => {
-                const desc = t.sensitive ? 'Hidden transaction' : t.description;
-                const color = t.type === 'income' ? '#4ade80' : '#f87171';
-                const sign = t.type === 'income' ? '+' : '-';
-                return `<tr>
-                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; color: #9ca3af; font-size: 12px;">${t.date}</td>
-                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; color: #e5e7eb; font-size: 12px;">${desc}</td>
-                  <td style="padding: 6px 12px; border-bottom: 1px solid #1f2937; text-align: right; font-size: 12px; color: ${color};">${sign}${formatCurrency(Math.abs(t.amountCents))}</td>
-                </tr>`;
-              })
-              .join('');
-            return `
-          <tr>
-            <td style="padding-top: 24px;">
-              <h2 style="margin: 0 0 12px; color: #ffffff; font-size: 18px;">All Transactions</h2>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; border: 1px solid #1f2937; overflow: hidden;">
-                <tr style="background-color: #1f2937;">
-                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600;">Date</td>
-                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600;">Description</td>
-                  <td style="padding: 8px 12px; color: #9ca3af; font-size: 12px; font-weight: 600; text-align: right;">Amount</td>
-                </tr>
-                ${txnRows}
-              </table>
-            </td>
-          </tr>`;
-          })()}
+          <!-- Transactions (optional) -->
+          ${txnSection ? `<tr><td style="padding: 0 20px;">${txnSection}</td></tr>` : ''}
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 30px 0; text-align: center;">
-              <p style="margin: 0; color: #4b5563; font-size: 12px;">
-                Sent from Budget Copilot by ${userName}
+            <td style="padding: 40px 20px 48px; text-align: center;">
+              <div style="width: 40px; height: 3px; background: linear-gradient(90deg, #7c3aed, #06b6d4); margin: 0 auto 16px; border-radius: 2px;"></div>
+              <p style="margin: 0; color: #4b5563; font-size: 13px;">
+                Sent from <span style="color: #9ca3af; font-weight: 500;">Budget Copilot</span> by ${userName}
               </p>
-              <p style="margin: 4px 0 0; color: #374151; font-size: 11px;">
-                budgetcopilot.app
+              <p style="margin: 6px 0 0;">
+                <a href="https://budgetcopilot.app" style="color: #7c3aed; text-decoration: none; font-size: 12px;">budgetcopilot.app</a>
               </p>
             </td>
           </tr>
