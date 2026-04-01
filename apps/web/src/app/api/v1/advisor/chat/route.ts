@@ -105,12 +105,36 @@ OUTPUT FORMAT (ALWAYS JSON):
     "transactions": [
       {
         "type": "income" | "expense",
-        "amountCents": number (always positive, in cents),
+        "amountCents": number, // ALWAYS in cents, ALWAYS positive (e.g. $50 → 5000). Never dollars. Never negative.
         "description": "string",
         "date": "YYYY-MM-DD",
-        "categoryGuess": "category name from user's list"
+        "categoryGuess": "category name" // optional, best guess from context
       }
-    ]
+    ],
+    "incomeChange": { // use when user reports a salary or recurring income change
+      "type": "monthly_salary",
+      "amountCents": number // monthly gross, in cents, positive
+    },
+    "debtChanges": [
+      {
+        "debtId": "string or omit for new debt",
+        "name": "string",
+        "type": "credit_card" | "personal_loan" | "auto_loan" | "mortgage" | "student_loan" | "medical" | "other",
+        "currentBalanceCents": number, // positive, in cents
+        "minimumPaymentCents": number, // positive, in cents
+        "aprPercent": number // e.g. 19.99
+      }
+    ],
+    "billChanges": [
+      {
+        "billId": "string or omit for new bill",
+        "name": "string",
+        "amountCents": number, // positive, in cents
+        "dueDay": number, // day of month 1-31
+        "frequency": "weekly" | "biweekly" | "monthly" | "quarterly" | "annually"
+      }
+    ],
+    "transactionDeletions": ["transactionId"] // IDs to dispute/remove
   } | null,
   "requiresConfirmation": boolean,
   "confirmationPrompt": "string" | null,
@@ -121,7 +145,9 @@ OUTPUT FORMAT (ALWAYS JSON):
 RULES:
 - If pendingChanges exists, requiresConfirmation must be true and confirmationPrompt cannot be null.
 - Never confirm on behalf of the user.
-- amountCents must always be positive (the type field determines income vs expense).
+- amountCents is ALWAYS in cents (integer). $50 = 5000. $1.99 = 199. Never use dollar amounts.
+- amountCents is ALWAYS positive. The "type" field (income/expense) determines the direction.
+- Only include the pendingChanges keys that are relevant to the user's message.
 - If there is ambiguity, ask a single specific question.
 - Keep replies between 1 and 6 lines.`;
 
@@ -379,10 +405,36 @@ Profile:
 - Monthly salary: ${profile?.monthlySalaryCents ? `$${(profile.monthlySalaryCents / 100).toFixed(2)}` : 'Not set'}
 - Pay frequency: ${profile?.payFrequency || 'Not set'}
 
-Accounts: ${userAccounts.length > 0 ? userAccounts.map((a) => `${a.name} (${a.type}, balance: $${((a.currentBalanceCents ?? 0) / 100).toFixed(2)})`).join(', ') : 'None'}
+Accounts: ${
+    userAccounts.length > 0
+      ? userAccounts
+          .map((a) => {
+            const acctTxns = recentTxns.filter((t) => t.accountId === a.id);
+            const acctIncome = acctTxns
+              .filter((t) => t.type === 'income')
+              .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+            const acctExpenses = acctTxns
+              .filter((t) => t.type === 'expense')
+              .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+            const computedBalance = acctIncome - acctExpenses;
+            return `${a.name} (${a.type}, balance: $${(computedBalance / 100).toFixed(2)})`;
+          })
+          .join(', ')
+      : 'None'
+  }
+
+Total cash position: $${(() => {
+    const totalIncome = recentTxns
+      .filter((t) => t.type === 'income')
+      .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+    const totalExpenses = recentTxns
+      .filter((t) => t.type === 'expense')
+      .reduce((s, t) => s + Math.abs(Number(t.amountCents)), 0);
+    return ((totalIncome - totalExpenses) / 100).toFixed(2);
+  })()}
 
 Recent transactions (last 50, showing top 10):
-${topTxns.map((t) => `- ${t.date} | ${t.description}: $${(Math.abs(t.amountCents) / 100).toFixed(2)} (${t.type})`).join('\n')}${recentTxns.length > 10 ? `\n... and ${recentTxns.length - 10} more` : ''}
+${topTxns.map((t) => `- ${t.date} | ${t.description}: $${(Math.abs(Number(t.amountCents)) / 100).toFixed(2)} (${t.type})`).join('\n')}${recentTxns.length > 10 ? `\n... and ${recentTxns.length - 10} more` : ''}
 
 Debts: ${userDebts.length > 0 ? userDebts.map((d) => `${d.name} (${d.type}): $${(d.currentBalanceCents / 100).toFixed(2)} @ ${d.aprPercent}% APR`).join(', ') : 'None'}
 
