@@ -51,7 +51,7 @@ export default function DashboardPage(): React.ReactElement {
     const expenses = transactions
       .filter((tx) => tx.type === 'expense')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
-    const balance = cumulativeBalance ?? income - expenses;
+    const balance = income - expenses;
     return { income, expenses, balance };
   }, [transactions, cumulativeBalance]);
 
