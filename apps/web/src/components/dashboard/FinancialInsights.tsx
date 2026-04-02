@@ -415,21 +415,51 @@ function analyzeFinances(
     );
   }
 
+  // Wisdom-backed tip based on profile
+  if (profile.id === 'disciplined_saver' && savingsRate > 25) {
+    insights.push(
+      "Bill Perkins (Die With Zero): Make sure you're also spending on meaningful experiences while you can enjoy them."
+    );
+  }
+  if (profile.id === 'lifestyle_spender') {
+    insights.push(
+      "Ramit Sethi says: Spend extravagantly on what you love, cut mercilessly on what you don't."
+    );
+  }
+  if (profile.id === 'debt_warrior') {
+    insights.push(
+      "Dave Ramsey's baby steps: Once debt-free, redirect those payments into your emergency fund and investments."
+    );
+  }
+
   if (insights.length === 0) {
     insights.push(
       'Your spending looks balanced across categories. Keep it up!'
     );
   }
 
-  // Quote selection
+  // Quotes from 35+ financial books (financial-wisdom.md)
   const quotes = [
     '"Do not save what is left after spending, but spend what is left after saving." — Warren Buffett',
-    '"Wealth is not about having a lot of money; it\'s about having a lot of options." — Chris Rock',
-    '"The habit of saving is itself an education." — George Clason, The Richest Man in Babylon',
-    '"Financial peace isn\'t the acquisition of stuff. It\'s learning to live on less than you make." — Dave Ramsey',
-    '"Money is a terrible master but an excellent servant." — P.T. Barnum',
-    '"It\'s not how much money you make, but how much you keep." — Robert Kiyosaki',
+    '"A part of all you earn is yours to keep." — George Clason, The Richest Man in Babylon',
+    '"Building wealth has nothing to do with your income or your investment returns, and everything to do with your savings rate." — Morgan Housel, The Psychology of Money',
+    '"The single most important thing you can do to be rich is to invest early and often." — Ramit Sethi, I Will Teach You to Be Rich',
+    '"The secret to wealth is simple: Find a way to do more for others than anyone else does." — Tony Robbins, Money Master the Game',
+    '"Financial peace isn\'t the acquisition of stuff. It\'s learning to live on less than you make." — Dave Ramsey, The Total Money Makeover',
+    '"You don\'t need to predict the future to get rich — you just need to not be dumb with your money." — JL Collins, The Simple Path to Wealth',
+    '"The goal isn\'t more money. The goal is living life on your terms." — Chris Brogan',
+    '"Wealth is the ability to fully experience life." — Henry David Thoreau',
+    '"Your life energy is your allotment of time here on earth. Money is something you trade your life energy for." — Vicki Robin, Your Money or Your Life',
+    '"Stop acting rich... and start living like a real millionaire." — Thomas Stanley, The Millionaire Next Door',
+    '"The greatest enemy of a good plan is the dream of a perfect plan." — The Bogleheads\' Guide to Investing',
     '"Compound interest is the eighth wonder of the world." — Albert Einstein',
+    '"The most important thing about an investment philosophy is that you have one." — David Booth',
+    '"Use your money to buy experiences and memories before you get too old to enjoy them." — Bill Perkins, Die With Zero',
+    '"Risk comes from not knowing what you\'re doing." — Warren Buffett',
+    '"If you buy things you do not need, soon you will have to sell things you need." — Warren Buffett',
+    '"It\'s not how much money you make, but how much you keep." — Robert Kiyosaki, Rich Dad Poor Dad',
+    '"The stock market is a device for transferring money from the impatient to the patient." — Warren Buffett',
+    '"Money is a good servant but a bad master." — Sir Francis Bacon',
   ];
   const quoteIdx = Math.floor(expenses.length % quotes.length);
   const quote: string = quotes[quoteIdx] || quotes[0] || '';
