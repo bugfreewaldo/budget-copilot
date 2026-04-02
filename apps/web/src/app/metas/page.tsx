@@ -48,6 +48,124 @@ function getProgressColor(percent: number, onTrack: boolean): string {
   return 'from-purple-500 to-pink-400';
 }
 
+// Mini piggy SVG for savings-type goals
+function MiniPiggy({
+  percent,
+  className,
+}: {
+  percent: number;
+  className?: string;
+}) {
+  const fillHeight = Math.min(percent, 100);
+  return (
+    <svg viewBox="0 0 200 160" className={className || 'w-14 h-14'}>
+      <ellipse
+        cx="100"
+        cy="90"
+        rx="70"
+        ry="55"
+        className="text-pink-400"
+        fill="currentColor"
+      />
+      <defs>
+        <clipPath id="miniPigClip">
+          <ellipse cx="100" cy="90" rx="60" ry="45" />
+        </clipPath>
+      </defs>
+      <rect
+        x="40"
+        y={135 - fillHeight * 0.9}
+        width="120"
+        height={fillHeight * 0.9}
+        clipPath="url(#miniPigClip)"
+        className="fill-yellow-400/40"
+      />
+      <ellipse
+        cx="165"
+        cy="85"
+        rx="18"
+        ry="14"
+        className="text-pink-400 brightness-90"
+        fill="currentColor"
+      />
+      <circle cx="160" cy="82" r="3" className="fill-pink-900/50" />
+      <circle cx="170" cy="82" r="3" className="fill-pink-900/50" />
+      <ellipse
+        cx="55"
+        cy="45"
+        rx="15"
+        ry="20"
+        className="text-pink-400 brightness-95"
+        fill="currentColor"
+        transform="rotate(-20, 55, 45)"
+      />
+      <ellipse
+        cx="85"
+        cy="40"
+        rx="15"
+        ry="20"
+        className="text-pink-400 brightness-95"
+        fill="currentColor"
+        transform="rotate(10, 85, 40)"
+      />
+      <ellipse
+        cx="55"
+        cy="45"
+        rx="8"
+        ry="12"
+        className="fill-pink-300"
+        transform="rotate(-20, 55, 45)"
+      />
+      <ellipse
+        cx="85"
+        cy="40"
+        rx="8"
+        ry="12"
+        className="fill-pink-300"
+        transform="rotate(10, 85, 40)"
+      />
+      <circle cx="130" cy="70" r="8" className="fill-white" />
+      <circle cx="130" cy="70" r="4" className="fill-gray-900" />
+      <circle cx="132" cy="68" r="1.5" className="fill-white" />
+      <rect
+        x="80"
+        y="35"
+        width="25"
+        height="6"
+        rx="3"
+        className="fill-gray-800"
+      />
+      <rect
+        x="50"
+        y="135"
+        width="18"
+        height="20"
+        rx="5"
+        className="text-pink-400 brightness-90"
+        fill="currentColor"
+      />
+      <rect
+        x="130"
+        y="135"
+        width="18"
+        height="20"
+        rx="5"
+        className="text-pink-400 brightness-90"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function getPiggyMessage(percent: number): string {
+  if (percent === 0) return 'Feed me some savings!';
+  if (percent < 25) return 'Just getting started...';
+  if (percent < 50) return "I'm filling up!";
+  if (percent < 75) return 'Almost there!';
+  if (percent < 100) return 'About to burst!';
+  return 'Goal reached!';
+}
+
 function getDaysRemaining(targetDate: string | null): string {
   if (!targetDate) return 'No deadline';
   const target = new Date(targetDate);
@@ -217,10 +335,10 @@ export default function MetasPage(): React.ReactElement {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-2">
-                <span>🎯</span> Goal Tracking
+                <span>🎯</span> Goals & Savings
               </h1>
               <p className="text-sm lg:text-base text-gray-400">
-                Track your progress toward your dreams
+                Track your savings goals and watch your piggy grow
               </p>
             </div>
             <button
@@ -338,11 +456,19 @@ export default function MetasPage(): React.ReactElement {
                     >
                       <div className="absolute inset-0 bg-black/30" />
                       <div className="relative flex items-start justify-between">
-                        <span className="text-5xl">
-                          {goal.emoji ||
-                            GOAL_TYPE_LABELS[goal.goalType]?.emoji ||
-                            '🎯'}
-                        </span>
+                        {goal.goalType === 'savings' ||
+                        goal.goalType === 'emergency_fund' ? (
+                          <MiniPiggy
+                            percent={goal.progressPercent}
+                            className="w-14 h-14 drop-shadow-lg"
+                          />
+                        ) : (
+                          <span className="text-5xl">
+                            {goal.emoji ||
+                              GOAL_TYPE_LABELS[goal.goalType]?.emoji ||
+                              '🎯'}
+                          </span>
+                        )}
                         <span
                           className={`px-2 py-1 text-xs rounded ${STATUS_LABELS[goal.status]?.color} backdrop-blur-sm`}
                         >
@@ -391,6 +517,14 @@ export default function MetasPage(): React.ReactElement {
                           />
                         </div>
                       </div>
+
+                      {/* Piggy message for savings goals */}
+                      {(goal.goalType === 'savings' ||
+                        goal.goalType === 'emergency_fund') && (
+                        <p className="text-xs text-pink-400 mb-3">
+                          🐷 {getPiggyMessage(goal.progressPercent)}
+                        </p>
+                      )}
 
                       {/* Meta info */}
                       <div className="grid grid-cols-2 gap-4 text-sm mb-4">

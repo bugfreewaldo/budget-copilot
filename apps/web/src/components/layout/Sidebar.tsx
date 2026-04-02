@@ -37,12 +37,6 @@ const NAV_ITEMS: NavItem[] = [
   //   description: 'Manage your envelopes',
   // },
   {
-    href: '/alcancia',
-    label: 'Piggy Bank',
-    emoji: '🐷',
-    description: 'Save little by little',
-  },
-  {
     href: '/recurrentes',
     label: 'Recurring',
     emoji: '🔄',
@@ -56,9 +50,9 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     href: '/metas',
-    label: 'Goal Tracking',
-    emoji: '🎯',
-    description: 'Reach your dreams',
+    label: 'Goals & Savings',
+    emoji: '🐷',
+    description: 'Save and track your goals',
   },
   {
     href: '/lista-compras',
