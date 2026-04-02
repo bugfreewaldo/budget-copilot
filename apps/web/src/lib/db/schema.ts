@@ -640,6 +640,8 @@ export const scheduledBills = pgTable(
     reminderDaysBefore: bigint('reminder_days_before', {
       mode: 'number',
     }).default(3),
+    isVariable: boolean('is_variable').default(false),
+    amountHistory: text('amount_history'), // JSON: number[] (last N amounts in cents for variable bills)
     status: billStatusEnum('status').notNull().default('active'),
     nextDueDate: text('next_due_date'),
     lastPaidDate: text('last_paid_date'),

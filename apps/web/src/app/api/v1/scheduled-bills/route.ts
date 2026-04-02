@@ -33,6 +33,8 @@ const createBillSchema = z.object({
   dueDay: z.number().int().min(1).max(31),
   frequency: z.enum(['weekly', 'biweekly', 'monthly', 'quarterly', 'annually']),
   autoPay: z.boolean().optional().default(false),
+  isVariable: z.boolean().optional().default(false),
+  amountHistory: z.array(z.number().int()).optional().nullable(),
   notes: z.string().optional().nullable(),
   nextDueDate: z.string().optional().nullable(),
 });
@@ -90,6 +92,10 @@ export async function POST(request: NextRequest) {
       dueDay: validation.data.dueDay,
       frequency: validation.data.frequency,
       autoPay: validation.data.autoPay,
+      isVariable: validation.data.isVariable,
+      amountHistory: validation.data.amountHistory
+        ? JSON.stringify(validation.data.amountHistory)
+        : null,
       notes: validation.data.notes || null,
       status: 'active',
       nextDueDate: validation.data.nextDueDate || null,
@@ -150,12 +156,17 @@ export async function PUT(request: NextRequest) {
       return errorJson('NOT_FOUND', 'Scheduled bill not found', 404);
     }
 
+    const updatePayload = {
+      ...validation.data,
+      amountHistory: validation.data.amountHistory
+        ? JSON.stringify(validation.data.amountHistory)
+        : undefined,
+      updatedAt: now,
+    };
+
     await db
       .update(scheduledBills)
-      .set({
-        ...validation.data,
-        updatedAt: now,
-      })
+      .set(updatePayload)
       .where(eq(scheduledBills.id, id));
 
     const [updated] = await db

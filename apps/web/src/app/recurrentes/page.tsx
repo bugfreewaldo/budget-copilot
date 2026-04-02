@@ -18,6 +18,8 @@ interface ScheduledBill {
   status: string;
   nextDueDate: string | null;
   autoPay: boolean | null;
+  isVariable: boolean | null;
+  amountHistory: string | null; // JSON: number[]
   notes: string | null;
 }
 
@@ -106,6 +108,8 @@ export default function RecurrentesPage(): React.ReactElement {
     dueDay: '1',
     frequency: 'monthly',
     autoPay: false,
+    isVariable: false,
+    pastAmounts: '' as string, // comma-separated past amounts for variable bills
     notes: '',
   });
 
@@ -168,6 +172,15 @@ export default function RecurrentesPage(): React.ReactElement {
       nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
 
+    // Parse past amounts for variable bills
+    let amountHistory: number[] | null = null;
+    if (billForm.isVariable && billForm.pastAmounts.trim()) {
+      amountHistory = billForm.pastAmounts
+        .split(',')
+        .map((s) => Math.round(parseFloat(s.trim()) * 100))
+        .filter((n) => !isNaN(n) && n > 0);
+    }
+
     const payload = {
       name: billForm.name,
       type: billForm.type,
@@ -175,6 +188,8 @@ export default function RecurrentesPage(): React.ReactElement {
       dueDay,
       frequency: billForm.frequency,
       autoPay: billForm.autoPay,
+      isVariable: billForm.isVariable,
+      amountHistory,
       notes: billForm.notes || null,
       nextDueDate: nextDueDate.toISOString().split('T')[0],
     };
@@ -280,6 +295,9 @@ export default function RecurrentesPage(): React.ReactElement {
 
     if (type === 'bill') {
       const bill = item as ScheduledBill;
+      const history: number[] = bill.amountHistory
+        ? JSON.parse(bill.amountHistory)
+        : [];
       setBillForm({
         name: bill.name,
         type: bill.type,
@@ -287,6 +305,8 @@ export default function RecurrentesPage(): React.ReactElement {
         dueDay: bill.dueDay.toString(),
         frequency: bill.frequency,
         autoPay: bill.autoPay || false,
+        isVariable: bill.isVariable || false,
+        pastAmounts: history.map((c) => (c / 100).toFixed(2)).join(', '),
         notes: bill.notes || '',
       });
       setActiveTab('bills');
@@ -315,6 +335,8 @@ export default function RecurrentesPage(): React.ReactElement {
       dueDay: '1',
       frequency: 'monthly',
       autoPay: false,
+      isVariable: false,
+      pastAmounts: '',
       notes: '',
     });
     setIncomeForm({
@@ -353,7 +375,21 @@ export default function RecurrentesPage(): React.ReactElement {
       if (b.frequency === 'biweekly') multiplier = 2;
       if (b.frequency === 'quarterly') multiplier = 1 / 3;
       if (b.frequency === 'annually') multiplier = 1 / 12;
-      return sum + b.amountCents * multiplier;
+      // For variable bills with history, use average
+      let amount = b.amountCents;
+      if (b.isVariable && b.amountHistory) {
+        try {
+          const history: number[] = JSON.parse(b.amountHistory);
+          if (history.length > 0) {
+            amount = Math.round(
+              history.reduce((a, v) => a + v, 0) / history.length
+            );
+          }
+        } catch {
+          /* use amountCents */
+        }
+      }
+      return sum + amount * multiplier;
     }, 0);
 
   const totalMonthlyIncome = incomes
@@ -899,23 +935,81 @@ export default function RecurrentesPage(): React.ReactElement {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="autoPay"
-                        checked={billForm.autoPay}
-                        onChange={(e) =>
-                          setBillForm({
-                            ...billForm,
-                            autoPay: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
-                      />
-                      <label htmlFor="autoPay" className="text-gray-300">
-                        Auto-pay
-                      </label>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="autoPay"
+                          checked={billForm.autoPay}
+                          onChange={(e) =>
+                            setBillForm({
+                              ...billForm,
+                              autoPay: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
+                        />
+                        <label htmlFor="autoPay" className="text-gray-300">
+                          Auto-pay
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="isVariable"
+                          checked={billForm.isVariable}
+                          onChange={(e) =>
+                            setBillForm({
+                              ...billForm,
+                              isVariable: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-amber-500 focus:ring-amber-500"
+                        />
+                        <label htmlFor="isVariable" className="text-gray-300">
+                          Variable amount
+                        </label>
+                      </div>
                     </div>
+
+                    {billForm.isVariable && (
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1">
+                          Past amounts (comma-separated, e.g. 85, 92, 78, 105)
+                        </label>
+                        <input
+                          type="text"
+                          value={billForm.pastAmounts}
+                          onChange={(e) =>
+                            setBillForm({
+                              ...billForm,
+                              pastAmounts: e.target.value,
+                            })
+                          }
+                          placeholder="85, 92, 78, 105"
+                          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-amber-500"
+                        />
+                        {billForm.pastAmounts.trim() &&
+                          (() => {
+                            const amounts = billForm.pastAmounts
+                              .split(',')
+                              .map((s) => parseFloat(s.trim()))
+                              .filter((n) => !isNaN(n) && n > 0);
+                            if (amounts.length < 2) return null;
+                            const avg =
+                              amounts.reduce((a, b) => a + b, 0) /
+                              amounts.length;
+                            const min = Math.min(...amounts);
+                            const max = Math.max(...amounts);
+                            return (
+                              <p className="text-xs text-amber-400 mt-1.5">
+                                Range: ${min.toFixed(2)} – ${max.toFixed(2)} ·
+                                Average: ${avg.toFixed(2)}/mo
+                              </p>
+                            );
+                          })()}
+                      </div>
+                    )}
 
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">
@@ -1148,8 +1242,25 @@ export default function RecurrentesPage(): React.ReactElement {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <div className="font-bold text-red-400">
-                              -{formatCurrency(bill.amountCents)}
+                              {bill.isVariable ? '~' : '-'}
+                              {formatCurrency(bill.amountCents)}
                             </div>
+                            {bill.isVariable &&
+                              bill.amountHistory &&
+                              (() => {
+                                const history: number[] = JSON.parse(
+                                  bill.amountHistory as string
+                                );
+                                if (history.length < 2) return null;
+                                const min = Math.min(...history);
+                                const max = Math.max(...history);
+                                return (
+                                  <div className="text-xs text-amber-400">
+                                    {formatCurrency(min)} –{' '}
+                                    {formatCurrency(max)}
+                                  </div>
+                                );
+                              })()}
                             {bill.nextDueDate && (
                               <div className="text-xs text-gray-500">
                                 Proximo: {bill.nextDueDate}
