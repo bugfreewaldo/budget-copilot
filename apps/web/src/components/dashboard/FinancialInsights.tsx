@@ -324,21 +324,23 @@ function analyzeFinances(
     totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
 
   // Top category
-  let topCategory: FinancialAnalysis['topCategory'] = null;
+  let topCatId: string | null = null;
   let maxSpend = 0;
   categorySpending.forEach((amount, catId) => {
     if (amount > maxSpend) {
       maxSpend = amount;
-      const cat = categoryMap.get(catId);
-      if (cat) {
-        topCategory = {
-          name: cat.name,
-          emoji: cat.emoji || '📂',
-          percent: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0,
-        };
-      }
+      topCatId = catId;
     }
   });
+  const topCatEntry = topCatId ? categoryMap.get(topCatId) : null;
+  const topCategory: { name: string; emoji: string; percent: number } | null =
+    topCatEntry
+      ? {
+          name: topCatEntry.name,
+          emoji: topCatEntry.emoji || '📂',
+          percent: totalExpenses > 0 ? (maxSpend / totalExpenses) * 100 : 0,
+        }
+      : null;
 
   const avgTransactionSize =
     expenses.length > 0
