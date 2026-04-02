@@ -431,7 +431,8 @@ function analyzeFinances(
     '"It\'s not how much money you make, but how much you keep." — Robert Kiyosaki',
     '"Compound interest is the eighth wonder of the world." — Albert Einstein',
   ];
-  const quote = quotes[Math.floor(expenses.length % quotes.length)];
+  const quoteIdx = Math.floor(expenses.length % quotes.length);
+  const quote: string = quotes[quoteIdx] || quotes[0] || '';
 
   return {
     profile,
