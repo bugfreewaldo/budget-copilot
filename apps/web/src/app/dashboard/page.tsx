@@ -8,6 +8,7 @@ import { SpendingByCategory } from '@/components/charts/SpendingByCategory';
 import { CategoryDetailModal } from '@/components/charts/CategoryDetailModal';
 import { useDashboardData } from '@/lib/hooks';
 import { getCurrentMonth, formatCents } from '@/lib/api';
+import { FinancialInsights } from '@/components/dashboard/FinancialInsights';
 
 function getMonthDateRange(): { from: string; to: string } {
   const now = new Date();
@@ -214,6 +215,13 @@ export default function DashboardPage(): React.ReactElement {
               onCategoryClick={setSelectedCategory}
             />
           </div>
+
+          {/* Financial Insights & Profile */}
+          <FinancialInsights
+            transactions={transactions}
+            categories={categories}
+            isLoading={isLoading}
+          />
         </main>
 
         {/* Email Report Modal */}
