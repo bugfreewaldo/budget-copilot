@@ -16,7 +16,7 @@ interface SpendingProfile {
   bookRec: string;
 }
 
-const PROFILES: Record<string, SpendingProfile> = {
+const PROFILES = {
   disciplined_saver: {
     id: 'disciplined_saver',
     name: 'The Disciplined Saver',
