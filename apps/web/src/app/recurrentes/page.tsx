@@ -87,6 +87,7 @@ export default function RecurrentesPage(): React.ReactElement {
   const [incomes, setIncomes] = useState<ScheduledIncomeItem[]>([]);
   const [debtSummary, setDebtSummary] = useState<DebtSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showIdeas, setShowIdeas] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<
     ScheduledBill | ScheduledIncomeItem | null
@@ -424,286 +425,312 @@ export default function RecurrentesPage(): React.ReactElement {
 
         {/* Financial Tips Section */}
         {totalMonthlyIncome > 0 && (
-          <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl p-6 border border-purple-500/20 mb-8">
-            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <span>💡</span> Ideas for Your Monthly Balance
-            </h2>
+          <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl border border-purple-500/20 mb-8 overflow-hidden">
+            <button
+              onClick={() => setShowIdeas(!showIdeas)}
+              className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
+            >
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>💡</span> Ideas for Your Monthly Balance
+              </h2>
+              <svg
+                className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showIdeas ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
 
-            {(() => {
-              const netBalance = (totalMonthlyIncome - totalMonthlyBills) / 100;
-              const monthlyExpenses = totalMonthlyBills / 100;
-              const emergencyFund3Months = monthlyExpenses * 3;
-              const emergencyFund6Months = monthlyExpenses * 6;
-              const hasDebt = debtSummary && debtSummary.count > 0;
-              const totalDebt = hasDebt
-                ? debtSummary.totalBalanceCents / 100
-                : 0;
-              const minPayment = hasDebt
-                ? debtSummary.totalMinPaymentCents / 100
-                : 0;
+            {showIdeas && (
+              <div className="px-6 pb-6">
+                {(() => {
+                  const netBalance =
+                    (totalMonthlyIncome - totalMonthlyBills) / 100;
+                  const monthlyExpenses = totalMonthlyBills / 100;
+                  const emergencyFund3Months = monthlyExpenses * 3;
+                  const emergencyFund6Months = monthlyExpenses * 6;
+                  const hasDebt = debtSummary && debtSummary.count > 0;
+                  const totalDebt = hasDebt
+                    ? debtSummary.totalBalanceCents / 100
+                    : 0;
+                  const minPayment = hasDebt
+                    ? debtSummary.totalMinPaymentCents / 100
+                    : 0;
 
-              // Allocation percentages (based on common financial advice)
-              const savingsPercent = hasDebt ? 20 : 30;
-              const investPercent = hasDebt ? 10 : 20;
-              const debtPercent = hasDebt ? 30 : 0;
-              const emergencyPercent = 20;
+                  // Allocation percentages (based on common financial advice)
+                  const savingsPercent = hasDebt ? 20 : 30;
+                  const investPercent = hasDebt ? 10 : 20;
+                  const debtPercent = hasDebt ? 30 : 0;
+                  const emergencyPercent = 20;
 
-              const allocatedSavings = netBalance * (savingsPercent / 100);
-              const allocatedInvest = netBalance * (investPercent / 100);
-              const allocatedDebt = netBalance * (debtPercent / 100);
-              const allocatedEmergency = netBalance * (emergencyPercent / 100);
+                  const allocatedSavings = netBalance * (savingsPercent / 100);
+                  const allocatedInvest = netBalance * (investPercent / 100);
+                  const allocatedDebt = netBalance * (debtPercent / 100);
+                  const allocatedEmergency =
+                    netBalance * (emergencyPercent / 100);
 
-              if (netBalance <= 0) {
-                return (
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                    <p className="text-red-400 font-medium mb-2">
-                      Your net balance is negative or zero
-                    </p>
-                    <p className="text-gray-300 text-sm">
-                      Consider reducing expenses or finding additional sources
-                      of income before thinking about investments or savings.
-                    </p>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="space-y-4">
-                  {/* Debt Strategy */}
-                  {hasDebt && (
-                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                      <h3 className="text-amber-400 font-medium mb-2 flex items-center gap-2">
-                        <span>💳</span> Debt Strategy
-                      </h3>
-                      <div className="text-gray-300 text-sm space-y-2">
-                        <p>
-                          You have{' '}
-                          <span className="text-white font-medium">
-                            {debtSummary.count} debt(s)
-                          </span>{' '}
-                          with a total of{' '}
-                          <span className="text-red-400 font-medium">
-                            {formatCurrency(totalDebt * 100)}
-                          </span>
+                  if (netBalance <= 0) {
+                    return (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                        <p className="text-red-400 font-medium mb-2">
+                          Your net balance is negative or zero
                         </p>
-                        {minPayment > 0 && (
+                        <p className="text-gray-300 text-sm">
+                          Consider reducing expenses or finding additional
+                          sources of income before thinking about investments or
+                          savings.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Debt Strategy */}
+                      {hasDebt && (
+                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                          <h3 className="text-amber-400 font-medium mb-2 flex items-center gap-2">
+                            <span>💳</span> Debt Strategy
+                          </h3>
+                          <div className="text-gray-300 text-sm space-y-2">
+                            <p>
+                              You have{' '}
+                              <span className="text-white font-medium">
+                                {debtSummary.count} debt(s)
+                              </span>{' '}
+                              with a total of{' '}
+                              <span className="text-red-400 font-medium">
+                                {formatCurrency(totalDebt * 100)}
+                              </span>
+                            </p>
+                            {minPayment > 0 && (
+                              <p>
+                                Monthly minimum payment:{' '}
+                                <span className="text-amber-400 font-medium">
+                                  {formatCurrency(minPayment * 100)}
+                                </span>
+                              </p>
+                            )}
+                            <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
+                              <p className="text-cyan-400 font-medium mb-1">
+                                Accelerated payment scenario:
+                              </p>
+                              <p>
+                                If you allocate{' '}
+                                <span className="text-green-400 font-medium">
+                                  {formatCurrency(allocatedDebt * 100)}
+                                </span>{' '}
+                                (30% of your balance) extra to your debts each
+                                month:
+                              </p>
+                              <ul className="list-disc list-inside mt-2 space-y-1 text-gray-400">
+                                <li>
+                                  You'll pay off your debt in approximately{' '}
+                                  <span className="text-white">
+                                    {Math.ceil(
+                                      totalDebt / (allocatedDebt + minPayment)
+                                    )}{' '}
+                                    months
+                                  </span>
+                                </li>
+                                <li>
+                                  You'll save significant interest in the long
+                                  run
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Emergency Fund */}
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                        <h3 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
+                          <span>🛡️</span> Emergency Fund
+                        </h3>
+                        <div className="text-gray-300 text-sm space-y-2">
                           <p>
-                            Monthly minimum payment:{' '}
-                            <span className="text-amber-400 font-medium">
-                              {formatCurrency(minPayment * 100)}
-                            </span>
+                            Based on your monthly fixed expenses, your emergency
+                            fund should be:
                           </p>
-                        )}
-                        <div className="mt-3 p-3 bg-gray-900/50 rounded-lg">
-                          <p className="text-cyan-400 font-medium mb-1">
-                            Accelerated payment scenario:
-                          </p>
-                          <p>
-                            If you allocate{' '}
+                          <div className="grid grid-cols-2 gap-3 mt-2">
+                            <div className="p-3 bg-gray-900/50 rounded-lg">
+                              <p className="text-xs text-gray-400">
+                                Minimum (3 months)
+                              </p>
+                              <p className="text-lg font-bold text-blue-400">
+                                {formatCurrency(emergencyFund3Months * 100)}
+                              </p>
+                            </div>
+                            <div className="p-3 bg-gray-900/50 rounded-lg">
+                              <p className="text-xs text-gray-400">
+                                Ideal (6 months)
+                              </p>
+                              <p className="text-lg font-bold text-cyan-400">
+                                {formatCurrency(emergencyFund6Months * 100)}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="mt-2">
+                            Saving{' '}
                             <span className="text-green-400 font-medium">
-                              {formatCurrency(allocatedDebt * 100)}
+                              {formatCurrency(allocatedEmergency * 100)}
                             </span>{' '}
-                            (30% of your balance) extra to your debts each
-                            month:
+                            (20% of your balance) monthly:
                           </p>
-                          <ul className="list-disc list-inside mt-2 space-y-1 text-gray-400">
+                          <ul className="list-disc list-inside text-gray-400">
                             <li>
-                              You'll pay off your debt in approximately{' '}
+                              You'll reach the minimum in{' '}
                               <span className="text-white">
                                 {Math.ceil(
-                                  totalDebt / (allocatedDebt + minPayment)
+                                  emergencyFund3Months / allocatedEmergency
                                 )}{' '}
                                 months
                               </span>
                             </li>
                             <li>
-                              You'll save significant interest in the long run
+                              You'll reach the ideal in{' '}
+                              <span className="text-white">
+                                {Math.ceil(
+                                  emergencyFund6Months / allocatedEmergency
+                                )}{' '}
+                                months
+                              </span>
                             </li>
                           </ul>
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  {/* Emergency Fund */}
-                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                    <h3 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-                      <span>🛡️</span> Emergency Fund
-                    </h3>
-                    <div className="text-gray-300 text-sm space-y-2">
-                      <p>
-                        Based on your monthly fixed expenses, your emergency
-                        fund should be:
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 mt-2">
-                        <div className="p-3 bg-gray-900/50 rounded-lg">
-                          <p className="text-xs text-gray-400">
-                            Minimum (3 months)
+                      {/* Investment Ideas */}
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                        <h3 className="text-green-400 font-medium mb-2 flex items-center gap-2">
+                          <span>📈</span> Investment Ideas
+                        </h3>
+                        <div className="text-gray-300 text-sm space-y-2">
+                          <p>
+                            Con{' '}
+                            <span className="text-green-400 font-medium">
+                              {formatCurrency(allocatedInvest * 100)}
+                            </span>{' '}
+                            ({investPercent}% of your balance) you can consider:
                           </p>
-                          <p className="text-lg font-bold text-blue-400">
-                            {formatCurrency(emergencyFund3Months * 100)}
-                          </p>
-                        </div>
-                        <div className="p-3 bg-gray-900/50 rounded-lg">
-                          <p className="text-xs text-gray-400">
-                            Ideal (6 months)
-                          </p>
-                          <p className="text-lg font-bold text-cyan-400">
-                            {formatCurrency(emergencyFund6Months * 100)}
+                          <div className="mt-3 space-y-2">
+                            <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
+                              <span className="text-xl">🏦</span>
+                              <div>
+                                <p className="text-white font-medium">
+                                  Treasury Bills / Bonds
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Low risk, fixed return, ideal for beginners
+                                </p>
+                              </div>
+                            </div>
+                            <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
+                              <span className="text-xl">📊</span>
+                              <div>
+                                <p className="text-white font-medium">
+                                  Index Funds (ETFs)
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Automatic diversification, moderate risk,
+                                  long-term growth
+                                </p>
+                              </div>
+                            </div>
+                            <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
+                              <span className="text-xl">🌎</span>
+                              <div>
+                                <p className="text-white font-medium">
+                                  Stock Market
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Higher risk, higher return potential, requires
+                                  financial education
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-3 italic">
+                            * These are general ideas. Consult a financial
+                            advisor before investing.
                           </p>
                         </div>
                       </div>
-                      <p className="mt-2">
-                        Saving{' '}
-                        <span className="text-green-400 font-medium">
-                          {formatCurrency(allocatedEmergency * 100)}
-                        </span>{' '}
-                        (20% of your balance) monthly:
-                      </p>
-                      <ul className="list-disc list-inside text-gray-400">
-                        <li>
-                          You'll reach the minimum in{' '}
-                          <span className="text-white">
-                            {Math.ceil(
-                              emergencyFund3Months / allocatedEmergency
-                            )}{' '}
-                            months
-                          </span>
-                        </li>
-                        <li>
-                          You'll reach the ideal in{' '}
-                          <span className="text-white">
-                            {Math.ceil(
-                              emergencyFund6Months / allocatedEmergency
-                            )}{' '}
-                            months
-                          </span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
 
-                  {/* Investment Ideas */}
-                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                    <h3 className="text-green-400 font-medium mb-2 flex items-center gap-2">
-                      <span>📈</span> Investment Ideas
-                    </h3>
-                    <div className="text-gray-300 text-sm space-y-2">
-                      <p>
-                        Con{' '}
-                        <span className="text-green-400 font-medium">
-                          {formatCurrency(allocatedInvest * 100)}
-                        </span>{' '}
-                        ({investPercent}% of your balance) you can consider:
-                      </p>
-                      <div className="mt-3 space-y-2">
-                        <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
-                          <span className="text-xl">🏦</span>
-                          <div>
-                            <p className="text-white font-medium">
-                              Treasury Bills / Bonds
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Low risk, fixed return, ideal for beginners
-                            </p>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
-                          <span className="text-xl">📊</span>
-                          <div>
-                            <p className="text-white font-medium">
-                              Index Funds (ETFs)
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Automatic diversification, moderate risk,
-                              long-term growth
-                            </p>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-gray-900/50 rounded-lg flex items-start gap-3">
-                          <span className="text-xl">🌎</span>
-                          <div>
-                            <p className="text-white font-medium">
-                              Stock Market
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Higher risk, higher return potential, requires
-                              financial education
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-3 italic">
-                        * These are general ideas. Consult a financial advisor
-                        before investing.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Suggested Allocation */}
-                  <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
-                    <h3 className="text-purple-400 font-medium mb-2 flex items-center gap-2">
-                      <span>🎯</span> Suggested Distribution of Your Balance
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-3">
-                      Available balance:{' '}
-                      <span className="text-white font-bold">
-                        {formatCurrency(netBalance * 100)}
-                      </span>
-                    </p>
-                    <div className="space-y-2">
-                      {hasDebt && (
-                        <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-                          <span className="text-gray-300">
-                            Extra debt payments (30%)
+                      {/* Suggested Allocation */}
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                        <h3 className="text-purple-400 font-medium mb-2 flex items-center gap-2">
+                          <span>🎯</span> Suggested Distribution of Your Balance
+                        </h3>
+                        <p className="text-gray-400 text-sm mb-3">
+                          Available balance:{' '}
+                          <span className="text-white font-bold">
+                            {formatCurrency(netBalance * 100)}
                           </span>
-                          <span className="text-amber-400 font-medium">
-                            {formatCurrency(allocatedDebt * 100)}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-                        <span className="text-gray-300">
-                          Emergency fund (20%)
-                        </span>
-                        <span className="text-blue-400 font-medium">
-                          {formatCurrency(allocatedEmergency * 100)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-                        <span className="text-gray-300">
-                          General savings ({savingsPercent}%)
-                        </span>
-                        <span className="text-cyan-400 font-medium">
-                          {formatCurrency(allocatedSavings * 100)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-                        <span className="text-gray-300">
-                          Investments ({investPercent}%)
-                        </span>
-                        <span className="text-green-400 font-medium">
-                          {formatCurrency(allocatedInvest * 100)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-2 bg-gray-800/50 rounded border-t border-gray-700 mt-2">
-                        <span className="text-gray-300">Discretionary</span>
-                        <span className="text-gray-400 font-medium">
-                          {formatCurrency(
-                            (netBalance -
-                              allocatedDebt -
-                              allocatedEmergency -
-                              allocatedSavings -
-                              allocatedInvest) *
-                              100
+                        </p>
+                        <div className="space-y-2">
+                          {hasDebt && (
+                            <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
+                              <span className="text-gray-300">
+                                Extra debt payments (30%)
+                              </span>
+                              <span className="text-amber-400 font-medium">
+                                {formatCurrency(allocatedDebt * 100)}
+                              </span>
+                            </div>
                           )}
-                        </span>
+                          <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
+                            <span className="text-gray-300">
+                              Emergency fund (20%)
+                            </span>
+                            <span className="text-blue-400 font-medium">
+                              {formatCurrency(allocatedEmergency * 100)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
+                            <span className="text-gray-300">
+                              General savings ({savingsPercent}%)
+                            </span>
+                            <span className="text-cyan-400 font-medium">
+                              {formatCurrency(allocatedSavings * 100)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-900/50 rounded">
+                            <span className="text-gray-300">
+                              Investments ({investPercent}%)
+                            </span>
+                            <span className="text-green-400 font-medium">
+                              {formatCurrency(allocatedInvest * 100)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-gray-800/50 rounded border-t border-gray-700 mt-2">
+                            <span className="text-gray-300">Discretionary</span>
+                            <span className="text-gray-400 font-medium">
+                              {formatCurrency(
+                                (netBalance -
+                                  allocatedDebt -
+                                  allocatedEmergency -
+                                  allocatedSavings -
+                                  allocatedInvest) *
+                                  100
+                              )}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })()}
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
 
