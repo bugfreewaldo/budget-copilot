@@ -26,7 +26,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.cyan[400],
         tabBarInactiveTintColor: colors.gray[500],
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: '500',
         },
       }}
@@ -47,10 +47,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="transactions"
         options={{
-          title: 'Movimientos',
+          title: 'Transactions',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
-              name={'list-outline' as IconName}
+              name={'swap-horizontal-outline' as IconName}
               size={size}
               color={color}
             />
@@ -58,12 +58,51 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="budgets"
+        name="goals"
         options={{
-          title: 'Presupuestos',
+          title: 'Goals',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
-              name={'wallet-outline' as IconName}
+              name={'trophy-outline' as IconName}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="recurring"
+        options={{
+          title: 'Recurring',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name={'repeat-outline' as IconName}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="debts"
+        options={{
+          title: 'Debts',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name={'skull-outline' as IconName}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="grocery"
+        options={{
+          title: 'Grocery',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name={'cart-outline' as IconName}
               size={size}
               color={color}
             />
@@ -73,7 +112,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Ajustes',
+          title: 'Settings',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name={'settings-outline' as IconName}
@@ -81,6 +120,13 @@ export default function TabsLayout() {
               color={color}
             />
           ),
+        }}
+      />
+      {/* Hide the old budgets tab */}
+      <Tabs.Screen
+        name="budgets"
+        options={{
+          href: null,
         }}
       />
     </Tabs>
