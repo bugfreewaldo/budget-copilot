@@ -97,12 +97,13 @@ export default function DashboardPage(): React.ReactElement {
       .catch(() => {});
   }, [transactions]);
 
-  const totals = useMemo(() => {
-    // Exclude transactions on credit accounts from cash totals
+  // Filter out credit account transactions for cash-only views
+  const cashTransactions = useMemo(() => {
     const creditSet = new Set(creditAccountIds);
-    const cashTransactions = transactions.filter(
-      (tx) => !creditSet.has(tx.accountId)
-    );
+    return transactions.filter((tx) => !creditSet.has(tx.accountId));
+  }, [transactions, creditAccountIds]);
+
+  const totals = useMemo(() => {
     const income = cashTransactions
       .filter((tx) => tx.type === 'income')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
@@ -111,7 +112,7 @@ export default function DashboardPage(): React.ReactElement {
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
     const balance = income - expenses;
     return { income, expenses, balance };
-  }, [transactions, cumulativeBalance, creditAccountIds]);
+  }, [cashTransactions, cumulativeBalance]);
 
   const monthLabel = new Date().toLocaleDateString('en-US', {
     month: 'long',
@@ -307,7 +308,7 @@ export default function DashboardPage(): React.ReactElement {
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <IncomeVsExpenses transactions={transactions} />
+            <IncomeVsExpenses transactions={cashTransactions} />
             <SpendingByCategory
               transactions={transactions}
               categories={categories}
@@ -317,7 +318,7 @@ export default function DashboardPage(): React.ReactElement {
 
           {/* Financial Insights & Profile */}
           <FinancialInsights
-            transactions={transactions}
+            transactions={cashTransactions}
             categories={categories}
             isLoading={isLoading}
           />
