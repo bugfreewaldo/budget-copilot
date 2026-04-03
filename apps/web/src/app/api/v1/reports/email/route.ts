@@ -2,7 +2,13 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { getDb } from '@/lib/db/client';
-import { transactions, users, categories } from '@/lib/db/schema';
+import {
+  transactions,
+  users,
+  categories,
+  debts,
+  accounts,
+} from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { errorJson, json, formatZodError } from '@/lib/api/utils';
 import { sendEmail } from '@/lib/email';
@@ -57,10 +63,14 @@ export async function POST(request: NextRequest) {
     const currentMonthStart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
     const monthTxns = allTxns.filter((t) => t.date >= currentMonthStart);
 
-    const monthIncome = monthTxns
+    // Exclude credit account transactions from cash totals
+    const cashMonthTxns = monthTxns.filter(
+      (t) => !creditAccountIds.has(t.accountId)
+    );
+    const monthIncome = cashMonthTxns
       .filter((t) => t.type === 'income')
       .reduce((s, t) => s + Math.abs(t.amountCents), 0);
-    const monthExpenses = monthTxns
+    const monthExpenses = cashMonthTxns
       .filter((t) => t.type === 'expense')
       .reduce((s, t) => s + Math.abs(t.amountCents), 0);
 
@@ -74,6 +84,23 @@ export async function POST(request: NextRequest) {
       day: 'numeric',
       year: 'numeric',
     });
+
+    // Get credit card debts and credit accounts for CC section
+    const userAccounts = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId));
+    const creditAccountIds = new Set(
+      userAccounts.filter((a) => a.type === 'credit').map((a) => a.id)
+    );
+
+    const userDebts = await db
+      .select()
+      .from(debts)
+      .where(eq(debts.userId, userId));
+    const creditCards = userDebts.filter(
+      (d) => d.type === 'credit_card' && d.status === 'active'
+    );
 
     // Build spending by category
     const userCategories = await db
@@ -249,6 +276,51 @@ export async function POST(request: NextRequest) {
             </td>
           </tr>
 
+          <!-- Credit Card Balances -->
+          ${
+            creditCards.length > 0
+              ? `
+          <tr>
+            <td style="padding: 24px 20px 0;">
+              <h2 style="margin: 0 0 16px; color: #ffffff; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Credit Cards</h2>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #111827; border-radius: 12px; overflow: hidden;">
+                ${creditCards
+                  .map((cc) => {
+                    const limit = cc.originalBalanceCents;
+                    const used = cc.currentBalanceCents;
+                    const available = limit - used;
+                    const usedPct =
+                      limit > 0 ? Math.round((used / limit) * 100) : 0;
+                    const barColor =
+                      usedPct > 80
+                        ? '#ef4444'
+                        : usedPct > 50
+                          ? '#eab308'
+                          : '#a855f7';
+                    return `<tr>
+                      <td style="padding: 14px 16px; border-bottom: 1px solid #1f2937;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                          <span style="color: #e5e7eb; font-size: 14px; font-weight: 500;">💳 ${cc.name}</span>
+                          <span style="color: #a855f7; font-size: 14px; font-weight: 700;">${formatCurrency(available)} <span style="color: #6b7280; font-size: 11px; font-weight: 400;">available</span></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                          <span style="color: #6b7280; font-size: 11px;">Used: ${formatCurrency(used)}</span>
+                          <span style="color: #6b7280; font-size: 11px;">Limit: ${formatCurrency(limit)}</span>
+                        </div>
+                        <div style="background-color: #1f2937; border-radius: 4px; height: 6px; overflow: hidden;">
+                          <div style="width: ${Math.min(usedPct, 100)}%; height: 100%; background-color: ${barColor}; border-radius: 4px;"></div>
+                        </div>
+                      </td>
+                    </tr>`;
+                  })
+                  .join('')}
+              </table>
+            </td>
+          </tr>
+          `
+              : ''
+          }
+
           <!-- Spending by Category -->
           ${
             topCategories.length > 0
@@ -299,7 +371,16 @@ Monthly Balance: ${monthNet >= 0 ? '+' : ''}${formatCurrency(monthNet)}${savings
 Income: ${formatCurrency(monthIncome)}
 Expenses: ${formatCurrency(monthExpenses)}
 
-Spending by Category:
+${
+  creditCards.length > 0
+    ? `Credit Cards:\n${creditCards
+        .map((cc) => {
+          const available = cc.originalBalanceCents - cc.currentBalanceCents;
+          return `  💳 ${cc.name}: ${formatCurrency(available)} available (${formatCurrency(cc.currentBalanceCents)} used / ${formatCurrency(cc.originalBalanceCents)} limit)`;
+        })
+        .join('\n')}\n\n`
+    : ''
+}Spending by Category:
 ${topCategories.map((c) => `  ${c.emoji} ${c.name}: ${formatCurrency(c.total)}`).join('\n')}
   Total: ${formatCurrency(totalSpent)}
 
