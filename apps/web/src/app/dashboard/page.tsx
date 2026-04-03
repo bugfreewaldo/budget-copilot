@@ -56,25 +56,25 @@ export default function DashboardPage(): React.ReactElement {
       })
       .catch(() => {});
 
-    // Fetch credit card accounts
-    fetch('/api/v1/accounts', { credentials: 'include' })
+    // Fetch credit cards from Debt Copilot
+    fetch('/api/v1/debts', { credentials: 'include' })
       .then((res) => res.json())
       .then((json) => {
         if (json.data) {
           const ccs = json.data
             .filter(
-              (a: { type: string; creditLimitCents?: number | null }) =>
-                a.type === 'credit' && a.creditLimitCents
+              (d: { type: string; status: string }) =>
+                d.type === 'credit_card' && d.status === 'active'
             )
             .map(
-              (a: {
+              (d: {
                 name: string;
-                creditLimitCents: number;
-                currentBalanceCents?: number;
+                originalBalanceCents: number;
+                currentBalanceCents: number;
               }) => ({
-                name: a.name,
-                limitCents: a.creditLimitCents,
-                usedCents: Math.abs(a.currentBalanceCents || 0),
+                name: d.name,
+                limitCents: d.originalBalanceCents,
+                usedCents: d.currentBalanceCents,
               })
             );
           setCreditAccounts(ccs);
