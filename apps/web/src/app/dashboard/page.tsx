@@ -45,9 +45,7 @@ export default function DashboardPage(): React.ReactElement {
   const [creditAccounts, setCreditAccounts] = useState<
     { name: string; limitCents: number; usedCents: number }[]
   >([]);
-  const [creditAccountIds, setCreditAccountIds] = useState<Set<string>>(
-    new Set()
-  );
+  const [creditAccountIds, setCreditAccountIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('/api/v1/balance', { credentials: 'include' })
@@ -64,11 +62,9 @@ export default function DashboardPage(): React.ReactElement {
       .then((res) => res.json())
       .then((json) => {
         if (json.data) {
-          const ids = new Set<string>(
-            json.data
-              .filter((a: { type: string }) => a.type === 'credit')
-              .map((a: { id: string }) => a.id)
-          );
+          const ids = json.data
+            .filter((a: { type: string }) => a.type === 'credit')
+            .map((a: { id: string }) => a.id);
           setCreditAccountIds(ids);
         }
       })
@@ -103,8 +99,9 @@ export default function DashboardPage(): React.ReactElement {
 
   const totals = useMemo(() => {
     // Exclude transactions on credit accounts from cash totals
+    const creditSet = new Set(creditAccountIds);
     const cashTransactions = transactions.filter(
-      (tx) => !creditAccountIds.has(tx.accountId)
+      (tx) => !creditSet.has(tx.accountId)
     );
     const income = cashTransactions
       .filter((tx) => tx.type === 'income')
