@@ -754,6 +754,7 @@ export async function updateDebt(
     due_day?: number;
     status?: DebtStatus;
     actual_payment_cents?: number | null;
+    accountId?: string;
   }
 ): Promise<Debt> {
   const response = await fetchApi<{ data: Debt }>(`/v1/debts/${id}`, {
@@ -774,6 +775,7 @@ export async function updateDebt(
       dueDay: input.due_day,
       status: input.status,
       actualPaymentCents: input.actual_payment_cents,
+      accountId: input.accountId,
     }),
   });
   return response.data;

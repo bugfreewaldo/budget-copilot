@@ -6,12 +6,23 @@ import {
   updateTransaction,
   createAccount,
   listCategories,
+  listDebts,
+  updateDebt,
   getAccounts,
   getToday,
   type Category,
+  type Debt,
   type Transaction,
 } from '@/lib/api';
 import { useToast } from '@/components/ui/toast';
+
+interface PaymentSource {
+  id: string; // accountId
+  label: string;
+  emoji: string;
+  isCredit: boolean;
+  debtId?: string; // linked debt ID for credit cards
+}
 
 interface CreateTransactionModalProps {
   isOpen: boolean;
@@ -37,6 +48,7 @@ export function CreateTransactionModal({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [paymentSources, setPaymentSources] = useState<PaymentSource[]>([]);
   const { showToast } = useToast();
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,7 +57,6 @@ export function CreateTransactionModal({
   // Reset form and load data when modal opens
   useEffect(() => {
     if (isOpen) {
-      // If editing, populate form with existing values
       if (editingTransaction) {
         setType(editingTransaction.type);
         setAmount((Math.abs(editingTransaction.amountCents) / 100).toString());
@@ -53,6 +64,7 @@ export function CreateTransactionModal({
         setCategoryId(editingTransaction.categoryId || '');
         setSensitive(editingTransaction.sensitive ?? false);
         setDate(editingTransaction.date);
+        setAccountId(editingTransaction.accountId);
       } else {
         setType(defaultType);
         setAmount('');
@@ -62,42 +74,115 @@ export function CreateTransactionModal({
         setDate(getToday());
       }
 
-      // Load categories (flat=true to get all including subcategories)
+      // Load categories
       listCategories({ limit: 500, flat: true })
         .then((result) => setCategories(result.data))
         .catch(() => setCategories([]));
 
-      // Get or create default account (hidden from user)
-      getAccounts()
-        .then(async (result) => {
-          if (result.length === 0) {
-            // Create a default "Efectivo" account
-            try {
-              const newAccount = await createAccount({
-                name: 'Efectivo',
-                type: 'cash',
-              });
-              setAccountId(newAccount.id);
-            } catch {
-              setAccountId(null);
-              showToast(
-                'Could not create a default account. Please try again.',
-                'error'
-              );
-            }
-          } else {
-            setAccountId(result[0]!.id);
-          }
-        })
-        .catch(() => {
-          setAccountId(null);
-          showToast('Could not load accounts. Please try again.', 'error');
-        });
+      // Load accounts + credit card debts to build payment sources
+      loadPaymentSources();
 
-      // Focus amount input when modal opens
       setTimeout(() => amountInputRef.current?.focus(), 100);
     }
   }, [isOpen, defaultType, editingTransaction]);
+
+  async function loadPaymentSources() {
+    try {
+      const [accountsResult, debtsResult] = await Promise.all([
+        getAccounts(),
+        listDebts({ status: 'active' }).catch(() => ({ data: [] as Debt[] })),
+      ]);
+
+      let accts = accountsResult;
+
+      // If no accounts exist, create a default cash account
+      if (accts.length === 0) {
+        try {
+          const newAccount = await createAccount({
+            name: 'Efectivo',
+            type: 'cash',
+          });
+          accts = [newAccount];
+        } catch {
+          showToast('Could not create a default account.', 'error');
+          return;
+        }
+      }
+
+      const sources: PaymentSource[] = [];
+
+      // Add regular (non-credit) accounts
+      const typeEmoji: Record<string, string> = {
+        cash: '💵',
+        checking: '🏦',
+        savings: '🐷',
+        credit: '💳',
+      };
+
+      for (const acc of accts) {
+        if (acc.type !== 'credit') {
+          sources.push({
+            id: acc.id,
+            label: acc.name,
+            emoji: typeEmoji[acc.type] || '💵',
+            isCredit: false,
+          });
+        }
+      }
+
+      // Add credit card debts as payment sources
+      const creditCardDebts = (debtsResult.data || []).filter(
+        (d) => d.type === 'credit_card'
+      );
+
+      for (const debt of creditCardDebts) {
+        let linkedAccountId = debt.accountId;
+
+        // If debt doesn't have a linked account yet, create one
+        if (!linkedAccountId) {
+          const existingCreditAcct = accts.find(
+            (a) => a.type === 'credit' && a.name === debt.name
+          );
+          if (existingCreditAcct) {
+            linkedAccountId = existingCreditAcct.id;
+          } else {
+            try {
+              const newCreditAcct = await createAccount({
+                name: debt.name,
+                type: 'credit',
+                creditLimitCents: debt.originalBalanceCents,
+              });
+              linkedAccountId = newCreditAcct.id;
+              // Link the debt to this account
+              await updateDebt(debt.id, { accountId: newCreditAcct.id });
+            } catch {
+              continue; // skip this CC if we can't create the account
+            }
+          }
+        }
+
+        sources.push({
+          id: linkedAccountId,
+          label: debt.name,
+          emoji: '💳',
+          isCredit: true,
+          debtId: debt.id,
+        });
+      }
+
+      setPaymentSources(sources);
+
+      // Set default account
+      if (!editingTransaction) {
+        const defaultSource = sources.find((s) => !s.isCredit) || sources[0];
+        setAccountId(defaultSource?.id ?? null);
+      }
+    } catch {
+      showToast('Could not load accounts.', 'error');
+    }
+  }
+
+  const selectedSource = paymentSources.find((s) => s.id === accountId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +199,7 @@ export function CreateTransactionModal({
     }
 
     if (!accountId) {
-      showToast('Error: Could not create account. Please try again.', 'error');
+      showToast('Error: No account selected.', 'error');
       return;
     }
 
@@ -296,6 +381,40 @@ export function CreateTransactionModal({
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 disabled:opacity-50 transition-all"
               />
             </div>
+
+            {/* Payment Source (Account / Credit Card) */}
+            {paymentSources.length > 1 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Pay with
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {paymentSources.map((source) => (
+                    <button
+                      key={source.id}
+                      type="button"
+                      onClick={() => setAccountId(source.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        accountId === source.id
+                          ? source.isCredit
+                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/50'
+                            : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50'
+                          : 'bg-gray-800 text-gray-400 border border-gray-700 hover:bg-gray-700'
+                      }`}
+                    >
+                      <span>{source.emoji}</span>
+                      {source.label}
+                    </button>
+                  ))}
+                </div>
+                {selectedSource?.isCredit && (
+                  <p className="text-xs text-purple-400 mt-1.5">
+                    💳 This won't affect your cash balance — tracked as credit
+                    card usage.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Category */}
             <div>
