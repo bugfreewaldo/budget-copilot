@@ -200,6 +200,7 @@ export async function createAccount(input: {
   name: string;
   institution?: string;
   type: 'checking' | 'savings' | 'credit' | 'cash';
+  creditLimitCents?: number;
 }): Promise<Account> {
   const response = await fetchApi<{ data: Account }>('/v1/accounts', {
     method: 'POST',
