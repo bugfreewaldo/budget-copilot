@@ -42,12 +42,42 @@ export default function DashboardPage(): React.ReactElement {
     null
   );
 
+  const [creditAccounts, setCreditAccounts] = useState<
+    { name: string; limitCents: number; usedCents: number }[]
+  >([]);
+
   useEffect(() => {
     fetch('/api/v1/balance', { credentials: 'include' })
       .then((res) => res.json())
       .then((json) => {
         if (json.data?.currentBalanceCents !== undefined) {
           setCumulativeBalance(json.data.currentBalanceCents);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch credit card accounts
+    fetch('/api/v1/accounts', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data) {
+          const ccs = json.data
+            .filter(
+              (a: { type: string; creditLimitCents?: number | null }) =>
+                a.type === 'credit' && a.creditLimitCents
+            )
+            .map(
+              (a: {
+                name: string;
+                creditLimitCents: number;
+                currentBalanceCents?: number;
+              }) => ({
+                name: a.name,
+                limitCents: a.creditLimitCents,
+                usedCents: Math.abs(a.currentBalanceCents || 0),
+              })
+            );
+          setCreditAccounts(ccs);
         }
       })
       .catch(() => {});
@@ -197,6 +227,56 @@ export default function DashboardPage(): React.ReactElement {
               </p>
             </div>
           </div>
+
+          {/* Credit Card Available */}
+          {creditAccounts.length > 0 && (
+            <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {creditAccounts.map((cc) => {
+                const availableCents = cc.limitCents - cc.usedCents;
+                const usedPercent =
+                  cc.limitCents > 0 ? (cc.usedCents / cc.limitCents) * 100 : 0;
+                return (
+                  <div
+                    key={cc.name}
+                    className="bg-gray-900/50 backdrop-blur-xl rounded-xl border border-gray-800 p-3 lg:p-4"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                        <span>💳</span> {cc.name}
+                      </p>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-medium">
+                        CREDIT
+                      </span>
+                    </div>
+                    <p className="text-lg font-bold text-purple-400">
+                      {formatCents(availableCents)}{' '}
+                      <span className="text-xs text-gray-500 font-normal">
+                        available
+                      </span>
+                    </p>
+                    <div className="mt-2">
+                      <div className="flex justify-between text-[10px] text-gray-500 mb-1">
+                        <span>Used: {formatCents(cc.usedCents)}</span>
+                        <span>Limit: {formatCents(cc.limitCents)}</span>
+                      </div>
+                      <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            usedPercent > 80
+                              ? 'bg-red-500'
+                              : usedPercent > 50
+                                ? 'bg-yellow-500'
+                                : 'bg-purple-500'
+                          }`}
+                          style={{ width: `${Math.min(usedPercent, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-900/30 border border-red-500/50 rounded-lg">

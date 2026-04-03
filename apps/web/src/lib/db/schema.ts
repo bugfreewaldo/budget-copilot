@@ -431,6 +431,7 @@ export const accounts = pgTable(
     currentBalanceCents: bigint('current_balance_cents', {
       mode: 'number',
     }).default(0),
+    creditLimitCents: bigint('credit_limit_cents', { mode: 'number' }),
     createdAt: bigint('created_at', { mode: 'number' })
       .notNull()
       .$defaultFn(() => Date.now()),

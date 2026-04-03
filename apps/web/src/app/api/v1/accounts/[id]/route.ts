@@ -14,6 +14,7 @@ const updateAccountSchema = z
     institution: z.string().max(100).nullable(),
     type: accountTypeSchema,
     currentBalanceCents: z.number().int(),
+    creditLimitCents: z.number().int().nonnegative().nullable(),
   })
   .partial();
 

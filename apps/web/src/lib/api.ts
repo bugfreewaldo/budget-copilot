@@ -186,6 +186,8 @@ export interface Account {
   name: string;
   institution: string | null;
   type: 'checking' | 'savings' | 'credit' | 'cash';
+  creditLimitCents: number | null;
+  currentBalanceCents: number | null;
   createdAt: string;
 }
 

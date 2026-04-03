@@ -15,6 +15,7 @@ const createAccountSchema = z.object({
   name: z.string().min(1).max(100),
   institution: z.string().max(100).optional().default(''),
   type: accountTypeEnum,
+  creditLimitCents: z.number().int().nonnegative().optional().nullable(),
 });
 
 /**
@@ -66,6 +67,8 @@ export async function POST(request: NextRequest) {
       name: data.name,
       institution: data.institution,
       type: data.type,
+      creditLimitCents:
+        data.type === 'credit' ? (data.creditLimitCents ?? null) : null,
       createdAt: now,
     });
 
