@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { eq, desc, and, gte, lte, like } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { getDb } from '@/lib/db/client';
-import { transactions } from '@/lib/db/schema';
+import { transactions, accounts, debts } from '@/lib/db/schema';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import {
   json,
@@ -126,6 +126,41 @@ export async function POST(request: NextRequest) {
       createdAt: now,
       updatedAt: now,
     });
+
+    // If this transaction is on a credit account, update the linked debt balance
+    const [account] = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.id, data.accountId));
+
+    if (account && account.type === 'credit') {
+      // Find the debt linked to this account
+      const [linkedDebt] = await db
+        .select()
+        .from(debts)
+        .where(
+          and(
+            eq(debts.accountId, data.accountId),
+            eq(debts.userId, auth.user.id)
+          )
+        );
+
+      if (linkedDebt) {
+        // Expense on CC increases debt, payment (income) decreases it
+        const balanceChange =
+          data.type === 'expense'
+            ? Math.abs(data.amountCents)
+            : -Math.abs(data.amountCents);
+
+        await db
+          .update(debts)
+          .set({
+            currentBalanceCents: linkedDebt.currentBalanceCents + balanceChange,
+            updatedAt: now,
+          })
+          .where(eq(debts.id, linkedDebt.id));
+      }
+    }
 
     const [transaction] = await db
       .select()
