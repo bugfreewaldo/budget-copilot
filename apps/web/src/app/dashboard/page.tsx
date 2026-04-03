@@ -45,6 +45,9 @@ export default function DashboardPage(): React.ReactElement {
   const [creditAccounts, setCreditAccounts] = useState<
     { name: string; limitCents: number; usedCents: number }[]
   >([]);
+  const [creditAccountIds, setCreditAccountIds] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     fetch('/api/v1/balance', { credentials: 'include' })
@@ -52,6 +55,21 @@ export default function DashboardPage(): React.ReactElement {
       .then((json) => {
         if (json.data?.currentBalanceCents !== undefined) {
           setCumulativeBalance(json.data.currentBalanceCents);
+        }
+      })
+      .catch(() => {});
+
+    // Fetch accounts to identify credit account IDs
+    fetch('/api/v1/accounts', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data) {
+          const ids = new Set<string>(
+            json.data
+              .filter((a: { type: string }) => a.type === 'credit')
+              .map((a: { id: string }) => a.id)
+          );
+          setCreditAccountIds(ids);
         }
       })
       .catch(() => {});
@@ -84,15 +102,19 @@ export default function DashboardPage(): React.ReactElement {
   }, [transactions]);
 
   const totals = useMemo(() => {
-    const income = transactions
+    // Exclude transactions on credit accounts from cash totals
+    const cashTransactions = transactions.filter(
+      (tx) => !creditAccountIds.has(tx.accountId)
+    );
+    const income = cashTransactions
       .filter((tx) => tx.type === 'income')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
-    const expenses = transactions
+    const expenses = cashTransactions
       .filter((tx) => tx.type === 'expense')
       .reduce((sum, tx) => sum + Math.abs(tx.amountCents), 0);
     const balance = income - expenses;
     return { income, expenses, balance };
-  }, [transactions, cumulativeBalance]);
+  }, [transactions, cumulativeBalance, creditAccountIds]);
 
   const monthLabel = new Date().toLocaleDateString('en-US', {
     month: 'long',

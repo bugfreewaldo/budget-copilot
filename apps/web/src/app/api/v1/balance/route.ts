@@ -26,16 +26,25 @@ export async function GET(request: NextRequest) {
     const db = getDb();
     const userId = auth.user.id;
 
+    // Get credit account IDs to exclude from cash balance
+    const userAccounts = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId));
+    const creditAccountIds = new Set(
+      userAccounts.filter((a) => a.type === 'credit').map((a) => a.id)
+    );
+
     // Calculate current balance from all transactions
     const userTransactions = await db
       .select()
       .from(transactions)
       .where(eq(transactions.userId, userId));
 
-    const currentBalanceCents = userTransactions.reduce(
-      (sum, tx) => sum + tx.amountCents,
-      0
-    );
+    // Cash balance excludes transactions on credit accounts
+    const currentBalanceCents = userTransactions
+      .filter((tx) => !creditAccountIds.has(tx.accountId))
+      .reduce((sum, tx) => sum + tx.amountCents, 0);
 
     // Find last balance adjustment
     const lastAdjustment = userTransactions
